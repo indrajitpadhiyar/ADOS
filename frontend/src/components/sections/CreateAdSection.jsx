@@ -37,7 +37,7 @@ import {
   Search,
   CheckCheck,
   Copy,
-  DollarSign,
+  IndianRupee,
   Rocket,
   X,
   Info,
@@ -54,7 +54,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "Advantage+ shopping, Feed & Reels",
     recommendedShare: 35,
     minDaily: 25,
-    estCpc: "$0.48",
+    estCpc: "₹0.48",
     estRoas: "4.35x",
     color: "#1877F2",
   },
@@ -65,7 +65,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "Performance Max, Search & Shopping",
     recommendedShare: 25,
     minDaily: 30,
-    estCpc: "$0.82",
+    estCpc: "₹0.82",
     estRoas: "4.15x",
     color: "#0F9D58",
   },
@@ -76,7 +76,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "High-intent marketplace buyers",
     recommendedShare: 15,
     minDaily: 35,
-    estCpc: "$0.95",
+    estCpc: "₹0.95",
     estRoas: "5.10x",
     color: "#d97706",
   },
@@ -87,7 +87,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "High video retention & sound sync",
     recommendedShare: 10,
     minDaily: 20,
-    estCpc: "$0.32",
+    estCpc: "₹0.32",
     estRoas: "3.60x",
     color: "#DC2626",
   },
@@ -98,7 +98,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "Decision makers & enterprise buyers",
     recommendedShare: 15,
     minDaily: 40,
-    estCpc: "$2.10",
+    estCpc: "₹2.10",
     estRoas: "3.90x",
     color: "#0A66C2",
   },
@@ -109,7 +109,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "Visual inspiration & lifestyle shopping",
     recommendedShare: 10,
     minDaily: 20,
-    estCpc: "$0.36",
+    estCpc: "₹0.36",
     estRoas: "3.80x",
     color: "#E60023",
   },
@@ -120,7 +120,7 @@ const AVAILABLE_PLATFORMS = [
     desc: "Gen-Z vertical video immersion",
     recommendedShare: 10,
     minDaily: 20,
-    estCpc: "$0.28",
+    estCpc: "₹0.28",
     estRoas: "3.70x",
     color: "#eab308",
   },
@@ -137,8 +137,8 @@ const SAMPLE_POSTERS = [
     headline: "Immersive Studio Sound Without The Studio Price",
     caption:
       "Experience spatial acoustics with 48h battery life. Engineered for creators, audiophiles, and daily commuters. 14-day risk-free trial.",
-    price: "$149.00",
-    originalPrice: "$249.00",
+    price: "₹149.00",
+    originalPrice: "₹249.00",
     rating: "4.9",
     reviews: "3,420",
     ctr: "5.12%",
@@ -153,8 +153,8 @@ const SAMPLE_POSTERS = [
     headline: "Wake Up With Glass Skin. 100% Plant Bio-Retinol",
     caption:
       "Dermatologist approved formula clinically proven to restore skin barrier in 7 nights. Vegan, cruelty-free, zero filler ingredients.",
-    price: "$38.00",
-    originalPrice: "$58.00",
+    price: "₹38.00",
+    originalPrice: "₹58.00",
     rating: "4.95",
     reviews: "1,890",
     ctr: "4.78%",
@@ -169,8 +169,8 @@ const SAMPLE_POSTERS = [
     headline: "The Featherlight Runner That Broke The Internet",
     caption:
       "Zero-gravity foam cushioning meets aerodynamic knit mesh. Built for marathon training or everyday city sprinting. Free shipping worldwide.",
-    price: "$89.00",
-    originalPrice: "$140.00",
+    price: "₹89.00",
+    originalPrice: "₹140.00",
     rating: "4.88",
     reviews: "5,120",
     ctr: "5.45%",
@@ -185,8 +185,8 @@ const SAMPLE_POSTERS = [
     headline: "Architectural Precision. Sapphire Crystal Movement",
     caption:
       "Crafted from aerospace titanium with scratch-resistant sapphire crystal. A timeless statement piece designed for modern innovators.",
-    price: "$210.00",
-    originalPrice: "$350.00",
+    price: "₹210.00",
+    originalPrice: "₹350.00",
     rating: "4.92",
     reviews: "890",
     ctr: "4.35%",
@@ -206,8 +206,8 @@ const SAMPLE_VIDEOS = [
       "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&auto=format&fit=crop&q=80",
     headline: "Stop Wasting 70% Of Your Daily Ad Budget",
     caption:
-      "POV: You switched your brand to autonomous bid routing and your Meta CPA dropped from $38 to $8 in 72 hours. Check the full case study.",
-    captionsHook: "🔥 'Wait... did my CPA just drop to $8?!'",
+      "POV: You switched your brand to autonomous bid routing and your Meta CPA dropped from ₹3,200 to ₹650 in 72 hours. Check the full case study.",
+    captionsHook: "🔥 'Wait... did my CPA just drop to ₹650?!'",
     soundTrack: "Trending Commercial Beat (128 BPM)",
     duration: "15s",
     ctr: "6.24%",
@@ -296,8 +296,8 @@ export default function CreateAdSection({ onAdCreated }) {
   // Poster specific customization
   const [selectedPoster, setSelectedPoster] = useState(SAMPLE_POSTERS[0]);
   const [posterBadge, setPosterBadge] = useState("🔥 40% OFF THIS WEEK");
-  const [posterPrice, setPosterPrice] = useState("$149.00");
-  const [posterOriginalPrice, setPosterOriginalPrice] = useState("$249.00");
+  const [posterPrice, setPosterPrice] = useState("₹149.00");
+  const [posterOriginalPrice, setPosterOriginalPrice] = useState("₹249.00");
 
   // Video specific customization
   const [selectedVideo, setSelectedVideo] = useState(SAMPLE_VIDEOS[0]);
@@ -400,7 +400,7 @@ export default function CreateAdSection({ onAdCreated }) {
     const dailyAmt = Math.round((totalDailyBudget * weight) / activeWeightsSum);
     const monthlyAmt = dailyAmt * 30;
     const estClicks = Math.round(
-      dailyAmt / (parseFloat(p.estCpc.replace("$", "")) || 0.5),
+      dailyAmt / (parseFloat(p.estCpc.replace(/[^\d.]/g, "")) || 0.5),
     );
     const estImpressions = Math.round(estClicks * 38);
     return {
@@ -505,7 +505,7 @@ export default function CreateAdSection({ onAdCreated }) {
     setTimeout(() => {
       const platformNames = activePlatforms.map((p) => p.name).join(", ");
       setLaunchStepText(
-        `Synchronizing $${totalDailyBudget.toLocaleString()}/day budget across ${activePlatforms.length} active networks (${platformNames})...`,
+        `Synchronizing ₹${totalDailyBudget.toLocaleString()}/day budget across ${activePlatforms.length} active networks (${platformNames})...`,
       );
     }, 750);
 
@@ -615,7 +615,7 @@ export default function CreateAdSection({ onAdCreated }) {
                     Total Blended Spend
                   </span>
                   <div className="text-xl font-black text-[#111113]">
-                    ${campaignLaunchedData.totalDailyBudget.toLocaleString()}
+                    ₹{campaignLaunchedData.totalDailyBudget.toLocaleString()}
                     <span className="text-xs text-slate-400 font-normal">
                       {" "}
                       / day
@@ -627,7 +627,7 @@ export default function CreateAdSection({ onAdCreated }) {
                     Monthly Projection
                   </span>
                   <div className="text-sm font-extrabold text-emerald-600">
-                    $
+                    ₹
                     {(
                       campaignLaunchedData.totalDailyBudget * 30
                     ).toLocaleString()}{" "}
@@ -664,10 +664,10 @@ export default function CreateAdSection({ onAdCreated }) {
                       </div>
                       <div className="text-right">
                         <div className="font-black text-slate-900">
-                          ${item.dailyAmt}/day
+                          ₹{item.dailyAmt}/day
                         </div>
                         <div className="text-[10px] text-slate-500">
-                          ${item.monthlyAmt.toLocaleString()}/mo
+                          ₹{item.monthlyAmt.toLocaleString()}/mo
                         </div>
                       </div>
                     </div>
@@ -1411,7 +1411,7 @@ export default function CreateAdSection({ onAdCreated }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                      <IndianRupee className="w-4 h-4 text-emerald-600" />
                       <h4 className="text-sm font-extrabold text-[#111113]">
                         Platform Budgets & Capital Allocation
                       </h4>
@@ -1426,7 +1426,7 @@ export default function CreateAdSection({ onAdCreated }) {
                       Blended Daily Cap
                     </span>
                     <span className="text-lg font-black text-[#111113]">
-                      ${totalDailyBudget.toLocaleString()}
+                      ₹{totalDailyBudget.toLocaleString()}
                       <span className="text-xs text-slate-400 font-normal">
                         {" "}
                         / day
@@ -1453,7 +1453,7 @@ export default function CreateAdSection({ onAdCreated }) {
                               : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                           }`}
                         >
-                          ${amt.toLocaleString()}
+                          ₹{amt.toLocaleString()}
                         </button>
                       ))}
                     </div>
@@ -1489,7 +1489,7 @@ export default function CreateAdSection({ onAdCreated }) {
                           backgroundColor: item.color,
                         }}
                         className="h-full transition-all duration-300"
-                        title={`${item.name}: ${item.sharePct}% ($${item.dailyAmt}/day)`}
+                        title={`${item.name}: ${item.sharePct}% (₹${item.dailyAmt}/day)`}
                       />
                     ))}
                   </div>
@@ -1563,7 +1563,7 @@ export default function CreateAdSection({ onAdCreated }) {
                               Daily Budget
                             </span>
                             <div className="text-sm font-black text-slate-900">
-                              ${item.dailyAmt.toLocaleString()}
+                              ₹{item.dailyAmt.toLocaleString()}
                               <span className="text-[10px] text-slate-400 font-normal">
                                 {" "}
                                 / day
@@ -1575,7 +1575,7 @@ export default function CreateAdSection({ onAdCreated }) {
                               Monthly Spend
                             </span>
                             <div className="text-xs font-bold text-slate-700">
-                              ${item.monthlyAmt.toLocaleString()} / mo
+                              ₹{item.monthlyAmt.toLocaleString()} / mo
                             </div>
                           </div>
                         </div>

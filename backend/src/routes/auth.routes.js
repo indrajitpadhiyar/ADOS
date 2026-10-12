@@ -18,11 +18,22 @@ import {
   resendVerificationSchema,
 } from "../validations/auth.validation.js";
 
+import { GoogleAdsController } from "../controllers/googleAds.controller.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+
 const router = Router();
 
 /**
  * Public Authentication Routes
  */
+// Fallback for Google OAuth callback if redirected to the exact base URI configured in Google Cloud Console
+router.get("/", (req, res, next) => {
+  if (req.query.code || req.query.error) {
+    return GoogleAdsController.handleCallback(req, res, next);
+  }
+  return ApiResponse.success(res, "ADOS Authentication API operational");
+});
+
 router.post("/register", authLimiter, validate(registerSchema), AuthController.register);
 router.post("/login", authLimiter, validate(loginSchema), AuthController.login);
 router.post("/google", authLimiter, AuthController.google);

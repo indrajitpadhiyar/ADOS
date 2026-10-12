@@ -192,4 +192,65 @@ export const api = {
     });
     return handleResponse(res);
   },
+
+  // Google Ads API Integration (Developer Testing Mode)
+  async getGoogleAdsStatus() {
+    const res = await fetch(`${API_BASE}/google-ads/status`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getGoogleAdsAuthUrl() {
+    const res = await fetch(`${API_BASE}/google-ads/auth-url`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getGoogleAdsAccounts() {
+    const res = await fetch(`${API_BASE}/google-ads/accounts`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async selectGoogleAdsAccount(customerId, managerId = null) {
+    const res = await fetch(`${API_BASE}/google-ads/select-account`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify({ customerId, managerId }),
+    });
+    return handleResponse(res);
+  },
+
+  async getGoogleAdsCampaigns(params = {}) {
+    const query = new URLSearchParams();
+    if (params.dateRange) query.append("dateRange", params.dateRange);
+    if (params.limit) query.append("limit", params.limit);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await fetch(`${API_BASE}/google-ads/campaigns${qs}`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async disconnectGoogleAds() {
+    const res = await fetch(`${API_BASE}/google-ads/disconnect`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
 };

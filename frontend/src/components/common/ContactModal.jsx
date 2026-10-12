@@ -7,7 +7,7 @@ export default function ContactModal({ isOpen, onClose }) {
     name: "",
     email: "",
     company: "",
-    monthlyAdSpend: "$10k - $50k",
+    monthlyAdSpend: "₹10k - ₹50k",
     message: "",
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -22,7 +22,7 @@ export default function ContactModal({ isOpen, onClose }) {
         name: "",
         email: "",
         company: "",
-        monthlyAdSpend: "$10k - $50k",
+        monthlyAdSpend: "₹10k - ₹50k",
         message: "",
       });
     }, 2000);
@@ -128,10 +128,10 @@ export default function ContactModal({ isOpen, onClose }) {
                         onChange={(e) => setForm({ ...form, monthlyAdSpend: e.target.value })}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-black focus:outline-none"
                       >
-                        <option>$5k - $10k</option>
-                        <option>$10k - $50k</option>
-                        <option>$50k - $250k</option>
-                        <option>$250k+</option>
+                        <option>₹5k - ₹10k</option>
+                        <option>₹10k - ₹50k</option>
+                        <option>₹50k - ₹250k</option>
+                        <option>₹250k+</option>
                       </select>
                     </div>
                   </div>

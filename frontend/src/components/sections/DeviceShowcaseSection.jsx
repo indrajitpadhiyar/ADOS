@@ -204,7 +204,7 @@ export default function DeviceShowcaseSection() {
                         Revenue amount
                       </div>
                       <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight flex items-baseline gap-1.5 sm:gap-2">
-                        $ 1 342,567
+                        ₹ 1,342,567
                         <span className="text-[11px] sm:text-xs font-bold text-emerald-600 flex items-center gap-0.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           +18%
@@ -261,12 +261,12 @@ export default function DeviceShowcaseSection() {
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-100">
                       <div className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">Total profit</div>
                       <div className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 mt-1">
-                        $ 264.2K
+                        ₹ 264.2K
                       </div>
                       <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
                         <div className="bg-emerald-500 h-full w-[27%]" />
                       </div>
-                      <div className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 font-medium">27% / $71.2K</div>
+                      <div className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 font-medium">27% / ₹71.2K</div>
                     </div>
 
                     {/* Card 2: Sales Revenue */}
@@ -278,12 +278,12 @@ export default function DeviceShowcaseSection() {
                         <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">Sales revenue</span>
                       </div>
                       <div className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 mt-1">
-                        $ 132.4K
+                        ₹ 132.4K
                       </div>
                       <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
                         <div className="bg-indigo-600 h-full w-[80%]" />
                       </div>
-                      <div className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 font-medium">80% / $160K</div>
+                      <div className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 font-medium">80% / ₹160K</div>
                     </div>
 
                     {/* Card 3: Average Bill */}
@@ -295,7 +295,7 @@ export default function DeviceShowcaseSection() {
                         <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold">Average bill</span>
                       </div>
                       <div className="text-sm sm:text-base lg:text-lg font-extrabold text-slate-900 mt-1">
-                        $ 1,090
+                        ₹ 1,090
                       </div>
                       <div className="text-[9px] sm:text-[10px] text-emerald-600 font-bold mt-2">
                         +14% vs last week
@@ -348,7 +348,7 @@ export default function DeviceShowcaseSection() {
                 {/* Big Metric */}
                 <div className="text-center py-1">
                   <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-2">
-                    $ 1 342,567
+                    ₹ 1,342,567
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                       +18%
                     </span>
@@ -384,7 +384,7 @@ export default function DeviceShowcaseSection() {
                         </span>
                         <span className="text-[9px] text-slate-400 font-semibold">Total profit</span>
                       </div>
-                      <div className="text-xs sm:text-[13px] font-extrabold text-slate-900 mt-0.5">$ 264.2K</div>
+                      <div className="text-xs sm:text-[13px] font-extrabold text-slate-900 mt-0.5">₹ 264.2K</div>
                     </div>
 
                     <div className="bg-white p-2 rounded-xl border border-slate-200/80 shadow-xs">
@@ -394,7 +394,7 @@ export default function DeviceShowcaseSection() {
                         </span>
                         <span className="text-[9px] text-slate-400 font-semibold">Sales revenue</span>
                       </div>
-                      <div className="text-xs sm:text-[13px] font-extrabold text-slate-900 mt-0.5">$ 132.4K</div>
+                      <div className="text-xs sm:text-[13px] font-extrabold text-slate-900 mt-0.5">₹ 132.4K</div>
                     </div>
                   </div>
 

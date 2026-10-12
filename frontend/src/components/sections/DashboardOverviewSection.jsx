@@ -4,7 +4,7 @@ import PlatformLogo from "../common/PlatformLogo";
 import { api } from "../../services/api";
 import {
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   ShoppingCart,
   Users,
   Search,
@@ -50,7 +50,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
   // Live campaigns fetched from backend MongoDB
   const [campaigns, setCampaigns] = useState([]);
   const [stats, setStats] = useState({
-    totalSpend: "$35,960",
+    totalSpend: "₹35,960",
     blendedRoas: "4.85x",
     totalConversions: "6,979",
     activeAds: 0,
@@ -67,7 +67,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
             name: ad.name,
             platform: ad.platform === "meta" ? "facebook" : ad.platform,
             category: ad.category || `${ad.platform} Ads`,
-            price: ad.spend || "$0",
+            price: ad.spend ? ad.spend.replace("$", "₹") : "₹0",
             pacingPercent: ad.pacingPercent || 75,
             pacingColor: ad.pacingColor || "bg-[#0f766e]",
             stockVal: ad.budget || 100,
@@ -87,7 +87,10 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
 
         const statsData = await api.getAdStats();
         if (statsData) {
-          setStats(statsData);
+          setStats({
+            ...statsData,
+            totalSpend: statsData.totalSpend ? statsData.totalSpend.replace("$", "₹") : "₹35,960",
+          });
         }
       } catch (err) {
         console.warn("Telemetry fetch notice:", err.message);
@@ -144,7 +147,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
         campaignsBadge: "+18% this month",
         activeAds: "184",
         activeAdsBadge: "+12% this week",
-        revenue: "$48,200",
+        revenue: "₹48,200",
         revenueBadge: "+24% this month",
         roas: "5.18x",
         roasBadge: "+14% growth",
@@ -157,7 +160,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
         campaignsBadge: "+10% this month",
         activeAds: "112",
         activeAdsBadge: "+6% this week",
-        revenue: "$32,800",
+        revenue: "₹32,800",
         revenueBadge: "+15% this month",
         roas: "4.65x",
         roasBadge: "+8% growth",
@@ -170,7 +173,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
         campaignsBadge: "+25% this month",
         activeAds: "68",
         activeAdsBadge: "+9% this week",
-        revenue: "$18,400",
+        revenue: "₹18,400",
         revenueBadge: "+31% this month",
         roas: "4.10x",
         roasBadge: "+11% growth",
@@ -183,7 +186,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
         campaignsBadge: "+8% this month",
         activeAds: "42",
         activeAdsBadge: "+4% this week",
-        revenue: "$14,650",
+        revenue: "₹14,650",
         revenueBadge: "+19% this month",
         roas: "5.85x",
         roasBadge: "+16% growth",
@@ -196,7 +199,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
       campaignsBadge: "+12% this month",
       activeAds: "356",
       activeAdsBadge: "+8% this week",
-      revenue: "$124,450",
+      revenue: "₹124,450",
       revenueBadge: "+18% this month",
       roas: "4.82x",
       roasBadge: "+9% growth",
@@ -234,15 +237,15 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
   const monthlyCards = useMemo(() => {
     if (selectedPlatform === "facebook") {
       return [
-        { month: "January", shortMonth: "Jan", val: "$12,400", rawVal: 12400, sub: "Baseline", isUp: false },
-        { month: "February", shortMonth: "Feb", val: "$18,200", rawVal: 18200, sub: "+46.7%", isUp: true },
-        { month: "March", shortMonth: "Mar", val: "$24,800", rawVal: 24800, sub: "+36.2%", isUp: true },
+        { month: "January", shortMonth: "Jan", val: "₹12,400", rawVal: 12400, sub: "Baseline", isUp: false },
+        { month: "February", shortMonth: "Feb", val: "₹18,200", rawVal: 18200, sub: "+46.7%", isUp: true },
+        { month: "March", shortMonth: "Mar", val: "₹24,800", rawVal: 24800, sub: "+36.2%", isUp: true },
       ];
     }
     return [
-      { month: "January", shortMonth: "Jan", val: "$8,200", rawVal: 8200, sub: "Baseline", isUp: false },
-      { month: "February", shortMonth: "Feb", val: "$9,100", rawVal: 9100, sub: "+11.0%", isUp: true },
-      { month: "March", shortMonth: "Mar", val: "$12,450", rawVal: 12450, sub: "+36.8%", isUp: true },
+      { month: "January", shortMonth: "Jan", val: "₹8,200", rawVal: 8200, sub: "Baseline", isUp: false },
+      { month: "February", shortMonth: "Feb", val: "₹9,100", rawVal: 9100, sub: "+11.0%", isUp: true },
+      { month: "March", shortMonth: "Mar", val: "₹12,450", rawVal: 12450, sub: "+36.8%", isUp: true },
     ];
   }, [selectedPlatform]);
 
@@ -252,23 +255,23 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
     const maxVal = isFacebook ? 28000 : 14000;
     const ticks = isFacebook
       ? [
-          { val: 28000, label: "$28k" },
-          { val: 24000, label: "$24k" },
-          { val: 20000, label: "$20k" },
-          { val: 16000, label: "$16k" },
-          { val: 12000, label: "$12k" },
-          { val: 8000, label: "$8k" },
-          { val: 4000, label: "$4k" },
+          { val: 28000, label: "₹28k" },
+          { val: 24000, label: "₹24k" },
+          { val: 20000, label: "₹20k" },
+          { val: 16000, label: "₹16k" },
+          { val: 12000, label: "₹12k" },
+          { val: 8000, label: "₹8k" },
+          { val: 4000, label: "₹4k" },
           { val: 0, label: "0" },
         ]
       : [
-          { val: 14000, label: "$14k" },
-          { val: 12000, label: "$12k" },
-          { val: 10000, label: "$10k" },
-          { val: 8000, label: "$8k" },
-          { val: 6000, label: "$6k" },
-          { val: 4000, label: "$4k" },
-          { val: 2000, label: "$2k" },
+          { val: 14000, label: "₹14k" },
+          { val: 12000, label: "₹12k" },
+          { val: 10000, label: "₹10k" },
+          { val: 8000, label: "₹8k" },
+          { val: 6000, label: "₹6k" },
+          { val: 4000, label: "₹4k" },
+          { val: 2000, label: "₹2k" },
           { val: 0, label: "0" },
         ];
 
@@ -516,11 +519,11 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
                 </p>
               </div>
 
-              {/* Legend: Revenue (USD) pill & Trend line */}
+              {/* Legend: Revenue (INR / ₹) pill & Trend line */}
               <div className="flex items-center gap-4 text-xs font-medium text-slate-600 self-start sm:self-auto">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3.5 h-3.5 rounded-[4px] bg-[#22a36b] inline-block" />
-                  <span>Revenue (USD)</span>
+                  <span>Revenue (INR / ₹)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-4 h-0.5 bg-[#22a36b] inline-block" />
@@ -756,7 +759,7 @@ export default function DashboardOverviewSection({ user, onNavigate }) {
                       High ROAS Spike — Meta Reels
                     </div>
                     <div className="text-[10px] text-slate-400 mt-0.5">
-                      Scaling budget +$450 recommended
+                      Scaling budget +₹450 recommended
                     </div>
                   </div>
                 </div>

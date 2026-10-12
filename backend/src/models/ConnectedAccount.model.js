@@ -39,11 +39,11 @@ const connectedAccountSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      default: "USD ($)",
+      default: "INR (₹)",
     },
     spendCap: {
       type: String,
-      default: "$25,000/mo",
+      default: "₹25,000/mo",
     },
     iconBg: {
       type: String,

@@ -7,6 +7,7 @@ import ManageAdsPage from "./pages/ManageAdsPage";
 import CreateAdPage from "./pages/CreateAdPage";
 import ManageAccountPage from "./pages/ManageAccountPage";
 import SettingsPage from "./pages/SettingsPage";
+import AddBalancePage from "./pages/AddBalancePage";
 import { api } from "./services/api";
 
 export default function App() {
@@ -172,6 +173,28 @@ export default function App() {
           element={
             user ? (
               <SettingsPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* Add Account Balance Page */}
+        <Route
+          path="/add-balance"
+          element={
+            user ? (
+              <AddBalancePage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/add-balance"
+          element={
+            user ? (
+              <AddBalancePage user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/auth" replace />
             )

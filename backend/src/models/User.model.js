@@ -45,11 +45,11 @@ const userSchema = new mongoose.Schema(
     },
     timezone: {
       type: String,
-      default: "America/New_York (UTC-5)",
+      default: "Asia/Kolkata (UTC+5:30)",
     },
     currency: {
       type: String,
-      default: "USD ($)",
+      default: "INR (₹)",
     },
     apiKey: {
       type: String,

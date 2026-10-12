@@ -5,6 +5,7 @@ import adRoutes from "./ad.routes.js";
 import accountRoutes from "./account.routes.js";
 import teamRoutes from "./team.routes.js";
 import settingsRoutes from "./settings.routes.js";
+import googleAdsRoutes from "./googleAds.routes.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const apiRouter = Router();
@@ -37,6 +38,7 @@ apiRouter.use("/ads", adRoutes);
 apiRouter.use("/accounts", accountRoutes);
 apiRouter.use("/team", teamRoutes);
 apiRouter.use("/settings", settingsRoutes);
+apiRouter.use("/google-ads", googleAdsRoutes);
 
 export default apiRouter;
 

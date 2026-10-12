@@ -40,7 +40,7 @@ const adSchema = new mongoose.Schema(
     },
     spend: {
       type: String,
-      default: "$0",
+      default: "₹0",
     },
     impressions: {
       type: String,
@@ -56,7 +56,7 @@ const adSchema = new mongoose.Schema(
     },
     cpa: {
       type: String,
-      default: "$0.00",
+      default: "₹0.00",
     },
     roas: {
       type: String,

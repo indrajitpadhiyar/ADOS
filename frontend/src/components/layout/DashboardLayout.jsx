@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
+  ArrowRight,
   LogOut,
   Bell,
   Menu,
@@ -10,6 +11,11 @@ import {
   Rocket,
   Sparkles,
   ChevronDown,
+  Wallet,
+  CreditCard,
+  ArrowUpRight,
+  Check,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import DashboardSidebar from "./DashboardSidebar";
 
@@ -19,7 +25,66 @@ export default function DashboardLayout({ children, user, onLogout }) {
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
+  const [isBalanceOpen, setIsBalanceOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  // References for click-outside dismissal
+  const notificationsMenuRef = useRef(null);
+  const balanceMenuRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  // Ad Account Balance state
+  const [balance, setBalance] = useState(() => {
+    try {
+      const stored = localStorage.getItem("ados_user_balance");
+      return stored ? parseFloat(stored) : 101790;
+    } catch {
+      return 101790;
+    }
+  });
+
+  // Sync balance across tabs and pages
+  useEffect(() => {
+    const syncBalance = () => {
+      try {
+        const stored = localStorage.getItem("ados_user_balance");
+        if (stored) setBalance(parseFloat(stored));
+      } catch {}
+    };
+
+    window.addEventListener("balance_updated", syncBalance);
+    window.addEventListener("storage", syncBalance);
+    return () => {
+      window.removeEventListener("balance_updated", syncBalance);
+      window.removeEventListener("storage", syncBalance);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationsMenuRef.current &&
+        !notificationsMenuRef.current.contains(event.target)
+      ) {
+        setIsNotificationsOpen(false);
+      }
+      if (
+        balanceMenuRef.current &&
+        !balanceMenuRef.current.contains(event.target)
+      ) {
+        setIsBalanceOpen(false);
+      }
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Determine active tab from URL path
   const getActiveTab = () => {
@@ -28,6 +93,7 @@ export default function DashboardLayout({ children, user, onLogout }) {
     if (path.includes("create-ads")) return "create-ads";
     if (path.includes("manage-account")) return "manage-account";
     if (path.includes("settings")) return "settings";
+    if (path.includes("add-balance")) return "add-balance";
     return "dashboard";
   };
 
@@ -50,6 +116,9 @@ export default function DashboardLayout({ children, user, onLogout }) {
       case "settings":
         navigate("/settings");
         break;
+      case "add-balance":
+        navigate("/add-balance");
+        break;
       default:
         navigate("/dashboard");
     }
@@ -67,7 +136,7 @@ export default function DashboardLayout({ children, user, onLogout }) {
     {
       id: "n-2",
       title: "Autonomous Budget Reallocation",
-      desc: "Shifted $450 daily budget from YouTube to Meta Advantage+.",
+      desc: "Shifted ₹450 daily budget from YouTube to Meta Advantage+.",
       time: "1h ago",
       unread: true,
     },
@@ -98,6 +167,8 @@ export default function DashboardLayout({ children, user, onLogout }) {
         return "Manage Account";
       case "settings":
         return "Settings";
+      case "add-balance":
+        return "Add Ad Account Balance";
       default:
         return "Dashboard";
     }
@@ -172,9 +243,13 @@ export default function DashboardLayout({ children, user, onLogout }) {
               </button>
 
               {/* Notification Bell */}
-              <div className="relative">
+              <div className="relative" ref={notificationsMenuRef}>
                 <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  onClick={() => {
+                    setIsNotificationsOpen(!isNotificationsOpen);
+                    setIsBalanceOpen(false);
+                    setIsUserMenuOpen(false);
+                  }}
                   className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 relative cursor-pointer transition-colors"
                   aria-label="View notifications"
                 >
@@ -245,35 +320,216 @@ export default function DashboardLayout({ children, user, onLogout }) {
                 <span>Landing Page</span>
               </button>
 
-              {/* User Avatar */}
-              <div className="flex items-center gap-2 pl-1 sm:pl-2">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-[#ff4a22] to-amber-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt={user?.name || "User"} className="w-full h-full object-cover" />
-                  ) : user?.name ? (
-                    user.name.slice(0, 2).toUpperCase()
-                  ) : (
-                    "AD"
+              {/* User Avatar with Profile Dropdown */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => {
+                    setIsUserMenuOpen(!isUserMenuOpen);
+                    setIsNotificationsOpen(false);
+                    setIsBalanceOpen(false);
+                  }}
+                  className="flex items-center gap-2 pl-1 sm:pl-2 cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-[#ff4a22] to-amber-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user?.name || "User"} className="w-full h-full object-cover" />
+                    ) : user?.name ? (
+                      user.name.slice(0, 2).toUpperCase()
+                    ) : (
+                      "AD"
+                    )}
+                  </div>
+                  <div className="hidden sm:flex flex-col text-left">
+                    <span className="text-xs font-bold leading-tight text-[#111113] truncate max-w-[110px]">
+                      {user?.name || "Advertiser"}
+                    </span>
+                    <span className="text-[10px] text-slate-400 leading-tight">
+                      {user?.role ? (user.role === "admin" ? "Workspace Admin" : user.role) : "Workspace Admin"}
+                    </span>
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isUserMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
+                    >
+                      <div className="px-3 py-2 border-b border-slate-100">
+                        <div className="font-bold text-[#111113] truncate">{user?.name || "Advertiser"}</div>
+                        <div className="text-[11px] text-slate-400 truncate">{user?.email || "admin@ados.io"}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          navigate("/settings");
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer text-left"
+                      >
+                        <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
+                        Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          navigate("/manage-account");
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer text-left"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                        Account & Billing
+                      </button>
+                      <div className="border-t border-slate-100 my-1" />
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          handleLogoutAction();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 font-semibold cursor-pointer text-left"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        Sign Out
+                      </button>
+                    </motion.div>
                   )}
-                </div>
-                <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight text-[#111113] truncate max-w-[120px]">
-                    {user?.name || "Advertiser"}
-                  </span>
-                  <span className="text-[10px] text-slate-400 leading-tight">
-                    {user?.role ? (user.role === "admin" ? "Workspace Admin" : user.role) : "Workspace Admin"}
-                  </span>
-                </div>
+                </AnimatePresence>
               </div>
 
-              {/* Sign Out */}
-              <button
-                onClick={handleLogoutAction}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-xs font-bold transition-all cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
+              {/* Balance Button (Replaced Sign Out Button) */}
+              <div className="relative" ref={balanceMenuRef}>
+                <button
+                  onClick={() => {
+                    setIsBalanceOpen(!isBalanceOpen);
+                    setIsNotificationsOpen(false);
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200/90 text-emerald-950 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                  title="View Ad Balance & Wallet"
+                >
+                  <div className="w-5 h-5 rounded-full bg-emerald-600/10 flex items-center justify-center text-emerald-600">
+                    <Wallet className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider hidden md:inline">
+                      Balance:
+                    </span>
+                    <span className="text-xs font-black text-emerald-950">
+                      ₹{balance.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={`w-3 h-3 text-emerald-600 transition-transform duration-200 ${
+                      isBalanceOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Balance Dropdown Popover */}
+                <AnimatePresence>
+                  {isBalanceOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200/90 p-5 z-50 space-y-4"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <Wallet className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-sm text-[#111113] leading-none">
+                              Ad Account Balance
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                              Prepaid Wallet & Credit Line
+                            </div>
+                          </div>
+                        </div>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Active
+                        </span>
+                      </div>
+
+                      {/* Balance Card */}
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md relative overflow-hidden">
+                        <div className="absolute top-0 right-0 -mt-2 -mr-2 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none" />
+                        <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+                          Available Media Spend
+                        </div>
+                        <div className="text-3xl font-black text-white mt-1 tracking-tight flex items-baseline gap-1">
+                          <span>
+                            ₹{balance.toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                          Funds automatically paced across Meta, Google, LinkedIn & connected channels.
+                        </p>
+                      </div>
+
+                      {/* Credit Line & Utilization */}
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                        <div className="flex justify-between text-xs font-bold text-slate-700">
+                          <span className="text-slate-500 font-semibold">Monthly Spend Cap</span>
+                          <span className="text-slate-900">₹50,000.00</span>
+                        </div>
+                        <div className="flex justify-between text-xs font-bold text-slate-700">
+                          <span className="text-slate-500 font-semibold">Cycle Utilization (68%)</span>
+                          <span className="text-emerald-700 font-extrabold">₹34,210 spent</span>
+                        </div>
+                        <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+                          <div className="bg-gradient-to-r from-emerald-500 to-[#ff4a22] h-full rounded-full w-[68%]" />
+                        </div>
+                      </div>
+
+                      {/* Add Balance Button */}
+                      <button
+                        onClick={() => {
+                          setIsBalanceOpen(false);
+                          navigate("/add-balance");
+                        }}
+                        className="w-full py-3 px-4 rounded-2xl bg-[#111113] hover:bg-black text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-98"
+                      >
+                        <Plus className="w-4 h-4 text-[#ff4a22] group-hover:rotate-90 transition-transform" />
+                        <span>Add Balance</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform ml-auto" />
+                      </button>
+
+                      {/* Actions footer */}
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <button
+                          onClick={() => {
+                            setIsBalanceOpen(false);
+                            navigate("/manage-account");
+                          }}
+                          className="text-xs font-bold text-slate-700 hover:text-black flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                          Billing & Invoices
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsBalanceOpen(false);
+                            navigate("/manage-account");
+                          }}
+                          className="text-xs font-bold text-[#ff4a22] hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          Manage Cards <ArrowUpRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </header>

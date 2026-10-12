@@ -1,5 +1,14 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 import { env } from "./env.js";
+
+// Configure Node.js DNS resolver with reliable public DNS servers (Google & Cloudflare)
+// This resolves 'querySrv ESERVFAIL' and 'queryTxt ESERVFAIL' errors where local ISP/router DNS fails to resolve MongoDB SRV records.
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+} catch (dnsError) {
+  console.warn("⚠️ Failed to set custom DNS servers:", dnsError.message);
+}
 
 /**
  * MongoDB Enterprise-Grade Connection Manager

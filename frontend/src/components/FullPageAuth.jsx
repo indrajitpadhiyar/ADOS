@@ -64,7 +64,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
     setTimeout(() => setToast(null), 4500);
   };
 
-  const GOOGLE_CLIENT_ID = "120242372392-ts44il7ibb3el22dbo55sos8lrqrat9u.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID =
+    import.meta.env?.VITE_GOOGLE_CLIENT_ID ||
+    "821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com";
   const API_BASE_URL = "http://localhost:5000/api/v1/auth";
 
   // Initialize Google Identity Services
@@ -151,8 +153,20 @@ export default function FullPageAuth({ onLoginSuccess }) {
   const handleGoogleButtonClick = () => {
     setIsLoading(true);
     triggerToast("info", "Redirecting to Google secure authentication...");
-    // Pure full-browser redirect: opens Google login directly in the entire browser window
-    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=http://localhost:5173/auth&response_type=token%20id_token&scope=openid%20email%20profile&nonce=${Date.now()}`;
+
+    // Generate high-entropy anti-CSRF state parameter
+    const stateBytes = new Uint8Array(24);
+    window.crypto.getRandomValues(stateBytes);
+    const state = Array.from(stateBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    sessionStorage.setItem("ados_google_auth_state", state);
+
+    // Full-browser redirect to Google OpenID Connect endpoint for user sign-in
+    const redirectUri = encodeURIComponent("http://localhost:5173/auth");
+    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+      GOOGLE_CLIENT_ID
+    )}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
+      state
+    )}&nonce=${Date.now()}`;
     window.location.assign(oauthUrl);
   };
 
@@ -174,13 +188,34 @@ export default function FullPageAuth({ onLoginSuccess }) {
     return () => window.removeEventListener("message", handleAuthMessage);
   }, [onLoginSuccess]);
 
-  // Check for email verification token or OAuth popup response in URL
+  // Check for Google OAuth callback, email verification token, or OAuth popup response in URL
   useEffect(() => {
+    // 1. Check for Google OAuth return in URL hash (Implicit / OpenID Connect fragment)
     if (window.location.hash) {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const idToken = hashParams.get("id_token");
+      const returnedState = hashParams.get("state");
+      const error = hashParams.get("error");
+      const errorDesc = hashParams.get("error_description");
+
+      // Scrub hash immediately to prevent token exposure in address bar or history
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      if (error) {
+        triggerToast("error", errorDesc || `Google authentication failed: ${error}`);
+        return;
+      }
+
       if (idToken) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Validate anti-CSRF state token
+        const expectedState = sessionStorage.getItem("ados_google_auth_state");
+        sessionStorage.removeItem("ados_google_auth_state");
+
+        if (!returnedState || returnedState !== expectedState) {
+          triggerToast("error", "Security validation failed: Invalid or expired OAuth state token.");
+          return;
+        }
+
         // If this window is a popup opened by the main window:
         if (window.opener && window.opener !== window) {
           try {
@@ -189,7 +224,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
               window.location.origin
             );
           } catch (e) {}
-          // Close popup immediately so dashboard opens in the main window!
+          // Close popup immediately so dashboard opens in the main window
           window.close();
           return;
         }
@@ -199,7 +234,17 @@ export default function FullPageAuth({ onLoginSuccess }) {
       }
     }
 
+    // 2. Check for Google OAuth query parameters (e.g. error redirects)
     const params = new URLSearchParams(window.location.search);
+    const searchError = params.get("error");
+    const searchErrorDesc = params.get("error_description");
+    if (searchError) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      triggerToast("error", searchErrorDesc || `Google sign-in error: ${searchError}`);
+      return;
+    }
+
+    // 3. Check for email verification token in search query
     const token = params.get("verifyToken") || params.get("token");
     if (token) {
       window.history.replaceState({}, document.title, window.location.pathname);

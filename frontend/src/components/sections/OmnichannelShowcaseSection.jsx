@@ -181,7 +181,7 @@ export default function OmnichannelShowcaseSection() {
         <div ref={paragraphRef} className="mt-10 sm:mt-14 max-w-2xl mx-auto text-center">
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
             Harness real-time multi-network intelligence. ADOS constantly recalibrates your
-            spend across Meta, Google Ads, Amazon, YouTube, and LinkedIn to ensure every dollar captures
+            spend across Meta, Google Ads, Amazon, YouTube, and LinkedIn to ensure every rupee captures
             the highest-yielding audience.
           </p>
         </div>

@@ -25,6 +25,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || process.env.GOOGLE_CLIENT_SECRET || ""),
   GOOGLE_ADS_CLINT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_ID || ""),
   GOOGLE_ADS_CLINT_SCRIPT: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
+  GOOGLE_ADS_REDIRECT_URI: z.string().default(process.env.GOOGLE_ADS_REDIRECT_URI || "http://localhost:5000/api/v1/google-ads/callback"),
+  ENCRYPTION_KEY: z.string().optional().default(process.env.ENCRYPTION_KEY || ""),
 });
 
 const parseEnv = () => {

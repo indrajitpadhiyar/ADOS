@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PlatformLogo from "../common/PlatformLogo";
+import GoogleAdsIntegrationPanel from "../common/GoogleAdsIntegrationPanel";
 import { api } from "../../services/api";
 import {
   UserCheck,
@@ -16,7 +17,7 @@ import {
   Mail,
   Key,
   Globe,
-  DollarSign,
+  IndianRupee,
   AlertCircle,
   Check,
   Lock,
@@ -117,9 +118,9 @@ export default function ManageAccountSection() {
   const [newAccountId, setNewAccountId] = useState("act_948201482");
   const [authMethod, setAuthMethod] = useState("oauth"); // 'oauth' | 'token'
   const [apiToken, setApiToken] = useState("");
-  const [currency, setCurrency] = useState("USD ($)");
-  const [timezone, setTimezone] = useState("UTC-05:00 (Eastern Time)");
-  const [monthlySpendCap, setMonthlySpendCap] = useState("$20,000");
+  const [currency, setCurrency] = useState("INR (₹)");
+  const [timezone, setTimezone] = useState("UTC+05:30 (IST India)");
+  const [monthlySpendCap, setMonthlySpendCap] = useState("₹20,000");
   const [enableAiOptimization, setEnableAiOptimization] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyStep, setVerifyStep] = useState("");
@@ -143,6 +144,19 @@ export default function ManageAccountSection() {
 
   useEffect(() => {
     loadAccountData();
+
+    // Check for Google Ads OAuth return query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("google_ads_success") === "true") {
+      setActiveTab("google-ads");
+      showToast("Google Ads account successfully connected!");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get("google_ads_error")) {
+      const err = urlParams.get("google_ads_error");
+      setActiveTab("google-ads");
+      showToast(`Google Ads connection error: ${decodeURIComponent(err)}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   const loadAccountData = async () => {
@@ -390,7 +404,8 @@ export default function ManageAccountSection() {
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/80 pb-3">
         {[
           { id: "networks", label: "Connected Networks", count: accounts.length },
-          { id: "add-account", label: "Add New Account", highlight: true },
+          { id: "google-ads", label: "Google Ads (Live API)", highlight: true },
+          { id: "add-account", label: "Add New Account" },
           { id: "team", label: "Team & Permissions", count: team.length },
           { id: "billing", label: "Billing & Credit Line" },
           { id: "organization", label: "Organization Details" },
@@ -402,11 +417,11 @@ export default function ManageAccountSection() {
               activeTab === tab.id
                 ? "bg-[#111113] text-white shadow-xs"
                 : tab.highlight
-                ? "bg-orange-50 text-[#ff4a22] border border-orange-200 hover:bg-orange-100"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            {tab.highlight && <Sparkles className="w-3 h-3 text-[#ff4a22]" />}
+            {tab.highlight && <Sparkles className="w-3 h-3 text-emerald-600" />}
             <span>{tab.label}</span>
             {tab.count !== undefined && (
               <span
@@ -420,6 +435,11 @@ export default function ManageAccountSection() {
           </button>
         ))}
       </div>
+
+      {/* ================= TAB: GOOGLE ADS LIVE API ================= */}
+      {activeTab === "google-ads" && (
+        <GoogleAdsIntegrationPanel onToast={showToast} />
+      )}
 
       {/* ================= TAB: ADD NEW ACCOUNT ================= */}
       {activeTab === "add-account" && (
@@ -651,10 +671,10 @@ export default function ManageAccountSection() {
                     onChange={(e) => setCurrency(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30"
                   >
+                    <option>INR (₹)</option>
                     <option>USD ($)</option>
                     <option>EUR (€)</option>
                     <option>GBP (£)</option>
-                    <option>INR (₹)</option>
                     <option>AUD ($)</option>
                     <option>CAD ($)</option>
                   </select>
@@ -685,7 +705,7 @@ export default function ManageAccountSection() {
                     type="text"
                     value={monthlySpendCap}
                     onChange={(e) => setMonthlySpendCap(e.target.value)}
-                    placeholder="$20,000"
+                    placeholder="₹20,000"
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30"
                   />
                 </div>
@@ -830,7 +850,7 @@ export default function ManageAccountSection() {
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Spend Allocation:</span>
-                    <span className="font-semibold text-slate-700">{acc.spendCap || "$20,000/mo"}</span>
+                    <span className="font-semibold text-slate-700">{acc.spendCap ? acc.spendCap.replace("$", "₹") : "₹20,000/mo"}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Last Telemetry Sync:</span>
@@ -839,14 +859,26 @@ export default function ManageAccountSection() {
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => handleSyncAccount(acc.name)}
-                    className="text-xs font-bold text-slate-600 hover:text-[#ff4a22] flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Sync Tokens</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {acc.platform === "google" && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("google-ads")}
+                        className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>Live GAQL API</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleSyncAccount(acc.name)}
+                      className="text-xs font-bold text-slate-600 hover:text-[#ff4a22] flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Sync Tokens</span>
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -942,16 +974,16 @@ export default function ManageAccountSection() {
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Monthly Credit Line
               </span>
-              <DollarSign className="w-4 h-4 text-[#ff4a22]" />
+              <IndianRupee className="w-4 h-4 text-[#ff4a22]" />
             </div>
             <div>
-              <div className="text-3xl font-black text-[#111113]">$50,000.00</div>
+              <div className="text-3xl font-black text-[#111113]">₹50,000.00</div>
               <p className="text-xs text-slate-500 mt-1">Current monthly allocated media spend line</p>
             </div>
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
               <div className="flex justify-between text-xs font-bold text-slate-700">
                 <span>Cycle Utilization (68%)</span>
-                <span>$34,210 / $50,000</span>
+                <span>₹34,210 / ₹50,000</span>
               </div>
               <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                 <div className="bg-[#ff4a22] h-full rounded-full w-[68%]" />
@@ -1028,6 +1060,7 @@ export default function ManageAccountSection() {
                   Default Currency
                 </label>
                 <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900">
+                  <option>INR (₹)</option>
                   <option>USD ($)</option>
                   <option>EUR (€)</option>
                   <option>GBP (£)</option>

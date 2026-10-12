@@ -27,8 +27,8 @@ export default function AboutSection({ onOpenContact, onOpenAuth }) {
       id: "basic",
       name: "Basic Plan",
       subtitle: "For independent creators & early-stage brands looking to consolidate ad spend.",
-      monthlyPrice: 49,
-      annualPrice: 39,
+      monthlyPrice: 3999,
+      annualPrice: 3199,
       popular: false,
       badge: "Starter",
       badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
@@ -36,7 +36,7 @@ export default function AboutSection({ onOpenContact, onOpenAuth }) {
       ctaStyle: "bg-slate-900 hover:bg-black text-white",
       features: [
         "2 Connected Ad Accounts (Meta & Google)",
-        "Up to $15,000 monthly ad spend tracked",
+        "Up to ₹1,50,000 monthly ad spend tracked",
         "AI Creative Multi-Format Auto-Resizing",
         "Unified Multi-Channel Dashboard",
         "Standard Conversion API Sync",
@@ -54,8 +54,8 @@ export default function AboutSection({ onOpenContact, onOpenAuth }) {
       id: "business",
       name: "Business Plan",
       subtitle: "For scaling e-commerce brands & teams demanding automated ROAS optimization.",
-      monthlyPrice: 149,
-      annualPrice: 119,
+      monthlyPrice: 11999,
+      annualPrice: 9599,
       popular: true,
       badge: "Most Popular",
       badgeColor: "bg-[#ff4a22] text-white border-transparent",
@@ -63,7 +63,7 @@ export default function AboutSection({ onOpenContact, onOpenAuth }) {
       ctaStyle: "bg-[#ff4a22] hover:bg-[#e03a14] text-white shadow-lg shadow-[#ff4a22]/25",
       features: [
         "All Connected Networks (Meta, Google, Amazon, YouTube, LinkedIn, Pinterest, Snapchat)",
-        "Up to $120,000 monthly ad spend tracked",
+        "Up to ₹10,00,000 monthly ad spend tracked",
         "Autonomous ROAS Auto-Shifting Engine",
         "Predictive Audience Fatigue Detection",
         "Multi-Touch Attribution Modeling",
@@ -268,7 +268,7 @@ export default function AboutSection({ onOpenContact, onOpenAuth }) {
                     ) : (
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl sm:text-5xl font-black tracking-tight">
-                          ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                          ₹{(isAnnual ? plan.annualPrice : plan.monthlyPrice).toLocaleString('en-IN')}
                         </span>
                         <span
                           className={`text-xs sm:text-sm font-semibold ${

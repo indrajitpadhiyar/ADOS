@@ -20,7 +20,7 @@ export const AccountController = {
    */
   connectAccount: asyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const { name, accountId, platform, spendCap = "$20,000/mo", currency = "USD ($)", iconBg } = req.body;
+    const { name, accountId, platform, spendCap = "₹20,000/mo", currency = "INR (₹)", iconBg } = req.body;
 
     if (!name || !accountId || !platform) {
       throw ApiError.badRequest("Account name, external account ID, and platform are required.");

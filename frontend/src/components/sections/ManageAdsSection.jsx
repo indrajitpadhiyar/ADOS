@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   MousePointerClick,
   Eye,
   Trash2,
@@ -172,7 +172,7 @@ export default function ManageAdsSection({ onCreateAdClick }) {
         </div>
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Managed Spend</div>
-          <div className="text-2xl font-black text-[#111113] mt-1">$44,210</div>
+          <div className="text-2xl font-black text-[#111113] mt-1">₹44,210</div>
           <div className="text-[11px] text-slate-500 font-semibold mt-1">Across 5 Networks</div>
         </div>
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs">
@@ -327,13 +327,13 @@ export default function ManageAdsSection({ onCreateAdClick }) {
                     </td>
 
                     {/* Metrics */}
-                    <td className="py-3 px-3 font-black text-slate-900">{ad.spend}</td>
+                    <td className="py-3 px-3 font-black text-slate-900">{ad.spend ? ad.spend.replace("$", "₹") : "₹0"}</td>
                     <td className="py-3 px-3 text-slate-600">{ad.impressions}</td>
                     <td className="py-3 px-3">
                       <div className="font-bold text-slate-800">{ad.clicks}</div>
                       <div className="text-[10px] text-slate-400 font-normal">{ad.ctr}</div>
                     </td>
-                    <td className="py-3 px-3 font-bold text-emerald-600">{ad.cpa}</td>
+                    <td className="py-3 px-3 font-bold text-emerald-600">{ad.cpa ? ad.cpa.replace("$", "₹") : "₹0.00"}</td>
                     <td className="py-3 px-3 font-black text-[#ff4a22] text-sm">{ad.roas}</td>
 
                     {/* Actions */}
@@ -424,7 +424,7 @@ export default function ManageAdsSection({ onCreateAdClick }) {
               <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100 text-center">
                 <div>
                   <div className="text-[10px] uppercase font-bold text-slate-400">Total Spend</div>
-                  <div className="text-sm font-black text-slate-900 mt-0.5">{selectedAdForPreview.spend}</div>
+                  <div className="text-sm font-black text-slate-900 mt-0.5">{selectedAdForPreview.spend ? selectedAdForPreview.spend.replace("$", "₹") : "₹0"}</div>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase font-bold text-slate-400">CTR</div>

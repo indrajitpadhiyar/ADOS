@@ -190,7 +190,7 @@ export default function StrategicBentoSection() {
                       <div className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
                         <AnimatedCounter
                           value={264.2}
-                          prefix="$ "
+                          prefix="₹ "
                           suffix="K"
                           decimals={1}
                           duration={2.0}

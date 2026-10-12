@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  IndianRupee,
   Eye,
   MousePointerClick,
   ShoppingCart,
@@ -212,14 +212,14 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       sub: "Facebook & Instagram",
       iconBg: "bg-blue-50 text-blue-600",
       accent: "#3b82f6",
-      spend: "$64,200",
+      spend: "₹64,200",
       spendPct: "34.8%",
       views: "4,820,000",
       clicks: "198,400",
       ctr: "4.11%",
-      cpc: "$0.32",
+      cpc: "₹0.32",
       conversions: "14,200",
-      cpa: "$4.52",
+      cpa: "₹4.52",
       roas: "4.65x",
       topAsset: "UGC_Hook_Variant_04",
       status: "Autonomous Scaling (+22%)",
@@ -231,14 +231,14 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       sub: "Search & PMax Network",
       iconBg: "bg-rose-50 text-rose-600",
       accent: "#ea4335",
-      spend: "$58,900",
+      spend: "₹58,900",
       spendPct: "31.9%",
       views: "3,410,000",
       clicks: "146,200",
       ctr: "4.28%",
-      cpc: "$0.40",
+      cpc: "₹0.40",
       conversions: "9,850",
-      cpa: "$5.98",
+      cpa: "₹5.98",
       roas: "4.12x",
       topAsset: "PMax_HighIntent_US_v3",
       status: "Search Impression Share 89%",
@@ -250,14 +250,14 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       sub: "Sponsored Content & InMail",
       iconBg: "bg-blue-50 text-[#0A66C2]",
       accent: "#0A66C2",
-      spend: "$32,100",
+      spend: "₹32,100",
       spendPct: "17.4%",
       views: "3,120,000",
       clicks: "92,400",
       ctr: "2.96%",
-      cpc: "$0.34",
+      cpc: "₹0.34",
       conversions: "4,620",
-      cpa: "$6.94",
+      cpa: "₹6.94",
       roas: "3.78x",
       topAsset: "Executive_ThoughtLeadership_v2",
       status: "Fatigue Protected • 0 Decayed",
@@ -269,14 +269,14 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       sub: "TrueView & Shorts",
       iconBg: "bg-red-50 text-red-600",
       accent: "#ef4444",
-      spend: "$18,400",
+      spend: "₹18,400",
       spendPct: "10.0%",
       views: "1,180,000",
       clicks: "42,100",
       ctr: "3.56%",
-      cpc: "$0.43",
+      cpc: "₹0.43",
       conversions: "1,890",
-      cpa: "$9.73",
+      cpa: "₹9.73",
       roas: "3.45x",
       topAsset: "Brand_Story_60s_4K",
       status: "78% Avg Watch Retention",
@@ -288,14 +288,14 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       sub: "Sponsored Products & Display",
       iconBg: "bg-amber-50 text-amber-600",
       accent: "#f59e0b",
-      spend: "$10,920",
+      spend: "₹10,920",
       spendPct: "5.9%",
       views: "310,500",
       clicks: "19,140",
       ctr: "6.16%",
-      cpc: "$0.57",
+      cpc: "₹0.57",
       conversions: "890",
-      cpa: "$12.26",
+      cpa: "₹12.26",
       roas: "5.62x",
       topAsset: "Direct_Checkout_ASIN_B08",
       status: "Buy Box Win Rate 99.4%",
@@ -310,11 +310,11 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       name: "Meta_Advantage_Scale_US_Broad",
       platform: "meta",
       status: "Autonomous Scaling",
-      spend: "$24,500",
+      spend: "₹24,500",
       views: "1,820,000",
       clicks: "78,200",
       ctr: "4.29%",
-      cpa: "$4.12",
+      cpa: "₹4.12",
       roas: "4.82x",
     },
     {
@@ -322,11 +322,11 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       name: "Google_PMax_Top_Sellers_AssetGroup",
       platform: "google",
       status: "Active Optimal",
-      spend: "$28,400",
+      spend: "₹28,400",
       views: "1,640,000",
       clicks: "68,900",
       ctr: "4.20%",
-      cpa: "$5.60",
+      cpa: "₹5.60",
       roas: "4.35x",
     },
     {
@@ -334,11 +334,11 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       name: "LinkedIn_B2B_Executive_Demo_01",
       platform: "linkedin",
       status: "Fatigue Protected",
-      spend: "$14,800",
+      spend: "₹14,800",
       views: "1,420,000",
       clicks: "44,100",
       ctr: "3.10%",
-      cpa: "$6.45",
+      cpa: "₹6.45",
       roas: "3.90x",
     },
     {
@@ -346,11 +346,11 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       name: "YouTube_Shorts_Direct_Conversion",
       platform: "youtube",
       status: "Active Optimal",
-      spend: "$10,200",
+      spend: "₹10,200",
       views: "680,000",
       clicks: "22,400",
       ctr: "3.29%",
-      cpa: "$9.10",
+      cpa: "₹9.10",
       roas: "3.60x",
     },
     {
@@ -358,11 +358,11 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       name: "Amazon_Sponsored_Brands_HeroPack",
       platform: "amazon",
       status: "Autonomous Scaling",
-      spend: "$6,800",
+      spend: "₹6,800",
       views: "195,000",
       clicks: "12,400",
       ctr: "6.35%",
-      cpa: "$11.80",
+      cpa: "₹11.80",
       roas: "5.80x",
     },
     {
@@ -370,11 +370,11 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
       name: "Meta_Retargeting_Catalog_Sales_DPA",
       platform: "meta",
       status: "Active Optimal",
-      spend: "$18,400",
+      spend: "₹18,400",
       views: "1,240,000",
       clicks: "58,200",
       ctr: "4.69%",
-      cpa: "$3.90",
+      cpa: "₹3.90",
       roas: "5.15x",
     },
   ];
@@ -473,10 +473,10 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
           <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
               <span>Total Ad Spend</span>
-              <DollarSign className="w-4 h-4 text-[#ff4a22]" />
+              <IndianRupee className="w-4 h-4 text-[#ff4a22]" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-[#111113] tracking-tight">
-              $184,520
+              ₹184,520
             </div>
             <div className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1.5">
               <TrendingUp className="w-3.5 h-3.5" />
@@ -509,7 +509,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
               498,240
             </div>
             <div className="text-[11px] font-bold text-slate-500 mt-1.5">
-              Avg CTR: <span className="text-slate-900 font-extrabold">3.88%</span> • CPC $0.37
+              Avg CTR: <span className="text-slate-900 font-extrabold">3.88%</span> • CPC ₹0.37
             </div>
           </div>
 
@@ -524,7 +524,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
             </div>
             <div className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1.5">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Blended CPA: $5.86</span>
+              <span>Blended CPA: ₹5.86</span>
             </div>
           </div>
 
@@ -567,7 +567,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
               {[
                 { id: "clicks", label: "Ad Clicks" },
                 { id: "views", label: "Views / Impressions" },
-                { id: "spend", label: "Spend ($)" },
+                { id: "spend", label: "Spend (₹)" },
                 { id: "conversions", label: "Conversions" },
                 { id: "roas", label: "Blended ROAS" },
               ].map((m) => (
@@ -644,7 +644,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
                           {selectedMetric === "roas"
                             ? `${activePoint.data.meta.roas}x`
                             : selectedMetric === "spend"
-                            ? `$${activePoint.data.meta.spend.toLocaleString()}`
+                            ? `₹${activePoint.data.meta.spend.toLocaleString()}`
                             : activePoint.data.meta[selectedMetric].toLocaleString()}
                         </span>
                       </div>
@@ -658,7 +658,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
                           {selectedMetric === "roas"
                             ? `${activePoint.data.google.roas}x`
                             : selectedMetric === "spend"
-                            ? `$${activePoint.data.google.spend.toLocaleString()}`
+                            ? `₹${activePoint.data.google.spend.toLocaleString()}`
                             : activePoint.data.google[selectedMetric].toLocaleString()}
                         </span>
                       </div>
@@ -672,7 +672,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
                           {selectedMetric === "roas"
                             ? `${activePoint.data.linkedin.roas}x`
                             : selectedMetric === "spend"
-                            ? `$${activePoint.data.linkedin.spend.toLocaleString()}`
+                            ? `₹${activePoint.data.linkedin.spend.toLocaleString()}`
                             : activePoint.data.linkedin[selectedMetric].toLocaleString()}
                         </span>
                       </div>
@@ -686,7 +686,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
                           {selectedMetric === "roas"
                             ? `${activePoint.data.youtube.roas}x`
                             : selectedMetric === "spend"
-                            ? `$${activePoint.data.youtube.spend.toLocaleString()}`
+                            ? `₹${activePoint.data.youtube.spend.toLocaleString()}`
                             : activePoint.data.youtube[selectedMetric].toLocaleString()}
                         </span>
                       </div>
@@ -700,7 +700,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
                           {selectedMetric === "roas"
                             ? `${activePoint.data.amazon.roas}x`
                             : selectedMetric === "spend"
-                            ? `$${activePoint.data.amazon.spend.toLocaleString()}`
+                            ? `₹${activePoint.data.amazon.spend.toLocaleString()}`
                             : activePoint.data.amazon[selectedMetric].toLocaleString()}
                         </span>
                       </div>
@@ -712,7 +712,7 @@ export default function AdAnalyticsDashboardSection({ onOpenContact, onOpenAuth,
                         {selectedMetric === "roas"
                           ? `${activePoint.data.total.roas}x`
                           : selectedMetric === "spend"
-                          ? `$${activePoint.data.total.spend.toLocaleString()}`
+                          ? `₹${activePoint.data.total.spend.toLocaleString()}`
                           : activePoint.data.total[selectedMetric].toLocaleString()}
                       </span>
                     </div>
