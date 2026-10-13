@@ -28,9 +28,9 @@ export default function AddBalanceSection() {
   const [currentBalance, setCurrentBalance] = useState(() => {
     try {
       const stored = localStorage.getItem("ados_user_balance");
-      return stored ? parseFloat(stored) : 101790;
+      return stored ? parseFloat(stored) : 0;
     } catch {
-      return 101790;
+      return 0;
     }
   });
 

@@ -43,6 +43,15 @@ import {
   Info,
   BarChart3,
   Percent,
+  ArrowUp,
+  Paperclip,
+  Mic,
+  MicOff,
+  Download,
+  Bot,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
 } from "lucide-react";
 
 // Supported Ad Networks for Omnichannel Campaign Routing
@@ -249,12 +258,21 @@ const SAMPLE_VIDEOS = [
   },
 ];
 
-const PROMPT_SUGGESTIONS = [
-  "🔥 40% Off Weekend Flash Sale for E-Commerce Brand",
-  "🚀 High-Converting B2B SaaS ROAS Scale Case Study",
-  "🧴 Organic Clean Skincare Product Before & After",
-  "⚡ Streetwear Drop with High-Energy Kinetic Typography",
+const IMAGE_PROMPT_SUGGESTIONS = [
+  "🔥 40% Off Weekend Flash Sale poster for luxury footwear",
+  "🧴 Organic Clean Skincare Product Before & After poster",
+  "⚡ Streetwear Drop with High-Contrast Typography & 5★ Badge",
+  "💎 Luxury Minimal Watch launch poster with titanium movement",
 ];
+
+const VIDEO_PROMPT_SUGGESTIONS = [
+  "🔥 'Wait... did my CPA just drop to ₹650?!' Viral UGC Hook video",
+  "⚡ Kinetic carbon sneaker motion reveal with bassline beat",
+  "🎧 Aesthetic lifestyle sound-sync video with lo-fi focus soundtrack",
+  "🚀 High-converting B2B SaaS ROAS scale case study video",
+];
+
+const PROMPT_SUGGESTIONS = VIDEO_PROMPT_SUGGESTIONS;
 
 const POSTER_BADGE_OPTIONS = [
   "🔥 40% OFF THIS WEEK",
@@ -270,7 +288,19 @@ export default function CreateAdSection({ onAdCreated }) {
   const [activeMode, setActiveMode] = useState("generate");
 
   // Core Creative Format Option: "poster" vs "video"
-  const [creativeType, setCreativeType] = useState("poster"); // 'poster' | 'video'
+  const [creativeType, setCreativeType] = useState("video"); // default to video per user focus, with instant toggle to poster
+
+  // Chatbot State for Conversational Creation ("Meet AI Mode" & Google Flow / ChatGPT)
+  const [chatInput, setChatInput] = useState("");
+  const [hasStartedChat, setHasStartedChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+  const [attachedImage, setAttachedImage] = useState(null);
+  const [generationFlowProgress, setGenerationFlowProgress] = useState(0);
+  const [activeFlowStepText, setActiveFlowStepText] = useState("");
+  const [chatViewMode, setChatViewMode] = useState("full"); // 'full' (full-size chatbot) | 'split' (with phone mockup)
+  const fileInputRef = useRef(null);
+  const chatMessagesEndRef = useRef(null);
 
   // AI Generator Form States
   const [prompt, setPrompt] = useState(
@@ -473,6 +503,162 @@ export default function CreateAdSection({ onAdCreated }) {
     }, 1400);
   };
 
+  // Chatbot auto-scroll
+  useEffect(() => {
+    if (hasStartedChat && chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, isGenerating, hasStartedChat]);
+
+  // Chatbot Send Prompt Handler (Conversational Ad Generation)
+  const handleSendPrompt = (overrideText = null) => {
+    const textToSend = overrideText !== null ? overrideText : chatInput;
+    if (!textToSend.trim() && !attachedImage) return;
+
+    const userMsg = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: textToSend,
+      attachedImage: attachedImage,
+      creativeType,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    setHasStartedChat(true);
+    setChatInput("");
+    setAttachedImage(null);
+    setIsGenerating(true);
+    setGenerationFlowProgress(15);
+    setActiveFlowStepText(
+      creativeType === "video"
+        ? "Google Flow: Analyzing creative hook & target audience sentiment..."
+        : "ChatGPT Vision: Extracting visual hierarchy, font contrast & color palette..."
+    );
+
+    // Step 1: Hook / Storyboard
+    setTimeout(() => {
+      setGenerationFlowProgress(45);
+      setActiveFlowStepText(
+        creativeType === "video"
+          ? "Storyboarding 3-part UGC hook & camera movements..."
+          : "Composing typography, discount badges & product lighting..."
+      );
+    }, 700);
+
+    // Step 2: Synthesis
+    setTimeout(() => {
+      setGenerationFlowProgress(75);
+      setActiveFlowStepText(
+        creativeType === "video"
+          ? "Google Flow Veo 2.5: Synthesizing 60fps vertical 9:16 cuts..."
+          : "Rendering 4K high-contrast poster & promotional badges..."
+      );
+    }, 1400);
+
+    // Step 3: Sound sync / CTR optimization
+    setTimeout(() => {
+      setGenerationFlowProgress(95);
+      setActiveFlowStepText(
+        creativeType === "video"
+          ? "Aligning 128 BPM soundtrack beat & kinetic captions hook..."
+          : "Optimizing predicted CTR and finalizing assets..."
+      );
+    }, 2000);
+
+    // Step 4: Finalize
+    setTimeout(() => {
+      setIsGenerating(false);
+      setGenerationFlowProgress(100);
+      setActiveFlowStepText("");
+
+      let newCreative;
+      if (creativeType === "video") {
+        const randomVid =
+          SAMPLE_VIDEOS[Math.floor(Math.random() * SAMPLE_VIDEOS.length)];
+        setSelectedVideo(randomVid);
+        setHeadline(randomVid.headline);
+        setCaption(randomVid.caption);
+        setVideoCaptionsHook(randomVid.captionsHook);
+        setVideoSound(randomVid.soundTrack);
+        setAdName(`AI_Video_${randomVid.label.replace(/\s/g, "_")}_GoogleFlow`);
+        setIsPlaying(true);
+        newCreative = randomVid;
+      } else {
+        const randomPoster =
+          SAMPLE_POSTERS[Math.floor(Math.random() * SAMPLE_POSTERS.length)];
+        setSelectedPoster(randomPoster);
+        setHeadline(randomPoster.headline);
+        setCaption(randomPoster.caption);
+        setPosterBadge(randomPoster.badge);
+        setPosterPrice(randomPoster.price);
+        setPosterOriginalPrice(randomPoster.originalPrice);
+        setAdName(`AI_Poster_${randomPoster.label.replace(/\s/g, "_")}_ChatGPT`);
+        newCreative = randomPoster;
+      }
+
+      const aiMsg = {
+        id: `ai-${Date.now()}`,
+        role: "assistant",
+        content:
+          creativeType === "video"
+            ? `🎬 Synthesized with Google Flow Neural Video Engine! High-retention vertical UGC pacing, dynamic captions, and soundtrack synchronization are tuned for Meta Reels & Snapchat algorithms.`
+            : `✨ Generated with ChatGPT Creative Studio! High-contrast visual hierarchy, promotional badges, and social proof elements are optimized for maximum feed CTR.`,
+        creativeType,
+        creativeData: newCreative,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setChatMessages((prev) => [...prev, aiMsg]);
+    }, 2500);
+  };
+
+  // Voice recognition simulation
+  const handleVoicePrompt = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    setIsListening(true);
+    setTimeout(() => {
+      const samplePrompts =
+        creativeType === "video"
+          ? [
+              "Create a 40% off flash sale video with viral UGC hook and energetic soundtrack",
+              "Synthesize a sleek product reveal video for urban sneakers with kinetic speed cuts",
+              "Generate an aesthetic lo-fi lifestyle video ad for noise cancelling headphones",
+            ]
+          : [
+              "Design a high-converting 40% discount flyer for luxury footwear with gold rating badge",
+              "Create a clean organic skincare product launch poster with glass skin aesthetics",
+              "Generate a minimalist titanium watch announcement poster with limited edition badge",
+            ];
+      const picked =
+        samplePrompts[Math.floor(Math.random() * samplePrompts.length)];
+      setChatInput(picked);
+      setIsListening(false);
+    }, 2400);
+  };
+
+  // Image Upload handler
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setAttachedImage({ name: file.name, url });
+    }
+  };
+
+  // Reset chatbot back to centered Meet AI Mode
+  const handleResetChat = () => {
+    setHasStartedChat(false);
+    setChatMessages([]);
+    setChatInput("");
+    setAttachedImage(null);
+    setIsGenerating(false);
+    setActiveFlowStepText("");
+  };
+
   // Direct Apply from preset cards
   const handleApplyPoster = (poster) => {
     setSelectedPoster(poster);
@@ -519,12 +705,12 @@ export default function CreateAdSection({ onAdCreated }) {
       try {
         await api.createAd({
           name: adName || "New_Campaign_Ad",
-          campaign: campaignName || "Ados_MultiNetwork_Scale",
+          campaign: campaign || "Ados_MultiNetwork_Scale",
           platform: previewPlatform === "facebook" ? "meta" : previewPlatform || "meta",
           format: creativeType === "video" ? "Video (9:16)" : "Display Poster (1:1)",
-          thumbnail: creativeType === "video" ? selectedVideo?.thumbnail : selectedPoster?.image,
+          thumbnail: creativeType === "video" ? selectedVideo?.thumbnail : selectedPoster?.url,
           budget: totalDailyBudget,
-          destinationUrl: targetUrl,
+          destinationUrl: destinationUrl,
           creativeTitle: headline,
           primaryText: caption,
           category: "Multi-Platform Growth",
@@ -739,724 +925,936 @@ export default function CreateAdSection({ onAdCreated }) {
         </div>
       </div>
 
-      {/* CREATIVE OPTION SELECTOR (VIDEO vs POSTER) - Prominent Selector */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Step 1 • Select Creative Format
-            </div>
-            <h3 className="text-base sm:text-lg font-extrabold text-[#111113]">
-              Choose Creative Type: Video or Poster
-            </h3>
-          </div>
-          <span className="text-xs font-semibold text-slate-500">
-            Selected:{" "}
-            <strong className="text-slate-900 capitalize">
-              {creativeType} Ad
-            </strong>
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Option 1: Poster / Graphic Ad */}
-          <div
-            onClick={() => setCreativeType("poster")}
-            className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-              creativeType === "poster"
-                ? "bg-orange-50/30 border-[#ff4a22] shadow-sm ring-2 ring-[#ff4a22]/20"
-                : "bg-slate-50/60 border-slate-200/80 hover:bg-slate-100/80 hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-                    creativeType === "poster"
-                      ? "bg-[#ff4a22] text-white"
-                      : "bg-slate-200 text-slate-600"
-                  }`}
-                >
-                  <ImageIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-extrabold text-slate-900">
-                      Poster / Image Ad
-                    </h4>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      High CTR
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    High-impact static flyer, promotional discount poster & feed
-                    banner.
-                  </p>
-                </div>
+      {/* ================= MODE 1: GENERATE ADS (AI CHATBOT STUDIO) ================= */}
+      {activeMode === "generate" ? (
+        <div className="w-full space-y-6">
+          {/* Top Format Selector (Image vs Video) */}
+          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                  Select Creative Engine Format
+                </span>
               </div>
-              <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              <h3 className="text-base font-extrabold text-[#111113]">
+                {creativeType === "video" ? "🎥 Video Ad (Google Flow)" : "🖼️ Image Ad (ChatGPT)"}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {creativeType === "video"
+                  ? "Google Flow Veo 2.5 • High-Retention 9:16 Vertical Video Studio with Audio Sync"
+                  : "ChatGPT Vision 4o • High-CTR Promotional Poster & Discount Flyer Studio"}
+              </p>
+            </div>
+
+            {/* Prominent Image vs Video Toggle Pills */}
+            <div className="flex items-center p-1.5 bg-slate-100 rounded-2xl border border-slate-200/80 self-start md:self-auto">
+              <button
+                type="button"
+                onClick={() => setCreativeType("poster")}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                   creativeType === "poster"
-                    ? "border-[#ff4a22] bg-[#ff4a22] text-white"
-                    : "border-slate-300 bg-white"
+                    ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                {creativeType === "poster" && (
-                  <Check className="w-3 h-3 stroke-[3]" />
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-600 pt-1 border-t border-slate-200/60">
-              <span className="flex items-center gap-1">
-                <Tag className="w-3 h-3 text-orange-500" />
-                Promotional Badges
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-amber-500" />
-                Price & Star Rating
-              </span>
-              <span>•</span>
-              <span>1:1 & 4:5 Feed</span>
+                <ImageIcon className="w-4 h-4 text-[#ff4a22]" />
+                <span>🖼️ Image / Poster Ads</span>
+                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-orange-100 text-[#ff4a22]">
+                  ChatGPT
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreativeType("video")}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  creativeType === "video"
+                    ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Video className="w-4 h-4 text-purple-600" />
+                <span>🎥 Video Ads</span>
+                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700">
+                  Google Flow
+                </span>
+              </button>
             </div>
           </div>
 
-          {/* Option 2: Video / Motion Ad */}
-          <div
-            onClick={() => setCreativeType("video")}
-            className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-              creativeType === "video"
-                ? "bg-orange-50/30 border-[#ff4a22] shadow-sm ring-2 ring-[#ff4a22]/20"
-                : "bg-slate-50/60 border-slate-200/80 hover:bg-slate-100/80 hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-                    creativeType === "video"
-                      ? "bg-[#ff4a22] text-white"
-                      : "bg-slate-200 text-slate-600"
-                  }`}
-                >
-                  <Video className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-extrabold text-slate-900">
-                      Video / Motion Ad
-                    </h4>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
-                      Viral UGC
+          {/* INITIAL STATE: Centered Hero "Meet AI Mode" (Matches Screenshot Exactly) */}
+          {!hasStartedChat ? (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-b from-slate-50/60 via-white to-slate-50/40 rounded-3xl border border-slate-200/80 p-8 sm:p-14 text-center min-h-[580px] flex flex-col justify-center items-center shadow-2xs relative overflow-hidden"
+            >
+              {/* Subtle Ambient Background Aura */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-blue-300/15 via-purple-300/15 to-orange-300/15 blur-3xl pointer-events-none rounded-full" />
+
+              <div className="relative z-10 max-w-2xl w-full space-y-6">
+                {/* Title and Subtitle matching Screenshot */}
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200/90 text-[11px] font-bold text-slate-700 shadow-2xs mb-1">
+                    <Sparkles className="w-3.5 h-3.5 text-[#ff4a22]" />
+                    <span>
+                      {creativeType === "video" ? "Google Flow Neural Video Mode" : "ChatGPT Creative Poster Mode"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Vertical Reels & Snapchat videos with motion captions and
-                    sound sync.
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111113] tracking-tight">
+                    Meet AI Mode
+                  </h2>
+                  <p className="text-sm sm:text-base text-slate-500 font-medium">
+                    Ask detailed questions for better responses
                   </p>
                 </div>
-              </div>
-              <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  creativeType === "video"
-                    ? "border-[#ff4a22] bg-[#ff4a22] text-white"
-                    : "border-slate-300 bg-white"
-                }`}
-              >
-                {creativeType === "video" && (
-                  <Check className="w-3 h-3 stroke-[3]" />
-                )}
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-600 pt-1 border-t border-slate-200/60">
-              <span className="flex items-center gap-1">
-                <Film className="w-3 h-3 text-purple-500" />
-                9:16 Vertical Reel
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Music className="w-3 h-3 text-rose-500" />
-                Trending Sound Track
-              </span>
-              <span>•</span>
-              <span>Live Looping Preview</span>
-            </div>
-          </div>
-        </div>
-      </div>
+                {/* The Floating AI Input Pill with Multi-Color Aura Glow */}
+                <div className="relative w-full max-w-xl mx-auto text-left">
+                  {/* Iridescent Glowing Ring */}
+                  <div className="absolute -inset-1 rounded-[30px] bg-gradient-to-r from-blue-400/30 via-emerald-400/25 to-purple-400/30 blur-lg opacity-85 ai-aura-glow pointer-events-none" />
 
-      {/* Main Studio Grid: Left Form/Generator, Right Live Multi-Platform Mockup */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN: AI GENERATOR OR CUSTOM STUDIO */}
-        <div className="lg:col-span-7 space-y-6">
-          {activeMode === "generate" ? (
-            /* ================= GENERATE ADS AI PANEL ================= */
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-orange-100 text-[#ff4a22] flex items-center justify-center">
-                    <Sparkles className="w-4 h-4" />
+                  <div className="relative bg-white rounded-[26px] border border-slate-200 shadow-xl p-4 sm:p-5 space-y-3">
+                    {/* Attached Image Preview if selected */}
+                    {attachedImage && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 w-fit text-xs text-slate-700 font-medium animate-fadeIn">
+                        <img src={attachedImage.url} alt="Attached" className="w-6 h-6 rounded-md object-cover" />
+                        <span className="truncate max-w-[160px]">{attachedImage.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setAttachedImage(null)}
+                          className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Voice Listening Status */}
+                    {isListening && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold animate-pulse">
+                        <Mic className="w-4 h-4 text-purple-600 animate-bounce" />
+                        <span>Listening... Speak your ad prompt</span>
+                      </div>
+                    )}
+
+                    {/* Textarea matching Screenshot "Ask anything" */}
+                    <textarea
+                      rows={2}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendPrompt();
+                        }
+                      }}
+                      placeholder={
+                        creativeType === "video"
+                          ? "Ask anything... e.g. Create a 40% discount video ad with viral UGC hook for urban sneakers"
+                          : "Ask anything... e.g. Design a sleek 40% off promotional poster with 4.9★ badge for headphones"
+                      }
+                      className="w-full text-sm sm:text-base text-slate-800 placeholder-slate-400 font-medium bg-transparent border-0 outline-none resize-none leading-relaxed"
+                    />
+
+                    {/* Input Controls Bar: Image, Attach, Mic, Send */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <div className="flex items-center gap-1.5 text-slate-500">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          title="Attach product image or poster reference"
+                          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          title="Attach brand assets or logo"
+                          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Paperclip className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleVoicePrompt}
+                          title={isListening ? "Listening..." : "Speech input"}
+                          className={`p-2 rounded-full transition-colors cursor-pointer ${
+                            isListening
+                              ? "bg-purple-100 text-purple-700"
+                              : "hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          <Mic className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSendPrompt()}
+                          disabled={!chatInput.trim() && !attachedImage}
+                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                            chatInput.trim() || attachedImage
+                              ? "bg-[#ff4a22] text-white shadow-md hover:opacity-90 hover:scale-105"
+                              : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                          }`}
+                        >
+                          <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-base font-extrabold text-[#111113]">
-                      AI Ad Creative Generator
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Generates complete visual{" "}
-                      {creativeType === "video" ? "videos" : "posters"},
-                      high-converting copy & hooks in seconds.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prompt Input */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                  What would you like to generate? (Prompt / Goal)
-                </label>
-                <div className="relative">
-                  <textarea
-                    rows={3}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="E.g. High-converting 40% discount video ad for urban sneakers targeting Instagram Reels and Snapchat..."
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22] resize-none"
-                  />
                 </div>
 
-                {/* Quick Prompt Suggestions */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="text-[10px] font-bold text-slate-400 self-center mr-1">
-                    Try Prompt:
-                  </span>
-                  {PROMPT_SUGGESTIONS.map((sug, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setPrompt(sug)}
-                      className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-medium transition-colors cursor-pointer"
-                    >
-                      {sug}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Brand and Target Audience */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Brand Name / Product
-                  </label>
-                  <input
-                    type="text"
-                    value={brandName}
-                    onChange={(e) => setBrandName(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Target Demographic
-                  </label>
-                  <input
-                    type="text"
-                    value={targetAudience}
-                    onChange={(e) => setTargetAudience(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
-                  />
-                </div>
-              </div>
-
-              {/* Specific Options based on Video vs Poster */}
-              {creativeType === "poster" ? (
-                <div className="space-y-3 p-4 bg-orange-50/40 border border-orange-100 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Tag className="w-3.5 h-3.5 text-[#ff4a22]" />
-                      Poster Badge Overlay
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-medium">
-                      Customizable flyer tag
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {POSTER_BADGE_OPTIONS.map((badge, idx) => (
+                {/* Suggestion Prompts matching Screenshot (with 🔍 search icon) */}
+                <div className="space-y-2 pt-2 max-w-xl mx-auto text-left">
+                  {(creativeType === "video" ? VIDEO_PROMPT_SUGGESTIONS : IMAGE_PROMPT_SUGGESTIONS).map(
+                    (sug, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setPosterBadge(badge)}
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-                          posterBadge === badge
-                            ? "bg-[#ff4a22] text-white shadow-xs"
-                            : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
-                        }`}
+                        onClick={() => handleSendPrompt(sug)}
+                        className="w-full text-left p-3 rounded-2xl hover:bg-white/90 bg-slate-50/70 border border-slate-200/60 hover:border-slate-300 transition-all flex items-center gap-3 text-xs sm:text-sm text-slate-600 font-medium cursor-pointer group shadow-2xs"
                       >
-                        {badge}
+                        <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#ff4a22] transition-colors shrink-0" />
+                        <span className="truncate group-hover:text-slate-900">{sug}</span>
                       </button>
-                    ))}
-                  </div>
+                    ),
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-3 p-4 bg-purple-50/40 border border-purple-100 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Film className="w-3.5 h-3.5 text-purple-600" />
-                      Video Hook & Sound Preset
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-medium">
-                      Viral UGC Pacing
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="bg-white p-2.5 rounded-xl border border-purple-200/70">
-                      <span className="text-[10px] font-bold text-slate-400 block uppercase">
-                        Audio Track:
-                      </span>
-                      <span className="font-bold text-slate-800 text-xs truncate block">
-                        {videoSound}
+              </div>
+            </motion.div>
+          ) : (
+            /* ACTIVE CHATBOT: Prompts Docked at Bottom, Chat expanded Full Size */
+            <div
+              className={`grid grid-cols-1 ${
+                chatViewMode === "split" ? "lg:grid-cols-12" : "lg:grid-cols-1"
+              } gap-8 items-start`}
+            >
+              {/* Main Full-Size Chatbot Container */}
+              <div
+                className={`${
+                  chatViewMode === "split" ? "lg:col-span-7" : "w-full"
+                } bg-white rounded-3xl border border-slate-200/80 shadow-md flex flex-col justify-between min-h-[750px] relative overflow-hidden`}
+              >
+                {/* Top Chat Bar */}
+                <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                    <div>
+                      <div className="text-xs font-extrabold text-[#111113] flex items-center gap-2">
+                        <span>
+                          {creativeType === "video" ? "Google Flow Veo 2.5 Active" : "ChatGPT Creative 4o Active"}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-[#ff4a22]">
+                          Live
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Autonomous Creative Engine
                       </span>
                     </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-purple-200/70">
-                      <span className="text-[10px] font-bold text-slate-400 block uppercase">
-                        Video Format:
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setChatViewMode(chatViewMode === "full" ? "split" : "full")
+                      }
+                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {chatViewMode === "full" ? (
+                        <>
+                          <Smartphone className="w-3.5 h-3.5 text-[#ff4a22]" />
+                          <span>Phone Mockup (Split)</span>
+                        </>
+                      ) : (
+                        <>
+                          <Maximize2 className="w-3.5 h-3.5 text-[#ff4a22]" />
+                          <span>Full Size Chatbot</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleResetChat}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>New Chat</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Chat Feed (Scrollable Conversation) */}
+                <div className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto max-h-[580px]">
+                  {chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${
+                        msg.role === "user" ? "items-end" : "items-start"
+                      } space-y-2`}
+                    >
+                      {/* Avatar & Label */}
+                      <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                        {msg.role === "user" ? (
+                          <>
+                            <span>You</span>
+                            <span>•</span>
+                            <span>{msg.timestamp}</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#ff4a22] to-amber-500 text-white flex items-center justify-center text-[10px] font-black">
+                              AI
+                            </div>
+                            <span className="text-[#111113] font-bold">
+                              {msg.creativeType === "video" ? "Google Flow Video" : "ChatGPT Poster"}
+                            </span>
+                            <span>•</span>
+                            <span>{msg.timestamp}</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Message Bubble */}
+                      {msg.role === "user" ? (
+                        <div className="max-w-[85%] sm:max-w-[70%] bg-[#111113] text-white p-4 rounded-3xl rounded-tr-md shadow-sm space-y-2 text-xs sm:text-sm font-medium">
+                          {msg.attachedImage && (
+                            <div className="w-28 h-20 rounded-xl overflow-hidden border border-white/20 mb-2">
+                              <img
+                                src={msg.attachedImage.url}
+                                alt="Ref"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <p>{msg.content}</p>
+                        </div>
+                      ) : (
+                        <div className="w-full max-w-2xl bg-slate-50 border border-slate-200/90 rounded-3xl rounded-tl-md p-4 sm:p-6 space-y-5 shadow-2xs">
+                          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                            {msg.content}
+                          </p>
+
+                          {/* Render Generated Creative Card */}
+                          {msg.creativeType === "video" ? (
+                            /* Google Flow Generated Video Card */
+                            <div className="bg-slate-900 rounded-2xl p-4 text-white space-y-4">
+                              <div className="flex items-center justify-between text-xs pb-2 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                  <Video className="w-4 h-4 text-[#ff4a22]" />
+                                  <span className="font-extrabold tracking-wide">
+                                    Google Flow Veo v2.5 • 9:16 Vertical HD
+                                  </span>
+                                </div>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                  Est. {selectedVideo.roas} ROAS
+                                </span>
+                              </div>
+
+                              {/* Playable Video Player */}
+                              <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-xl overflow-hidden bg-black group">
+                                <video
+                                  ref={videoRef}
+                                  src={selectedVideo.videoUrl}
+                                  loop
+                                  muted={isMuted}
+                                  playsInline
+                                  autoPlay
+                                  className="w-full h-full object-cover"
+                                />
+
+                                {/* Hook subtitle badge overlay */}
+                                <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-xs text-amber-300 px-3 py-1 rounded-lg text-xs font-black border border-white/15">
+                                  {videoCaptionsHook}
+                                </div>
+
+                                {/* Controls */}
+                                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsMuted(!isMuted)}
+                                    className="p-2 rounded-full bg-black/60 text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
+                                  >
+                                    {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsPlaying(!isPlaying)}
+                                    className="p-2 rounded-full bg-[#ff4a22] text-white hover:opacity-90 cursor-pointer"
+                                  >
+                                    {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+                                  </button>
+                                </div>
+
+                                <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] text-white/90 font-medium">
+                                  <Music className="w-3 h-3 text-rose-400 animate-spin" />
+                                  <span className="truncate max-w-[150px]">{videoSound}</span>
+                                </div>
+                              </div>
+
+                              {/* Google Flow Cuts / Scene Selector */}
+                              <div className="space-y-2 pt-1">
+                                <div className="text-[11px] font-bold text-slate-300 flex items-center justify-between">
+                                  <span>Google Flow Scene Variations:</span>
+                                  <span className="text-[10px] text-slate-400">Click to switch cut</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  {SAMPLE_VIDEOS.map((vid) => (
+                                    <button
+                                      key={vid.id}
+                                      type="button"
+                                      onClick={() => handleApplyVideo(vid)}
+                                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                        selectedVideo.id === vid.id
+                                          ? "bg-[#ff4a22]/20 border-[#ff4a22] text-white ring-1 ring-[#ff4a22]"
+                                          : "bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-800"
+                                      }`}
+                                    >
+                                      <div className="text-[10px] font-bold text-amber-400 truncate">
+                                        {vid.duration} • {vid.style}
+                                      </div>
+                                      <div className="text-xs font-bold truncate mt-0.5">{vid.label}</div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            /* ChatGPT Generated Poster Card */
+                            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-4">
+                              <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-100">
+                                <div className="flex items-center gap-2">
+                                  <ImageIcon className="w-4 h-4 text-[#ff4a22]" />
+                                  <span className="font-extrabold text-[#111113]">
+                                    ChatGPT Vision 4o • High-CTR Ad Poster
+                                  </span>
+                                </div>
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  Est. {selectedPoster.roas} ROAS
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                                <div className="sm:col-span-5 relative rounded-xl overflow-hidden aspect-[4/5] bg-slate-100">
+                                  <img
+                                    src={selectedPoster.url}
+                                    alt="Poster"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute top-2 left-2 bg-[#ff4a22] text-white text-[9px] font-extrabold px-2 py-0.5 rounded shadow">
+                                    {posterBadge}
+                                  </div>
+                                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-black px-2 py-1 rounded">
+                                    <span className="text-amber-300">{posterPrice}</span>
+                                    <span className="text-white/50 line-through text-[8px] ml-1">
+                                      {posterOriginalPrice}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="sm:col-span-7 space-y-2 text-left">
+                                  <div className="text-xs font-bold text-[#ff4a22] uppercase tracking-wide">
+                                    {selectedPoster.category}
+                                  </div>
+                                  <h4 className="text-sm font-extrabold text-[#111113] leading-snug">
+                                    {headline}
+                                  </h4>
+                                  <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                                    {caption}
+                                  </p>
+
+                                  <div className="pt-2 flex flex-wrap gap-2 text-[11px] font-bold text-slate-600">
+                                    <span className="px-2 py-0.5 rounded-md bg-slate-100">
+                                      ⭐⭐⭐⭐⭐ {selectedPoster.rating}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
+                                      {selectedPoster.ctr} Predicted CTR
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Poster Presets Selector */}
+                              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                                <div className="text-[11px] font-bold text-slate-600">
+                                  Alternative Poster Concepts:
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                  {SAMPLE_POSTERS.map((poster) => (
+                                    <button
+                                      key={poster.id}
+                                      type="button"
+                                      onClick={() => handleApplyPoster(poster)}
+                                      className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                                        selectedPoster.id === poster.id
+                                          ? "bg-orange-50/60 border-[#ff4a22] ring-1 ring-[#ff4a22]"
+                                          : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+                                      }`}
+                                    >
+                                      <div className="text-[9px] font-bold text-[#ff4a22] truncate">
+                                        {poster.badge}
+                                      </div>
+                                      <div className="text-xs font-bold text-slate-900 truncate mt-0.5">
+                                        {poster.label}
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Creative Action Toolbar */}
+                          <div className="pt-2 flex flex-wrap items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={handleLaunchCampaign}
+                              className="px-5 py-2.5 rounded-xl bg-[#111113] hover:bg-black text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                            >
+                              <Rocket className="w-3.5 h-3.5 text-[#ff4a22]" />
+                              <span>🚀 Launch Omnichannel Campaign</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setActiveMode("manual")}
+                              className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Sliders className="w-3.5 h-3.5 text-slate-600" />
+                              <span>Fine-Tune in Custom Studio</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard?.writeText(`${headline}\n\n${caption}`);
+                                alert("Creative headline & caption copied to clipboard!");
+                              }}
+                              className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copy Copy</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Neural Generation Stream (In Progress Indicator) */}
+                  {isGenerating && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-slate-50 border border-slate-200/90 rounded-3xl p-5 space-y-3 max-w-xl shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between text-xs font-extrabold text-[#111113]">
+                        <div className="flex items-center gap-2">
+                          <RefreshCw className="w-4 h-4 text-[#ff4a22] animate-spin" />
+                          <span>
+                            {creativeType === "video"
+                              ? "Google Flow Veo 2.5 Synthesizer..."
+                              : "ChatGPT Vision 4o Poster Studio..."}
+                          </span>
+                        </div>
+                        <span className="text-[#ff4a22] font-black">
+                          {generationFlowProgress}%
+                        </span>
+                      </div>
+
+                      {/* Animated Progress Bar */}
+                      <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                        <div
+                          style={{ width: `${generationFlowProgress}%` }}
+                          className="h-full bg-gradient-to-r from-[#ff4a22] via-orange-500 to-amber-500 transition-all duration-300"
+                        />
+                      </div>
+
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                        {activeFlowStepText || "Synthesizing creative assets..."}
+                      </p>
+                    </motion.div>
+                  )}
+
+                  <div ref={chatMessagesEndRef} />
+                </div>
+
+                {/* BOTTOM DOCKED INPUT BAR: "chat bot come to buttom" */}
+                <div className="p-4 sm:p-5 border-t border-slate-100 bg-white">
+                  <div className="relative w-full">
+                    {/* Multi-Color Aura Glow */}
+                    <div className="absolute -inset-0.5 rounded-[26px] bg-gradient-to-r from-blue-400/25 via-emerald-400/20 to-purple-400/25 blur-md opacity-70 ai-aura-glow pointer-events-none" />
+
+                    <div className="relative bg-white rounded-[24px] border border-slate-200 shadow-md p-3 sm:p-4 space-y-2">
+                      {attachedImage && (
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 w-fit text-xs text-slate-700 font-medium">
+                          <img
+                            src={attachedImage.url}
+                            alt="Ref"
+                            className="w-5 h-5 rounded object-cover"
+                          />
+                          <span className="truncate max-w-[140px]">{attachedImage.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setAttachedImage(null)}
+                            className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+
+                      {isListening && (
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-bold animate-pulse">
+                          <Mic className="w-3.5 h-3.5 text-purple-600 animate-bounce" />
+                          <span>Listening... Speak your follow-up instruction</span>
+                        </div>
+                      )}
+
+                      <textarea
+                        rows={2}
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendPrompt();
+                          }
+                        }}
+                        placeholder="Ask follow-up: e.g. 'Make the headline punchier', 'Change soundtrack to Lo-Fi', 'Add 50% discount badge'..."
+                        className="w-full text-xs sm:text-sm text-slate-800 placeholder-slate-400 font-medium bg-transparent border-0 outline-none resize-none leading-relaxed"
+                      />
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 text-slate-500">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Attach image"
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer"
+                          >
+                            <ImageIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Attach file"
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer"
+                          >
+                            <Paperclip className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleVoicePrompt}
+                            className={`p-1.5 rounded-full cursor-pointer ${
+                              isListening
+                                ? "bg-purple-100 text-purple-700"
+                                : "hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                            }`}
+                          >
+                            <Mic className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSendPrompt()}
+                            disabled={!chatInput.trim() && !attachedImage}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                              chatInput.trim() || attachedImage
+                                ? "bg-[#ff4a22] text-white shadow-md hover:scale-105"
+                                : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                            }`}
+                          >
+                            <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* In Split View Mode: Display Interactive Phone Mockup beside Chatbot */}
+              {chatViewMode === "split" && (
+                <div className="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-5 sticky top-24">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-[#ff4a22]" />
+                      <span className="text-xs font-extrabold text-[#111113]">
+                        Live {creativeType === "video" ? "Video" : "Poster"} Preview
                       </span>
-                      <span className="font-bold text-slate-800 text-xs block">
-                        9:16 Vertical Reel / Snapchat
-                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full text-[10px] font-bold">
+                      {[
+                        { id: "instagram", label: "Instagram" },
+                        { id: "snapchat", label: "Snapchat" },
+                        { id: "google", label: "Google" },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setPreviewPlatform(p.id)}
+                          className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                            previewPlatform === p.id
+                              ? "bg-white text-[#111113] shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Phone Mockup Frame */}
+                  <div className="w-full max-w-[320px] mx-auto bg-slate-950 rounded-[40px] p-2.5 shadow-2xl border-4 border-slate-800">
+                    <div className="bg-white rounded-[32px] overflow-hidden text-slate-900 font-sans min-h-[500px] flex flex-col justify-between relative">
+                      {previewPlatform === "instagram" && (
+                        <div className="flex flex-col justify-between h-full min-h-[500px]">
+                          <div>
+                            <div className="p-3 flex items-center justify-between border-b border-slate-100">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-0.5">
+                                  <div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[9px] font-black text-[#111113]">
+                                    AD
+                                  </div>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-bold leading-none">{brandName}</span>
+                                  <span className="text-[8px] text-slate-400 mt-0.5">Sponsored</span>
+                                </div>
+                              </div>
+                              <span className="text-slate-400 text-xs">•••</span>
+                            </div>
+
+                            <div className="w-full h-60 bg-slate-900 overflow-hidden relative">
+                              {creativeType === "video" ? (
+                                <video
+                                  src={selectedVideo.videoUrl}
+                                  loop
+                                  muted={isMuted}
+                                  playsInline
+                                  autoPlay
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <img
+                                  src={selectedPoster.url}
+                                  alt="Poster"
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+
+                            <div className="px-3 py-2 bg-slate-50 border-t border-b border-slate-100 flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-slate-700 truncate max-w-[180px]">
+                                {headline}
+                              </span>
+                              <button className="px-2 py-1 bg-[#ff4a22] text-white text-[9px] font-bold rounded">
+                                {ctaText}
+                              </button>
+                            </div>
+
+                            <div className="p-3 space-y-1.5 text-[10px]">
+                              <p className="line-clamp-2 text-slate-600">{caption}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {previewPlatform !== "instagram" && (
+                        <div className="p-4 text-center text-xs text-slate-500 flex flex-col justify-center items-center min-h-[500px]">
+                          <PlatformLogo platform={previewPlatform} size="md" />
+                          <span className="mt-2 font-bold capitalize">{previewPlatform} Format Ready</span>
+                          <span className="text-[10px] text-slate-400">Synchronized with AI Creative</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
-
-              {/* Big Generate Button with AI animation */}
-              <div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* ================= MODE 2: CUSTOM STUDIO FORM & BUDGETS ================= */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-[#ff4a22]" />
+                  <h3 className="text-base font-extrabold text-[#111113]">
+                    Manual Studio & Budget Configuration
+                  </h3>
+                </div>
                 <button
                   type="button"
-                  disabled={isGenerating}
-                  onClick={handleGenerateAds}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4a22] via-orange-500 to-amber-500 hover:opacity-95 text-white font-extrabold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
+                  onClick={() => setActiveMode("generate")}
+                  className="text-xs font-bold text-[#ff4a22] hover:underline cursor-pointer flex items-center gap-1"
                 >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>{generationStep || "Generating Creative..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>
-                        ⚡ Generate{" "}
-                        {creativeType === "video" ? "Video Ad" : "Poster Ad"}{" "}
-                        Creative
-                      </span>
-                    </>
-                  )}
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Switch to AI Chatbot</span>
                 </button>
               </div>
 
-              {/* Generated Presets Carousel / Gallery */}
-              <div className="pt-4 border-t border-slate-100 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-slate-800">
-                    Generated{" "}
-                    {creativeType === "video"
-                      ? "Video Options"
-                      : "Poster Options"}
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    Click to apply instantly to builder & preview
-                  </span>
+              <form onSubmit={handleLaunchCampaign} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
+                      Ad Creative Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={adName}
+                      onChange={(e) => setAdName(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
+                      Parent Campaign
+                    </label>
+                    <select
+                      value={campaign}
+                      onChange={(e) => setCampaign(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
+                    >
+                      <option value="Meta_Advantage_Scale_US_Broad">Meta Advantage+ Scale (Broad)</option>
+                      <option value="Google_PMax_Top_Sellers_AssetGroup">Google PMax Best Sellers</option>
+                      <option value="LinkedIn_B2B_DecisionMakers_Q4">LinkedIn B2B Decision Makers</option>
+                      <option value="YouTube_Shorts_Direct_Conversion">YouTube Shorts Direct</option>
+                      <option value="Amazon_Sponsored_Brands_HeroPack">Amazon Sponsored Brands</option>
+                    </select>
+                  </div>
                 </div>
 
-                {creativeType === "poster" ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {SAMPLE_POSTERS.map((poster) => (
-                      <div
-                        key={poster.id}
-                        onClick={() => handleApplyPoster(poster)}
-                        className={`relative rounded-2xl overflow-hidden cursor-pointer border-2 transition-all group ${
-                          selectedPoster.id === poster.id
-                            ? "border-[#ff4a22] ring-2 ring-[#ff4a22]/20 shadow-md scale-102"
-                            : "border-slate-200/80 hover:border-slate-400 opacity-80 hover:opacity-100"
-                        }`}
-                      >
-                        <div className="aspect-[4/5] w-full overflow-hidden relative">
-                          <img
-                            src={poster.url}
-                            alt={poster.label}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                          <div className="absolute bottom-2 left-2 right-2 text-white">
-                            <span className="text-[9px] font-bold bg-[#ff4a22] px-1.5 py-0.5 rounded text-white block truncate mb-1">
-                              {poster.badge}
-                            </span>
-                            <span className="text-xs font-bold block truncate">
-                              {poster.label}
-                            </span>
-                            <span className="text-[10px] text-white/80 font-semibold block">
-                              {poster.price} • {poster.ctr} CTR
-                            </span>
-                          </div>
-                          {selectedPoster.id === poster.id && (
-                            <div className="absolute top-2 right-2 bg-[#ff4a22] text-white p-1 rounded-full shadow-md">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {SAMPLE_VIDEOS.map((vid) => (
-                      <div
-                        key={vid.id}
-                        onClick={() => handleApplyVideo(vid)}
-                        className={`relative rounded-2xl overflow-hidden cursor-pointer border-2 transition-all group ${
-                          selectedVideo.id === vid.id
-                            ? "border-[#ff4a22] ring-2 ring-[#ff4a22]/20 shadow-md"
-                            : "border-slate-200/80 hover:border-slate-400 opacity-80 hover:opacity-100"
-                        }`}
-                      >
-                        <div className="aspect-[9/14] w-full overflow-hidden relative bg-slate-900">
-                          <img
-                            src={vid.thumbnail}
-                            alt={vid.label}
-                            className="w-full h-full object-cover opacity-75 group-hover:scale-105 transition-transform"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/40" />
-
-                          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Video className="w-2.5 h-2.5 text-[#ff4a22]" />
-                            <span>{vid.duration}</span>
-                          </div>
-
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-9 h-9 rounded-full bg-white/90 text-slate-900 flex items-center justify-center shadow-md">
-                              <Play className="w-4 h-4 ml-0.5" />
-                            </div>
-                          </div>
-
-                          <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white space-y-1">
-                            <span className="text-[10px] font-bold text-amber-300 block truncate">
-                              Est. {vid.roas} ROAS ({vid.ctr} CTR)
-                            </span>
-                            <span className="text-xs font-extrabold block truncate">
-                              {vid.label}
-                            </span>
-                            <span className="text-[9px] text-white/70 block truncate">
-                              {vid.soundTrack}
-                            </span>
-                          </div>
-
-                          {selectedVideo.id === vid.id && (
-                            <div className="absolute top-2 right-2 bg-[#ff4a22] text-white p-1 rounded-full shadow-md">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : null}
-
-          {/* ================= MANUAL STUDIO FORM / EDITING ================= */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-[#ff4a22]" />
-                <h3 className="text-base font-extrabold text-[#111113]">
-                  Ad Configuration & Content Studio
-                </h3>
-              </div>
-              <span className="text-xs text-slate-500 font-semibold">
-                Format:{" "}
-                <strong className="text-slate-800 capitalize">
-                  {creativeType}
-                </strong>
-              </span>
-            </div>
-
-            <form onSubmit={handleLaunchCampaign} className="space-y-6">
-              {/* Ad Name & Campaign */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Ad Creative Name
+                    Headline (Hook)
                   </label>
                   <input
                     type="text"
                     required
-                    value={adName}
-                    onChange={(e) => setAdName(e.target.value)}
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Parent Campaign
-                  </label>
-                  <select
-                    value={campaign}
-                    onChange={(e) => setCampaign(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
-                  >
-                    <option value="Meta_Advantage_Scale_US_Broad">
-                      Meta Advantage+ Scale (Broad)
-                    </option>
-                    <option value="Google_PMax_Top_Sellers_AssetGroup">
-                      Google PMax Best Sellers
-                    </option>
-                    <option value="LinkedIn_B2B_DecisionMakers_Q4">
-                      LinkedIn B2B Decision Makers
-                    </option>
-                    <option value="YouTube_Shorts_Direct_Conversion">
-                      YouTube Shorts Direct
-                    </option>
-                    <option value="Amazon_Sponsored_Brands_HeroPack">
-                      Amazon Sponsored Brands
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Headline */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                    Headline (Hook)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const hooks = [
-                        "Scale Your Cross-Platform ROAS by 340% Today",
-                        "The Autonomous Ad Operating System High-Growth Brands Rely On",
-                        "Stop Guessing Bids. Let AI Route Your Daily Ad Spend.",
-                        "Break The Algorithm. 4.8x Blended ROAS In 72 Hours.",
-                      ];
-                      setHeadline(
-                        hooks[Math.floor(Math.random() * hooks.length)],
-                      );
-                    }}
-                    className="text-[11px] font-bold text-[#ff4a22] hover:text-[#e03d17] flex items-center gap-1 cursor-pointer"
-                  >
-                    <Wand2 className="w-3 h-3" />
-                    <span>AI Rewrite</span>
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={headline}
-                  onChange={(e) => setHeadline(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
-                />
-              </div>
-
-              {/* Primary Text / Caption */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider text-[11px]">
                     Primary Text / Caption
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const captions = [
-                        "Tired of logging into multiple ad managers every morning? ADOS consolidates your Meta, Google, LinkedIn, and Amazon campaigns into one autonomous intelligence engine. Try the 14-day free pilot.",
-                        "High CPA eating into your margins? Our neural bid allocator shifts your budget to high-converting audiences in real-time. Experience 4.8x blended ROAS.",
-                        "Meet the future of omnichannel marketing. Autonomous creative fatigue detection, unified ROAS telemetry, and multi-network ad scaling.",
-                      ];
-                      setCaption(
-                        captions[Math.floor(Math.random() * captions.length)],
-                      );
-                    }}
-                    className="text-[11px] font-bold text-[#ff4a22] hover:text-[#e03d17] flex items-center gap-1 cursor-pointer"
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    <span>AI Hook</span>
-                  </button>
-                </div>
-                <textarea
-                  rows={3}
-                  required
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22] resize-none"
-                />
-              </div>
-
-              {/* Call to Action & Destination URL */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Call to Action (CTA) Button
-                  </label>
-                  <select
-                    value={ctaText}
-                    onChange={(e) => setCtaText(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
-                  >
-                    <option value="Shop Now">Shop Now</option>
-                    <option value="Claim Offer">Claim Offer</option>
-                    <option value="Learn More">Learn More</option>
-                    <option value="Get Offer">Get Offer</option>
-                    <option value="Sign Up">Sign Up</option>
-                    <option value="Install Now">Install Now</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Destination URL
-                  </label>
-                  <input
-                    type="url"
+                  <textarea
+                    rows={3}
                     required
-                    value={destinationUrl}
-                    onChange={(e) => setDestinationUrl(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22] resize-none"
                   />
                 </div>
-              </div>
 
-              {/* ================= STEP 4: WHERE TO RUN ADS (TARGET PLATFORMS) ================= */}
-              <div className="pt-4 border-t border-slate-100 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-[#ff4a22]" />
-                      <h4 className="text-sm font-extrabold text-[#111113]">
-                        Target Ad Networks (Where to Run Ads)
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Select which networks to launch this creative on. ADOS
-                      adapts your asset formats automatically.
-                    </p>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
+                      Call to Action (CTA)
+                    </label>
+                    <select
+                      value={ctaText}
+                      onChange={(e) => setCtaText(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
+                    >
+                      <option value="Shop Now">Shop Now</option>
+                      <option value="Claim Offer">Claim Offer</option>
+                      <option value="Learn More">Learn More</option>
+                      <option value="Get Offer">Get Offer</option>
+                      <option value="Sign Up">Sign Up</option>
+                    </select>
                   </div>
-                  <div className="flex items-center gap-1.5 self-start sm:self-auto">
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
+                      Destination URL
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={destinationUrl}
+                      onChange={(e) => setDestinationUrl(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22]"
+                    />
+                  </div>
+                </div>
+
+                {/* Target Ad Networks */}
+                <div className="pt-4 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#111113] flex items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-[#ff4a22]" />
+                      Target Ad Networks ({activePlatforms.length} Active)
+                    </span>
                     <button
                       type="button"
                       onClick={handleSelectAllPlatforms}
-                      className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold cursor-pointer transition-colors"
+                      className="text-[10px] font-bold text-[#ff4a22] hover:underline cursor-pointer"
                     >
-                      Select All (7)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSelectTop3Platforms}
-                      className="px-2.5 py-1 rounded-full bg-orange-50 hover:bg-orange-100 text-[#ff4a22] text-[10px] font-bold cursor-pointer transition-colors"
-                    >
-                      Top 3 ROAS
+                      Select All
                     </button>
                   </div>
-                </div>
 
-                {/* Platform Selection Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {AVAILABLE_PLATFORMS.map((plat) => {
-                    const isSelected = !!selectedPlatforms[plat.id];
-                    return (
-                      <div
-                        key={plat.id}
-                        onClick={() => togglePlatform(plat.id)}
-                        className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
-                          isSelected
-                            ? "bg-orange-50/25 border-[#ff4a22] shadow-2xs ring-1 ring-[#ff4a22]/20"
-                            : "bg-slate-50/60 border-slate-200 hover:border-slate-300 opacity-60 hover:opacity-100"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <PlatformLogo platform={plat.id} size="sm" />
-                          <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 text-xs truncate">
-                              {plat.name}
-                            </div>
-                            <div className="text-[10px] text-slate-500 truncate">
-                              {plat.subName}
-                            </div>
-                          </div>
-                        </div>
-
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {AVAILABLE_PLATFORMS.map((plat) => {
+                      const isSelected = !!selectedPlatforms[plat.id];
+                      return (
                         <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                          key={plat.id}
+                          onClick={() => togglePlatform(plat.id)}
+                          className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                             isSelected
-                              ? "border-[#ff4a22] bg-[#ff4a22] text-white"
-                              : "border-slate-300 bg-white"
+                              ? "bg-orange-50/30 border-[#ff4a22] shadow-2xs"
+                              : "bg-slate-50 border-slate-200 opacity-60"
                           }`}
                         >
-                          {isSelected && (
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          )}
+                          <div className="flex items-center gap-2 truncate">
+                            <PlatformLogo platform={plat.id} size="xs" />
+                            <span className="text-xs font-bold text-slate-900 truncate">
+                              {plat.name}
+                            </span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#ff4a22]" />}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* ================= STEP 5: BUDGETS OF EVERY PLATFORM ================= */}
-              <div className="pt-4 border-t border-slate-100 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
+                {/* Platform Budgets */}
+                <div className="pt-4 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#111113] flex items-center gap-1.5">
                       <IndianRupee className="w-4 h-4 text-emerald-600" />
-                      <h4 className="text-sm font-extrabold text-[#111113]">
-                        Platform Budgets & Capital Allocation
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Allocate spend across every selected platform with
-                      real-time conversion and ROAS projections.
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Blended Daily Cap
+                      Total Daily Budget: ₹{totalDailyBudget.toLocaleString()}/day
                     </span>
-                    <span className="text-lg font-black text-[#111113]">
-                      ₹{totalDailyBudget.toLocaleString()}
-                      <span className="text-xs text-slate-400 font-normal">
-                        {" "}
-                        / day
-                      </span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quick Budget Presets & Custom Input */}
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-xs font-bold text-slate-700">
-                      Set Total Daily Spend:
-                    </span>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {[500, 1000, 2500, 5000, 10000].map((amt) => (
-                        <button
-                          key={amt}
-                          type="button"
-                          onClick={() => setTotalDailyBudget(amt)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                            totalDailyBudget === amt
-                              ? "bg-[#111113] text-white shadow-xs"
-                              : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                          }`}
-                        >
-                          ₹{amt.toLocaleString()}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
                   <input
@@ -1465,523 +1863,241 @@ export default function CreateAdSection({ onAdCreated }) {
                     max="20000"
                     step="250"
                     value={totalDailyBudget}
-                    onChange={(e) =>
-                      setTotalDailyBudget(Number(e.target.value))
-                    }
+                    onChange={(e) => setTotalDailyBudget(Number(e.target.value))}
                     className="w-full accent-[#ff4a22] cursor-pointer"
                   />
                 </div>
 
-                {/* Visual Allocation Segmented Bar */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                    <span>Network Capital Distribution:</span>
-                    <span>
-                      100% Allocated Across {activePlatforms.length} Networks
-                    </span>
-                  </div>
-                  <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden flex">
-                    {platformBudgetBreakdown.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          width: `${item.sharePct}%`,
-                          backgroundColor: item.color,
-                        }}
-                        className="h-full transition-all duration-300"
-                        title={`${item.name}: ${item.sharePct}% (₹${item.dailyAmt}/day)`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Autonomous AI Toggle Card */}
-                <div className="p-3.5 bg-gradient-to-r from-orange-50/60 to-amber-50/30 rounded-2xl border border-orange-200/80 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <Sparkles className="w-4 h-4 text-[#ff4a22]" />
-                    <div>
-                      <div className="text-xs font-bold text-[#111113] flex items-center gap-1.5">
-                        <span>Autonomous ROAS Rebalancing</span>
-                        <span className="text-[9px] uppercase font-black px-1.5 py-0.5 bg-[#ff4a22] text-white rounded-md">
-                          AI
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-600">
-                        Dynamically routes budget every 15 min to the platform
-                        generating highest ROAS.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAutoRebalance(!autoRebalance)}
-                    className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
-                      autoRebalance ? "bg-[#ff4a22]" : "bg-slate-300"
-                    }`}
-                  >
-                    <div
-                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                        autoRebalance ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Individual Budgets for Every Selected Platform */}
-                <div className="space-y-2.5 pt-1">
-                  <div className="text-xs font-bold text-slate-700">
-                    Live Budgets & Forecast for Every Platform:
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {platformBudgetBreakdown.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 hover:border-slate-300 transition-colors"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <PlatformLogo platform={item.id} size="sm" />
-                            <div>
-                              <div className="font-extrabold text-[#111113] text-xs">
-                                {item.name}
-                              </div>
-                              <div className="text-[10px] text-slate-400">
-                                {item.desc}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Est. {item.estRoas}
-                          </span>
-                        </div>
-
-                        {/* Spend Numbers */}
-                        <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-xl text-left">
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                              Daily Budget
-                            </span>
-                            <div className="text-sm font-black text-slate-900">
-                              ₹{item.dailyAmt.toLocaleString()}
-                              <span className="text-[10px] text-slate-400 font-normal">
-                                {" "}
-                                / day
-                              </span>
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                              Monthly Spend
-                            </span>
-                            <div className="text-xs font-bold text-slate-700">
-                              ₹{item.monthlyAmt.toLocaleString()} / mo
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Slider to adjust individual platform share */}
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
-                            <span>Platform Share Weight:</span>
-                            <span className="text-[#111113]">
-                              {item.sharePct}%
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            min="5"
-                            max="80"
-                            step="5"
-                            value={platformShares[item.id] || 10}
-                            onChange={(e) =>
-                              handleShareChange(item.id, e.target.value)
-                            }
-                            className="w-full accent-[#ff4a22] cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Estimated Performance Metrics */}
-                        <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
-                          <span>
-                            ~{item.estClicks.toLocaleString()} est. clicks
-                          </span>
-                          <span>
-                            ~{item.estImpressions.toLocaleString()} views
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={handleGenerateAds}
-                  className="text-xs font-bold text-[#ff4a22] hover:text-[#e03d17] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Regenerate Creative</span>
-                </button>
-
-                <div className="flex items-center gap-3">
+                {/* Launch Button */}
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-7 py-3 rounded-full bg-[#111113] hover:bg-black text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 hover:scale-[1.02]"
+                    className="w-full py-3.5 rounded-full bg-[#111113] hover:bg-black text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    {isSubmitting ? (
-                      <span>Launching Campaign...</span>
-                    ) : (
-                      <>
-                        <Rocket className="w-4 h-4 text-[#ff4a22]" />
-                        <span>
-                          🚀 Launch Campaign Across {activePlatforms.length}{" "}
-                          Networks (${totalDailyBudget.toLocaleString()}/day)
-                        </span>
-                      </>
-                    )}
+                    <Rocket className="w-4 h-4 text-[#ff4a22]" />
+                    <span>
+                      🚀 Launch Campaign Across {activePlatforms.length} Networks (₹
+                      {totalDailyBudget.toLocaleString()}/day)
+                    </span>
                   </button>
                 </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Right Column: Phone Mockup */}
+          <div className="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-5 sticky top-24">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-[#ff4a22]" />
+                <span className="text-xs font-extrabold text-[#111113]">
+                  Live {creativeType === "video" ? "Video" : "Poster"} Preview
+                </span>
               </div>
-            </form>
-          </div>
-        </div>
 
-        {/* RIGHT COLUMN: INTERACTIVE LIVE MULTI-PLATFORM PHONE MOCKUP */}
-        <div className="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-5 sticky top-24">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-[#ff4a22]" />
-              <span className="text-xs font-extrabold text-[#111113]">
-                Live {creativeType === "video" ? "Video" : "Poster"} Preview
-              </span>
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full text-[10px] font-bold">
+                {[
+                  { id: "instagram", label: "Instagram" },
+                  { id: "snapchat", label: "Snapchat" },
+                  { id: "google", label: "Google" },
+                ].map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setPreviewPlatform(p.id)}
+                    className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                      previewPlatform === p.id
+                        ? "bg-white text-[#111113] shadow-2xs"
+                        : "text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Platform Switcher */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full text-[10px] font-bold">
-              {[
-                { id: "instagram", label: "Instagram" },
-                { id: "snapchat", label: "Snapchat" },
-                { id: "google", label: "Google" },
-              ].map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setPreviewPlatform(p.id)}
-                  className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                    previewPlatform === p.id
-                      ? "bg-white text-[#111113] shadow-2xs"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Interactive Phone Mockup Frame */}
-          <div className="w-full max-w-[340px] mx-auto bg-slate-950 rounded-[42px] p-3 shadow-2xl border-4 border-slate-800">
-            <div className="bg-white rounded-[34px] overflow-hidden text-slate-900 font-sans min-h-[520px] flex flex-col justify-between relative">
-              {/* ================= INSTAGRAM PREVIEW ================= */}
-              {previewPlatform === "instagram" && (
-                <div className="flex flex-col justify-between h-full min-h-[520px]">
-                  <div>
-                    {/* IG Post Header */}
-                    <div className="p-3 flex items-center justify-between border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-0.5">
-                          <div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-black text-[#111113]">
-                            AD
+            {/* Phone Mockup Frame */}
+            <div className="w-full max-w-[340px] mx-auto bg-slate-950 rounded-[42px] p-3 shadow-2xl border-4 border-slate-800">
+              <div className="bg-white rounded-[34px] overflow-hidden text-slate-900 font-sans min-h-[520px] flex flex-col justify-between relative">
+                {previewPlatform === "instagram" && (
+                  <div className="flex flex-col justify-between h-full min-h-[520px]">
+                    <div>
+                      <div className="p-3 flex items-center justify-between border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-0.5">
+                            <div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-black text-[#111113]">
+                              AD
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-bold leading-none">{brandName}</span>
+                            <span className="text-[9px] text-slate-400 mt-0.5">Sponsored</span>
                           </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-[11px] font-bold leading-none">
-                            {brandName}
-                          </span>
-                          <span className="text-[9px] text-slate-400 mt-0.5">
-                            Sponsored
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-slate-400 text-xs">•••</span>
-                    </div>
-
-                    {/* MEDIA DISPLAY (VIDEO OR POSTER) */}
-                    <div className="w-full h-64 bg-slate-900 overflow-hidden relative">
-                      {creativeType === "video" ? (
-                        /* VIDEO PLAYER */
-                        <div className="relative w-full h-full group">
-                          <video
-                            ref={videoRef}
-                            src={selectedVideo.videoUrl}
-                            loop
-                            muted={isMuted}
-                            playsInline
-                            autoPlay
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Video Overlay Controls */}
-                          <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
-                            <button
-                              type="button"
-                              onClick={() => setIsMuted(!isMuted)}
-                              className="p-1.5 rounded-full bg-black/60 text-white backdrop-blur-xs hover:bg-black/80"
-                            >
-                              {isMuted ? (
-                                <VolumeX className="w-3 h-3" />
-                              ) : (
-                                <Volume2 className="w-3 h-3" />
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setIsPlaying(!isPlaying)}
-                              className="p-1.5 rounded-full bg-black/60 text-white backdrop-blur-xs hover:bg-black/80"
-                            >
-                              {isPlaying ? (
-                                <Pause className="w-3 h-3" />
-                              ) : (
-                                <Play className="w-3 h-3" />
-                              )}
-                            </button>
-                          </div>
-
-                          {/* Sound wave / Reel tag */}
-                          <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1.5 bg-black/50 backdrop-blur-xs text-white px-2 py-0.5 rounded-full text-[9px] font-medium">
-                            <Music className="w-2.5 h-2.5 animate-spin" />
-                            <span className="max-w-[130px] truncate">
-                              {videoSound}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        /* POSTER DISPLAY WITH BADGE */
-                        <div className="relative w-full h-full">
-                          <img
-                            src={selectedPoster.url}
-                            alt="Poster Ad"
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Poster Promotional Badge */}
-                          <div className="absolute top-2.5 left-2.5 bg-[#ff4a22] text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow-md flex items-center gap-1">
-                            <span>{posterBadge}</span>
-                          </div>
-
-                          {/* Price Tag Overlay */}
-                          <div className="absolute bottom-2.5 right-2.5 bg-black/75 backdrop-blur-xs text-white px-2 py-1 rounded-md text-[10px] font-bold">
-                            <span className="text-amber-300 font-extrabold">
-                              {posterPrice}
-                            </span>
-                            <span className="text-white/60 line-through text-[8px] ml-1">
-                              {posterOriginalPrice}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* CTA Bar */}
-                    <div className="px-3 py-2 bg-slate-50 border-t border-b border-slate-100 flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-700 truncate max-w-[200px]">
-                        {headline}
-                      </span>
-                      <button className="px-2.5 py-1 bg-[#ff4a22] text-white text-[9px] font-extrabold rounded-md flex items-center gap-1 cursor-pointer">
-                        <span>{ctaText}</span>
-                        <ArrowRight className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
-
-                    {/* IG Actions */}
-                    <div className="p-3 space-y-2">
-                      <div className="flex items-center justify-between text-slate-800">
-                        <div className="flex items-center gap-3">
-                          <Heart className="w-4 h-4 text-slate-800" />
-                          <MessageCircle className="w-4 h-4 text-slate-800" />
-                          <Send className="w-4 h-4 text-slate-800" />
-                        </div>
-                        <Bookmark className="w-4 h-4 text-slate-800" />
+                        <span className="text-slate-400 text-xs">•••</span>
                       </div>
 
-                      <div className="text-[11px]">
+                      <div className="w-full h-64 bg-slate-900 overflow-hidden relative">
+                        {creativeType === "video" ? (
+                          <div className="relative w-full h-full">
+                            <video
+                              src={selectedVideo.videoUrl}
+                              loop
+                              muted={isMuted}
+                              playsInline
+                              autoPlay
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
+                              <button
+                                type="button"
+                                onClick={() => setIsMuted(!isMuted)}
+                                className="p-1.5 rounded-full bg-black/60 text-white backdrop-blur-xs"
+                              >
+                                {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                              </button>
+                            </div>
+                            <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1.5 bg-black/50 backdrop-blur-xs text-white px-2 py-0.5 rounded-full text-[9px]">
+                              <Music className="w-2.5 h-2.5" />
+                              <span className="max-w-[130px] truncate">{videoSound}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative w-full h-full">
+                            <img
+                              src={selectedPoster.url}
+                              alt="Poster"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2.5 left-2.5 bg-[#ff4a22] text-white text-[9px] font-extrabold px-2 py-0.5 rounded">
+                              {posterBadge}
+                            </div>
+                            <div className="absolute bottom-2.5 right-2.5 bg-black/75 text-white px-2 py-1 rounded text-[10px] font-bold">
+                              <span className="text-amber-300 font-extrabold">{posterPrice}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="px-3 py-2 bg-slate-50 border-t border-b border-slate-100 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-700 truncate max-w-[200px]">
+                          {headline}
+                        </span>
+                        <button className="px-2.5 py-1 bg-[#ff4a22] text-white text-[9px] font-extrabold rounded flex items-center gap-1">
+                          <span>{ctaText}</span>
+                          <ArrowRight className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+
+                      <div className="p-3 space-y-2 text-[11px]">
                         <span className="font-bold mr-1.5">{brandName}</span>
                         <span className="text-slate-600 text-[10px] leading-relaxed line-clamp-3">
                           {caption}
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Rating / Telemetry Pill */}
-                  <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[10px] font-bold text-slate-500">
-                    <span className="flex items-center gap-1 text-amber-500">
-                      ⭐⭐⭐⭐⭐ 4.9/5
-                    </span>
-                    <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-extrabold">
-                      Est.{" "}
-                      {creativeType === "video"
-                        ? selectedVideo.roas
-                        : selectedPoster.roas}{" "}
-                      ROAS
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* ================= SNAPCHAT PREVIEW ================= */}
-              {previewPlatform === "snapchat" && (
-                <div className="relative w-full h-[520px] bg-slate-900 rounded-[34px] overflow-hidden text-white flex flex-col justify-between p-4">
-                  {creativeType === "video" ? (
-                    <video
-                      src={selectedVideo.videoUrl}
-                      loop
-                      muted={isMuted}
-                      playsInline
-                      autoPlay
-                      className="absolute inset-0 w-full h-full object-cover opacity-90"
-                    />
-                  ) : (
-                    <img
-                      src={selectedPoster.url}
-                      alt="Snapchat Poster"
-                      className="absolute inset-0 w-full h-full object-cover opacity-85"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35" />
-
-                  {/* Top Bar */}
-                  <div className="relative z-10 flex items-center justify-between text-xs text-white/80 font-bold">
-                    <span>Discover</span>
-                    <span className="text-white border-b-2 border-amber-300 pb-0.5">
-                      Spotlight
-                    </span>
-                    <Search className="w-3.5 h-3.5" />
-                  </div>
-
-                  {/* Right Floating Actions */}
-                  <div className="relative z-10 self-end flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-white flex items-center justify-center text-[10px] font-bold">
-                      AD
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
-                      <span className="text-[9px]">48.2k</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="text-[9px]">1,420</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <Share2 className="w-5 h-5" />
-                      <span className="text-[9px]">920</span>
-                    </div>
-                    <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-400 flex items-center justify-center animate-spin">
-                      <Music className="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-
-                  {/* Bottom Text, Dynamic Subtitle Hook & CTA */}
-                  <div className="relative z-10 space-y-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold">
-                        @{brandName.toLowerCase().replace(/\s/g, "")}
-                      </span>
-                      <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-bold">
-                        Sponsored
+                    <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[10px] font-bold text-slate-500">
+                      <span className="text-amber-500">⭐⭐⭐⭐⭐ 4.9/5</span>
+                      <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-extrabold">
+                        Est. {creativeType === "video" ? selectedVideo.roas : selectedPoster.roas} ROAS
                       </span>
                     </div>
+                  </div>
+                )}
 
-                    {creativeType === "video" && (
-                      <div className="bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-white/20 inline-block">
-                        <span className="text-[10px] font-extrabold text-amber-300">
-                          {videoCaptionsHook}
-                        </span>
-                      </div>
+                {previewPlatform === "snapchat" && (
+                  <div className="relative w-full h-[520px] bg-slate-900 rounded-[34px] overflow-hidden text-white flex flex-col justify-between p-4">
+                    {creativeType === "video" ? (
+                      <video
+                        src={selectedVideo.videoUrl}
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        autoPlay
+                        className="absolute inset-0 w-full h-full object-cover opacity-90"
+                      />
+                    ) : (
+                      <img
+                        src={selectedPoster.url}
+                        alt="Snapchat"
+                        className="absolute inset-0 w-full h-full object-cover opacity-85"
+                      />
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35" />
 
-                    <p className="text-[10px] text-white/90 line-clamp-2 leading-relaxed">
-                      {caption}
-                    </p>
-
-                    <div className="flex items-center gap-1.5 text-[9px] text-white/70">
-                      <Music className="w-3 h-3 animate-spin" />
-                      <span className="truncate">{videoSound}</span>
+                    <div className="relative z-10 flex items-center justify-between text-xs text-white/80 font-bold">
+                      <span>Discover</span>
+                      <span className="text-white border-b-2 border-amber-300 pb-0.5">Spotlight</span>
+                      <Search className="w-3.5 h-3.5" />
                     </div>
 
-                    <div className="pt-1">
-                      <button className="w-full py-2 bg-[#ff4a22] hover:bg-[#e03d17] text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 shadow-lg cursor-pointer">
-                        <span>{ctaText}</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
+                    <div className="relative z-10 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold">@{brandName.toLowerCase().replace(/\s/g, "")}</span>
+                        <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-bold">Sponsored</span>
+                      </div>
+
+                      {creativeType === "video" && (
+                        <div className="bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-white/20 inline-block">
+                          <span className="text-[10px] font-extrabold text-amber-300">
+                            {videoCaptionsHook}
+                          </span>
+                        </div>
+                      )}
+
+                      <p className="text-[10px] text-white/90 line-clamp-2">{caption}</p>
+
+                      <div className="pt-1">
+                        <button className="w-full py-2 bg-[#ff4a22] text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1">
+                          <span>{ctaText}</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* ================= GOOGLE PREVIEW ================= */}
-              {previewPlatform === "google" && (
-                <div className="p-4 space-y-4 bg-white flex flex-col justify-between h-full min-h-[520px]">
-                  <div>
-                    <div className="text-xs text-slate-400 font-bold mb-3">
-                      Google Sponsored Result
-                    </div>
+                {previewPlatform === "google" && (
+                  <div className="p-4 space-y-4 bg-white flex flex-col justify-between h-full min-h-[520px]">
                     <div className="space-y-2 border border-slate-200 rounded-2xl p-4 bg-slate-50/50">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-black text-slate-800 bg-slate-200 px-1.5 py-0.5 rounded">
                           Sponsored
                         </span>
-                        <span className="text-[10px] text-slate-500 truncate">
-                          {destinationUrl}
-                        </span>
+                        <span className="text-[10px] text-slate-500 truncate">{destinationUrl}</span>
                       </div>
-                      <h4 className="text-xs font-black text-blue-700 hover:underline leading-snug cursor-pointer">
+                      <h4 className="text-xs font-black text-blue-700 leading-snug">
                         {headline} | {brandName}
                       </h4>
-                      <p className="text-[10px] text-slate-600 leading-relaxed line-clamp-3">
-                        {caption}
-                      </p>
+                      <p className="text-[10px] text-slate-600 line-clamp-3">{caption}</p>
 
-                      {/* Display Media Thumbnail */}
                       <div className="w-full h-28 rounded-xl overflow-hidden mt-2 relative">
                         <img
-                          src={
-                            creativeType === "video"
-                              ? selectedVideo.thumbnail
-                              : selectedPoster.url
-                          }
-                          alt="Google Ad Asset"
+                          src={creativeType === "video" ? selectedVideo.thumbnail : selectedPoster.url}
+                          alt="Google Asset"
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                          {creativeType === "video"
-                            ? "Video Asset"
-                            : "Poster Asset"}
-                        </div>
                       </div>
 
-                      <div className="pt-2 flex flex-wrap gap-2">
+                      <div className="pt-2">
                         <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                           {ctaText} →
                         </span>
-                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                          Instant Checkout
-                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="p-2 rounded-xl bg-slate-50 text-[10px] text-slate-500 font-medium text-center">
-                    Simulated Google Responsive Display Ad Preview
+                    <div className="p-2 rounded-xl bg-slate-50 text-[10px] text-slate-500 font-medium text-center">
+                      Simulated Google Ad Preview
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
