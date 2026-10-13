@@ -879,48 +879,38 @@ export default function CreateAdSection({ onAdCreated }) {
         )}
       </AnimatePresence>
 
-      {/* Header with Mode Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200/80 text-[11px] font-bold text-[#ff4a22] mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-[#ff4a22] animate-pulse" />
-            <span>Autonomous Creative Generation Engine</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111113] tracking-tight">
-            Create Ads
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Generate high-converting <strong>Video</strong> and{" "}
-            <strong>Poster</strong> ad creatives with AI, or manually customize
-            your assets.
-          </p>
-        </div>
-
-        {/* Mode Selector Pill */}
-        <div className="inline-flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200/80 self-start md:self-auto">
+      {/* Centered Format Selector (Image vs Video) */}
+      <div className="flex justify-center items-center w-full pt-1 pb-1">
+        <div className="inline-flex items-center p-1.5 bg-slate-100 rounded-2xl border border-slate-200/80 shadow-xs">
           <button
             type="button"
-            onClick={() => setActiveMode("generate")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeMode === "generate"
+            onClick={() => setCreativeType("poster")}
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              creativeType === "poster"
                 ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#ff4a22]" />
-            <span>✨ Generate Ads (AI)</span>
+            <ImageIcon className="w-4 h-4 text-[#ff4a22]" />
+            <span>🖼️ Image / Poster Ads</span>
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-orange-100 text-[#ff4a22]">
+              ChatGPT
+            </span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveMode("manual")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeMode === "manual"
+            onClick={() => setCreativeType("video")}
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              creativeType === "video"
                 ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Sliders className="w-3.5 h-3.5 text-slate-700" />
-            <span>🛠️ Custom Studio</span>
+            <Video className="w-4 h-4 text-purple-600" />
+            <span>🎥 Video Ads</span>
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700">
+              Google Flow
+            </span>
           </button>
         </div>
       </div>
@@ -928,60 +918,6 @@ export default function CreateAdSection({ onAdCreated }) {
       {/* ================= MODE 1: GENERATE ADS (AI CHATBOT STUDIO) ================= */}
       {activeMode === "generate" ? (
         <div className="w-full space-y-6">
-          {/* Top Format Selector (Image vs Video) */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                  Select Creative Engine Format
-                </span>
-              </div>
-              <h3 className="text-base font-extrabold text-[#111113]">
-                {creativeType === "video" ? "🎥 Video Ad (Google Flow)" : "🖼️ Image Ad (ChatGPT)"}
-              </h3>
-              <p className="text-xs text-slate-500">
-                {creativeType === "video"
-                  ? "Google Flow Veo 2.5 • High-Retention 9:16 Vertical Video Studio with Audio Sync"
-                  : "ChatGPT Vision 4o • High-CTR Promotional Poster & Discount Flyer Studio"}
-              </p>
-            </div>
-
-            {/* Prominent Image vs Video Toggle Pills */}
-            <div className="flex items-center p-1.5 bg-slate-100 rounded-2xl border border-slate-200/80 self-start md:self-auto">
-              <button
-                type="button"
-                onClick={() => setCreativeType("poster")}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  creativeType === "poster"
-                    ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <ImageIcon className="w-4 h-4 text-[#ff4a22]" />
-                <span>🖼️ Image / Poster Ads</span>
-                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-orange-100 text-[#ff4a22]">
-                  ChatGPT
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCreativeType("video")}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  creativeType === "video"
-                    ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Video className="w-4 h-4 text-purple-600" />
-                <span>🎥 Video Ads</span>
-                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700">
-                  Google Flow
-                </span>
-              </button>
-            </div>
-          </div>
-
           {/* INITIAL STATE: Centered Hero "Meet AI Mode" (Matches Screenshot Exactly) */}
           {!hasStartedChat ? (
             <motion.div
@@ -990,9 +926,9 @@ export default function CreateAdSection({ onAdCreated }) {
               className="bg-gradient-to-b from-slate-50/60 via-white to-slate-50/40 rounded-3xl border border-slate-200/80 p-8 sm:p-14 text-center min-h-[580px] flex flex-col justify-center items-center shadow-2xs relative overflow-hidden"
             >
               {/* Subtle Ambient Background Aura */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-blue-300/15 via-purple-300/15 to-orange-300/15 blur-3xl pointer-events-none rounded-full" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-blue-300/15 via-purple-300/15 to-orange-300/15 blur-3xl pointer-events-none rounded-full" />
 
-              <div className="relative z-10 max-w-2xl w-full space-y-6">
+              <div className="relative z-10 max-w-4xl w-full space-y-7">
                 {/* Title and Subtitle matching Screenshot */}
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200/90 text-[11px] font-bold text-slate-700 shadow-2xs mb-1">
@@ -1009,12 +945,12 @@ export default function CreateAdSection({ onAdCreated }) {
                   </p>
                 </div>
 
-                {/* The Floating AI Input Pill with Multi-Color Aura Glow */}
-                <div className="relative w-full max-w-xl mx-auto text-left">
+                {/* The Floating AI Input Pill with Multi-Color Aura Glow - Expanded Width */}
+                <div className="relative w-full max-w-3xl sm:max-w-4xl mx-auto text-left">
                   {/* Iridescent Glowing Ring */}
-                  <div className="absolute -inset-1 rounded-[30px] bg-gradient-to-r from-blue-400/30 via-emerald-400/25 to-purple-400/30 blur-lg opacity-85 ai-aura-glow pointer-events-none" />
+                  <div className="absolute -inset-1.5 rounded-[32px] bg-gradient-to-r from-blue-400/30 via-emerald-400/25 to-purple-400/30 blur-xl opacity-85 ai-aura-glow pointer-events-none" />
 
-                  <div className="relative bg-white rounded-[26px] border border-slate-200 shadow-xl p-4 sm:p-5 space-y-3">
+                  <div className="relative bg-white rounded-[28px] border border-slate-200 shadow-xl p-5 sm:p-6 space-y-3.5">
                     {/* Attached Image Preview if selected */}
                     {attachedImage && (
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 w-fit text-xs text-slate-700 font-medium animate-fadeIn">
@@ -1038,9 +974,9 @@ export default function CreateAdSection({ onAdCreated }) {
                       </div>
                     )}
 
-                    {/* Textarea matching Screenshot "Ask anything" */}
+                    {/* Textarea matching Screenshot "Ask anything" - Spacious & Increased */}
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -1054,12 +990,12 @@ export default function CreateAdSection({ onAdCreated }) {
                           ? "Ask anything... e.g. Create a 40% discount video ad with viral UGC hook for urban sneakers"
                           : "Ask anything... e.g. Design a sleek 40% off promotional poster with 4.9★ badge for headphones"
                       }
-                      className="w-full text-sm sm:text-base text-slate-800 placeholder-slate-400 font-medium bg-transparent border-0 outline-none resize-none leading-relaxed"
+                      className="w-full text-base sm:text-lg text-slate-800 placeholder-slate-400 font-medium bg-transparent border-0 outline-none resize-none leading-relaxed"
                     />
 
                     {/* Input Controls Bar: Image, Attach, Mic, Send */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                      <div className="flex items-center gap-1.5 text-slate-500">
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+                      <div className="flex items-center gap-2 text-slate-500">
                         <input
                           type="file"
                           ref={fileInputRef}
@@ -1071,60 +1007,60 @@ export default function CreateAdSection({ onAdCreated }) {
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           title="Attach product image or poster reference"
-                          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                          className="p-2.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                         >
-                          <ImageIcon className="w-4 h-4" />
+                          <ImageIcon className="w-4.5 h-4.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           title="Attach brand assets or logo"
-                          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                          className="p-2.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                         >
-                          <Paperclip className="w-4 h-4" />
+                          <Paperclip className="w-4.5 h-4.5" />
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <button
                           type="button"
                           onClick={handleVoicePrompt}
                           title={isListening ? "Listening..." : "Speech input"}
-                          className={`p-2 rounded-full transition-colors cursor-pointer ${
+                          className={`p-2.5 rounded-full transition-colors cursor-pointer ${
                             isListening
                               ? "bg-purple-100 text-purple-700"
                               : "hover:bg-slate-100 text-slate-500 hover:text-slate-800"
                           }`}
                         >
-                          <Mic className="w-4 h-4" />
+                          <Mic className="w-4.5 h-4.5" />
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleSendPrompt()}
                           disabled={!chatInput.trim() && !attachedImage}
-                          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                             chatInput.trim() || attachedImage
                               ? "bg-[#ff4a22] text-white shadow-md hover:opacity-90 hover:scale-105"
                               : "bg-slate-200 text-slate-400 cursor-not-allowed"
                           }`}
                         >
-                          <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                          <ArrowUp className="w-4.5 h-4.5 stroke-[2.5]" />
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Suggestion Prompts matching Screenshot (with 🔍 search icon) */}
-                <div className="space-y-2 pt-2 max-w-xl mx-auto text-left">
+                {/* Suggestion Prompts matching Screenshot (with 🔍 search icon) - Aligned to Chat Box Width */}
+                <div className="space-y-2 pt-2 max-w-3xl sm:max-w-4xl mx-auto text-left">
                   {(creativeType === "video" ? VIDEO_PROMPT_SUGGESTIONS : IMAGE_PROMPT_SUGGESTIONS).map(
                     (sug, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleSendPrompt(sug)}
-                        className="w-full text-left p-3 rounded-2xl hover:bg-white/90 bg-slate-50/70 border border-slate-200/60 hover:border-slate-300 transition-all flex items-center gap-3 text-xs sm:text-sm text-slate-600 font-medium cursor-pointer group shadow-2xs"
+                        className="w-full text-left p-3.5 rounded-2xl hover:bg-white/90 bg-slate-50/70 border border-slate-200/60 hover:border-slate-300 transition-all flex items-center gap-3 text-xs sm:text-sm text-slate-600 font-medium cursor-pointer group shadow-2xs"
                       >
                         <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#ff4a22] transition-colors shrink-0" />
                         <span className="truncate group-hover:text-slate-900">{sug}</span>

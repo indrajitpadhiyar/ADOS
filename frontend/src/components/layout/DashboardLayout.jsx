@@ -59,6 +59,7 @@ export default function DashboardLayout({ children, user, onLogout }) {
     const path = location.pathname;
     if (path.includes("manage-ads")) return "manage-ads";
     if (path.includes("create-ads")) return "create-ads";
+    if (path.includes("publish-ads")) return "publish-ads";
     if (path.includes("manage-account")) return "manage-account";
     if (path.includes("settings")) return "settings";
     if (path.includes("add-balance")) return "add-balance";
@@ -77,6 +78,9 @@ export default function DashboardLayout({ children, user, onLogout }) {
         break;
       case "create-ads":
         navigate("/create-ads");
+        break;
+      case "publish-ads":
+        navigate("/publish-ads");
         break;
       case "manage-account":
         navigate("/manage-account");
@@ -131,6 +135,8 @@ export default function DashboardLayout({ children, user, onLogout }) {
         return "Manage Ads";
       case "create-ads":
         return "Create Ads";
+      case "publish-ads":
+        return "Publish Ads";
       case "manage-account":
         return "Manage Account";
       case "settings":

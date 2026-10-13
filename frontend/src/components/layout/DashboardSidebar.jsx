@@ -49,6 +49,13 @@ export default function DashboardSidebar({
       description: "Multi-Platform Designer",
     },
     {
+      id: "publish-ads",
+      label: "Publish Ads",
+      icon: Rocket,
+      badge: "Deploy",
+      description: "Omnichannel Launcher",
+    },
+    {
       id: "manage-account",
       label: "Manage Account",
       icon: UserCheck,

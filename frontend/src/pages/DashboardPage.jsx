@@ -28,6 +28,9 @@ export default function DashboardPage({ user, onLogout }) {
       case "create-campaign":
         navigate("/create-ads");
         break;
+      case "publish-ads":
+        navigate("/publish-ads");
+        break;
       case "manage-account":
         navigate("/manage-account");
         break;

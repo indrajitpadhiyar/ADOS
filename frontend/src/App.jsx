@@ -5,6 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ManageAdsPage from "./pages/ManageAdsPage";
 import CreateAdPage from "./pages/CreateAdPage";
+import PublishAdPage from "./pages/PublishAdPage";
 import ManageAccountPage from "./pages/ManageAccountPage";
 import SettingsPage from "./pages/SettingsPage";
 import AddBalancePage from "./pages/AddBalancePage";
@@ -119,6 +120,28 @@ export default function App() {
           element={
             user ? (
               <CreateAdPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* Publish Ads Page */}
+        <Route
+          path="/publish-ads"
+          element={
+            user ? (
+              <PublishAdPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/publish-ads"
+          element={
+            user ? (
+              <PublishAdPage user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/auth" replace />
             )
