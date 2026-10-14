@@ -5,6 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ManageAdsPage from "./pages/ManageAdsPage";
 import CreateAdPage from "./pages/CreateAdPage";
+import GenerateVideoPage from "./pages/GenerateVideoPage";
 import PublishAdPage from "./pages/PublishAdPage";
 import ManageAccountPage from "./pages/ManageAccountPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -120,6 +121,46 @@ export default function App() {
           element={
             user ? (
               <CreateAdPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/generate-poster"
+          element={
+            user ? (
+              <CreateAdPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/generate-poster"
+          element={
+            user ? (
+              <CreateAdPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/generate-video"
+          element={
+            user ? (
+              <GenerateVideoPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/generate-video"
+          element={
+            user ? (
+              <GenerateVideoPage user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/auth" replace />
             )

@@ -12,6 +12,7 @@ import {
   Sparkles,
   CreditCard,
   Settings as SettingsIcon,
+  ChevronDown,
 } from "lucide-react";
 import DashboardSidebar from "./DashboardSidebar";
 
@@ -58,7 +59,9 @@ export default function DashboardLayout({ children, user, onLogout }) {
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes("manage-ads")) return "manage-ads";
-    if (path.includes("create-ads")) return "create-ads";
+    if (path.includes("generate-poster")) return "generate-poster";
+    if (path.includes("generate-video")) return "generate-video";
+    if (path.includes("create-ads")) return "generate-poster";
     if (path.includes("publish-ads")) return "publish-ads";
     if (path.includes("manage-account")) return "manage-account";
     if (path.includes("settings")) return "settings";
@@ -77,7 +80,11 @@ export default function DashboardLayout({ children, user, onLogout }) {
         navigate("/manage-ads");
         break;
       case "create-ads":
-        navigate("/create-ads");
+      case "generate-poster":
+        navigate("/generate-poster");
+        break;
+      case "generate-video":
+        navigate("/generate-video");
         break;
       case "publish-ads":
         navigate("/publish-ads");
@@ -134,7 +141,10 @@ export default function DashboardLayout({ children, user, onLogout }) {
       case "manage-ads":
         return "Manage Ads";
       case "create-ads":
-        return "Create Ads";
+      case "generate-poster":
+        return "Generate Poster";
+      case "generate-video":
+        return "Generate Video";
       case "publish-ads":
         return "Publish Ads";
       case "manage-account":
@@ -201,7 +211,7 @@ export default function DashboardLayout({ children, user, onLogout }) {
             <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-xs font-bold text-emerald-800 tracking-wide">
-                5 Networks Active • Autonomous AI Sync
+                5 Networks Active
               </span>
             </div>
 
@@ -315,12 +325,13 @@ export default function DashboardLayout({ children, user, onLogout }) {
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
                     <span className="text-xs font-bold leading-tight text-[#111113] truncate max-w-[110px]">
-                      {user?.name || "Advertiser"}
+                      {user?.name || "Indrajit"}
                     </span>
                     <span className="text-[10px] text-slate-400 leading-tight">
-                      {user?.role ? (user.role === "admin" ? "Workspace Admin" : user.role) : "Workspace Admin"}
+                      {user?.role || "User"}
                     </span>
                   </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
                 </button>
 
                 <AnimatePresence>
@@ -384,25 +395,41 @@ export default function DashboardLayout({ children, user, onLogout }) {
         </header>
 
         {/* MAIN BODY */}
-        <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 sm:p-8 lg:p-10">
+        <main
+          className={`flex-1 w-full max-w-[1440px] mx-auto ${
+            activeTab === "generate-poster" || activeTab === "generate-video"
+              ? "p-3 sm:p-5 flex flex-col"
+              : "p-4 sm:p-8 lg:p-10"
+          }`}
+        >
           {children}
         </main>
 
         {/* FOOTER */}
-        <footer className="py-6 bg-white border-t border-slate-200/80 text-xs text-slate-500">
-          <div className="max-w-[1440px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-[#111113]">ADOS Autonomous Ad Operating System</span>
-              <span>•</span>
-              <span>Version 2.4-enterprise</span>
+        {activeTab !== "generate-poster" && activeTab !== "generate-video" && (
+          <footer className="py-6 bg-white border-t border-slate-200/80 text-xs text-slate-500">
+            <div className="max-w-[1440px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#111113]">
+                  ADOS Autonomous Ad Operating System
+                </span>
+                <span>•</span>
+                <span>Version 2.4-enterprise</span>
+              </div>
+              <div className="flex items-center gap-6 text-[11px] font-semibold text-slate-400">
+                <span className="hover:text-slate-600 cursor-pointer">
+                  API Status: Operational
+                </span>
+                <span className="hover:text-slate-600 cursor-pointer">
+                  Security: SOC2 Certified
+                </span>
+                <span className="hover:text-slate-600 cursor-pointer">
+                  Live Sync: 14ms latency
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-6 text-[11px] font-semibold text-slate-400">
-              <span className="hover:text-slate-600 cursor-pointer">API Status: Operational</span>
-              <span className="hover:text-slate-600 cursor-pointer">Security: SOC2 Certified</span>
-              <span className="hover:text-slate-600 cursor-pointer">Live Sync: 14ms latency</span>
-            </div>
-          </div>
-        </footer>
+          </footer>
+        )}
       </div>
     </div>
   );
