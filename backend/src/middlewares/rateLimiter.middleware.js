@@ -93,3 +93,14 @@ export const googleAdsApiLimiter = createLimiter(
   60,
   "Too many Google Ads API sync requests. Please try again shortly."
 );
+
+/**
+ * AI Generation Endpoint Limiter
+ * Throttles burst generation requests to prevent GPU and service abuse
+ */
+export const aiGenerationLimiter = createLimiter(
+  5 * 60 * 1000,
+  15, // 15 requests per 5 minutes
+  "Too many generation requests in a short period. Please wait a few moments before generating again."
+);
+

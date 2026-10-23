@@ -30,12 +30,46 @@ export const api = {
     return handleResponse(res);
   },
 
+  async refreshToken() {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    const data = await handleResponse(res);
+    if (data?.accessToken) {
+      localStorage.setItem("ados_token", data.accessToken);
+      if (data.user) {
+        localStorage.setItem("ados_user", JSON.stringify(data.user));
+      }
+    }
+    return data;
+  },
+
   async getMe() {
     const res = await fetch(`${API_BASE}/auth/me`, {
       method: "GET",
       headers: getHeaders(),
       credentials: "include",
     });
+
+    if (res.status === 401) {
+      // Attempt silent token refresh using the 7-day refresh token cookie
+      try {
+        const refreshData = await this.refreshToken();
+        if (refreshData?.accessToken) {
+          const retryRes = await fetch(`${API_BASE}/auth/me`, {
+            method: "GET",
+            headers: getHeaders(),
+            credentials: "include",
+          });
+          return handleResponse(retryRes);
+        }
+      } catch {
+        // 7 days elapsed or token revoked: fall through to reject
+      }
+    }
+
     return handleResponse(res);
   },
 
@@ -253,4 +287,55 @@ export const api = {
     });
     return handleResponse(res);
   },
+
+  // AI Generation (Free-tier only)
+  async generateAiImage(payload) {
+    const res = await fetch(`${API_BASE}/ai/generate-image`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return handleResponse(res);
+  },
+
+  async getAiQuota() {
+    const res = await fetch(`${API_BASE}/ai/quota`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getAiHistory() {
+    const res = await fetch(`${API_BASE}/ai/history`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getAiVideoStatus() {
+    const res = await fetch(`${API_BASE}/ai/video-status`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async generateAiVideo(payload) {
+    const res = await fetch(`${API_BASE}/ai/generate-video`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return handleResponse(res);
+  },
 };
+
+export default api;
+

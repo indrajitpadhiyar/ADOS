@@ -66,6 +66,8 @@ export default function DashboardLayout({ children, user, onLogout }) {
     if (path.includes("manage-account")) return "manage-account";
     if (path.includes("settings")) return "settings";
     if (path.includes("add-balance")) return "add-balance";
+    if (path.includes("upgrade-plan")) return "upgrade-plan";
+    if (path.includes("reports")) return "reports";
     return "dashboard";
   };
 
@@ -88,6 +90,12 @@ export default function DashboardLayout({ children, user, onLogout }) {
         break;
       case "publish-ads":
         navigate("/publish-ads");
+        break;
+      case "upgrade-plan":
+        navigate("/upgrade-plan");
+        break;
+      case "reports":
+        navigate("/reports");
         break;
       case "manage-account":
         navigate("/manage-account");
@@ -147,6 +155,10 @@ export default function DashboardLayout({ children, user, onLogout }) {
         return "Generate Video";
       case "publish-ads":
         return "Publish Ads";
+      case "upgrade-plan":
+        return "Upgrade Plan & Quota";
+      case "reports":
+        return "Performance Reports";
       case "manage-account":
         return "Manage Account";
       case "settings":

@@ -15,7 +15,9 @@ import {
   Sliders,
   ChevronDown,
   Rocket,
+  AlertCircle,
 } from "lucide-react";
+import { api } from "../../services/api";
 
 export default function GeneratePosterSection({ onNavigateBack }) {
   const navigate = useNavigate();
@@ -29,9 +31,40 @@ export default function GeneratePosterSection({ onNavigateBack }) {
   const [generationStep, setGenerationStep] = useState("");
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [quota, setQuota] = useState(null);
+  const [quotaError, setQuotaError] = useState(null);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Load initial quota and user generation history on mount
+  useEffect(() => {
+    api.getAiQuota()
+      .then((q) => {
+        setQuota(q);
+        if (q.remainingToday <= 0) {
+          setQuotaError("Free generation limit reached. You have used all your free generations for today.");
+        }
+      })
+      .catch(() => {});
+
+    api.getAiHistory({ limit: 10 })
+      .then((history) => {
+        if (Array.isArray(history) && history.length > 0) {
+          const loaded = history.map((item) => ({
+            id: item._id,
+            userPrompt: item.prompt,
+            imageUrl: item.outputUrl,
+            size: item.metadata?.size || "square",
+            style: item.metadata?.style || "minimal",
+            timestamp: new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            seed: item.metadata?.seed,
+          }));
+          setGenerations((prev) => [...loaded, ...prev.filter((p) => p.id === "gen-init")]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Conversation & Generation History (ChatGPT / Gemini style)
   const [generations, setGenerations] = useState([
@@ -64,16 +97,19 @@ export default function GeneratePosterSection({ onNavigateBack }) {
     return `${rawPrompt}${styleModifier}`;
   };
 
-  // Generate real AI image like ChatGPT / Gemini
+  // Generate real AI image via secure backend provider
   const handleGenerate = async (overridePrompt) => {
     const textPrompt = (overridePrompt || prompt).trim();
     if (!textPrompt || isGenerating) return;
 
-    setIsGenerating(true);
-    setGenerationStep("Understanding prompt...");
+    if (quota && quota.remainingToday <= 0) {
+      setQuotaError("Free generation limit reached. Please wait for tomorrow's reset.");
+      return;
+    }
 
-    const newId = `gen-${Date.now()}`;
-    const seed = Math.floor(Math.random() * 999999);
+    setIsGenerating(true);
+    setGenerationStep("Analyzing visual prompt with AI...");
+    setQuotaError(null);
 
     // Dimension calculation
     let width = 1024;
@@ -86,43 +122,49 @@ export default function GeneratePosterSection({ onNavigateBack }) {
       height = 1344;
     }
 
-    const enhanced = buildEnhancedPrompt(textPrompt, selectedStyle);
-
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      setGenerationStep("Synthesizing visual canvas...");
-
-      // Pollinations AI image generator
-      const aiGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-        enhanced
-      )}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
-
-      // Preload image
-      await new Promise((resolve) => {
-        const img = new Image();
-        img.onload = resolve;
-        img.onerror = resolve;
-        setTimeout(resolve, 5000);
-        img.src = aiGeneratedUrl;
+      setGenerationStep("Synthesizing creative canvas via free AI provider...");
+      const result = await api.generateAiImage({
+        prompt: textPrompt,
+        style: selectedStyle,
+        size: selectedSize,
+        width,
+        height,
       });
 
-      setGenerationStep("Finalizing resolution...");
-      await new Promise((r) => setTimeout(r, 400));
+      if (!result?.imageUrl) {
+        throw new Error("Unable to synthesize image asset.");
+      }
 
       const newGen = {
-        id: newId,
+        id: result.id || `gen-${Date.now()}`,
         userPrompt: textPrompt,
-        imageUrl: aiGeneratedUrl,
+        imageUrl: result.imageUrl,
         size: selectedSize,
         style: selectedStyle,
         timestamp: "Just now",
-        seed,
+        seed: result.seed,
+        provider: result.provider,
       };
 
       setGenerations((prev) => [...prev, newGen]);
       setPrompt("");
+
+      // Update local quota
+      if (typeof result.remainingToday === "number") {
+        setQuota((prev) => ({
+          ...prev,
+          remainingToday: result.remainingToday,
+          usedToday: (prev?.usedToday || 0) + 1,
+        }));
+      }
     } catch (err) {
-      console.error(err);
+      console.error("AI generation failure:", err.message);
+      if (err.message?.includes("Free generation limit reached") || err.message?.includes("429")) {
+        setQuotaError("Free generation limit reached. Daily free quota exhausted.");
+      } else {
+        setQuotaError(err.message || "Failed to generate AI image. Please try again.");
+      }
     } finally {
       setIsGenerating(false);
       setGenerationStep("");
@@ -204,8 +246,19 @@ export default function GeneratePosterSection({ onNavigateBack }) {
           </div>
         </div>
 
-        {/* Quick Style & Ratio Pill Switcher */}
+        {/* Quick Style, Ratio & Free Quota Badges */}
         <div className="flex items-center gap-2">
+          {/* Free Quota Badge */}
+          {quota && (
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+              quota.remainingToday > 0
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-amber-50 text-amber-700 border-amber-200"
+            }`}>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{quota.remainingToday}/{quota.dailyLimit} Free Left</span>
+            </div>
+          )}
           {/* Ratio Selector */}
           <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-bold text-slate-600">
             {[
@@ -439,7 +492,15 @@ export default function GeneratePosterSection({ onNavigateBack }) {
       {/* 3. FIXED CHAT SECTION AT THE ABSOLUTE BOTTOM (LIKE CHATGPT / GEMINI) */}
       {/* ======================================================== */}
       <div className="fixed bottom-0 left-0 lg:left-64 right-0 z-40 px-4 pb-4 pt-4 bg-gradient-to-t from-[#fafbfc] via-[#fafbfc]/95 to-transparent backdrop-blur-xs">
-        <div className="max-w-4xl w-full mx-auto">
+        <div className="max-w-4xl w-full mx-auto space-y-2">
+          {/* Quota Exhaustion / Error Banner */}
+          {quotaError && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold shadow-xs">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span className="flex-1">{quotaError}</span>
+            </div>
+          )}
+
           {/* Main Floating Chat Box */}
           <div className="rounded-3xl border border-slate-300 bg-white p-2 sm:p-2.5 shadow-2xl flex items-center gap-3 transition-all focus-within:border-[#ff4a22] focus-within:ring-2 focus-within:ring-orange-100">
             <div className="w-9 h-9 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 ml-1 shrink-0">

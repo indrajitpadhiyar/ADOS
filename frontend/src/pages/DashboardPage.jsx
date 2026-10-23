@@ -31,6 +31,12 @@ export default function DashboardPage({ user, onLogout }) {
       case "publish-ads":
         navigate("/publish-ads");
         break;
+      case "upgrade-plan":
+        navigate("/upgrade-plan");
+        break;
+      case "reports":
+        navigate("/reports");
+        break;
       case "manage-account":
         navigate("/manage-account");
         break;

@@ -10,6 +10,8 @@ import PublishAdPage from "./pages/PublishAdPage";
 import ManageAccountPage from "./pages/ManageAccountPage";
 import SettingsPage from "./pages/SettingsPage";
 import AddBalancePage from "./pages/AddBalancePage";
+import UpgradePlanPage from "./pages/UpgradePlanPage";
+import ReportsPage from "./pages/ReportsPage";
 import { api } from "./services/api";
 
 export default function App() {
@@ -22,23 +24,21 @@ export default function App() {
     }
   });
 
-  // Verify backend session on mount
+  // Verify backend session on mount (supports 7-day cookies & automatic sliding refresh)
   useEffect(() => {
-    const token = localStorage.getItem("ados_token");
-    if (token) {
-      api.getMe()
-        .then((res) => {
-          if (res?.user) {
-            setUser(res.user);
-            localStorage.setItem("ados_user", JSON.stringify(res.user));
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem("ados_token");
-          localStorage.removeItem("ados_user");
-          setUser(null);
-        });
-    }
+    api.getMe()
+      .then((res) => {
+        if (res?.user) {
+          setUser(res.user);
+          localStorage.setItem("ados_user", JSON.stringify(res.user));
+        }
+      })
+      .catch(() => {
+        // If 7 days have passed without visiting, auto-logout cleanly
+        localStorage.removeItem("ados_token");
+        localStorage.removeItem("ados_user");
+        setUser(null);
+      });
   }, []);
 
   const handleLoginSuccess = (userData) => {
@@ -259,6 +259,50 @@ export default function App() {
           element={
             user ? (
               <AddBalancePage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* Upgrade Plan Page */}
+        <Route
+          path="/upgrade-plan"
+          element={
+            user ? (
+              <UpgradePlanPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/upgrade-plan"
+          element={
+            user ? (
+              <UpgradePlanPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+
+        {/* Reports Page */}
+        <Route
+          path="/reports"
+          element={
+            user ? (
+              <ReportsPage user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/reports"
+          element={
+            user ? (
+              <ReportsPage user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/auth" replace />
             )

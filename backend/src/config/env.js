@@ -11,7 +11,7 @@ const envSchema = z.object({
   MONGO_URL: z.string().min(1, "MONGO_URL is required"),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   JWT_ACCESS_SECRET: z.string().min(16, "JWT_ACCESS_SECRET must be at least 16 characters long"),
-  JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
+  JWT_ACCESS_EXPIRES_IN: z.string().default("7d"),
   JWT_REFRESH_SECRET: z.string().min(16, "JWT_REFRESH_SECRET must be at least 16 characters long"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
   COOKIE_SECRET: z.string().min(16, "COOKIE_SECRET must be at least 16 characters long"),
@@ -30,6 +30,9 @@ const envSchema = z.object({
   GOOGLE_ADS_REDIRECT_URI: z.string().default(process.env.GOOGLE_ADS_REDIRECT_URI || "http://localhost:5000/api/v1/google-ads/callback"),
   GOOGLE_ADS_DEVELOPER_TOKEN: z.string().optional().default(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ""),
   ENCRYPTION_KEY: z.string().optional().default(process.env.ENCRYPTION_KEY || ""),
+  HF_TOKEN: z.string().optional().default(process.env.HF_TOKEN || ""),
+  AI_IMAGE_PROVIDER: z.enum(["huggingface", "pollinations"]).default((process.env.AI_IMAGE_PROVIDER === "huggingface" || process.env.HF_TOKEN) ? "huggingface" : "pollinations"),
+  AI_FREE_DAILY_LIMIT: z.coerce.number().default(10),
 });
 
 const parseEnv = () => {

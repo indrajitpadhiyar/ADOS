@@ -22,7 +22,7 @@ const getClearCookieOptions = () => ({
   path: "/",
 });
 
-const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000; // 15 mins
+const ACCESS_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days (sliding session)
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export const AuthController = {
@@ -135,6 +135,15 @@ export const AuthController = {
    */
   getMe: asyncHandler(async (req, res) => {
     const user = await AuthService.getCurrentUser(req.user._id);
+
+    // Sliding session: renew 7-day cookie lifetime on active user visits
+    if (req.cookies?.accessToken) {
+      res.cookie("accessToken", req.cookies.accessToken, getCookieOptions(ACCESS_COOKIE_MAX_AGE));
+    }
+    if (req.cookies?.refreshToken) {
+      res.cookie("refreshToken", req.cookies.refreshToken, getCookieOptions(REFRESH_COOKIE_MAX_AGE));
+    }
+
     return ApiResponse.success(res, "User profile fetched successfully.", { user });
   }),
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Film,
@@ -30,7 +30,12 @@ import {
   Video,
   Palette,
   Copy,
+  AlertCircle,
+  Info,
+  ShieldAlert,
+  Key,
 } from "lucide-react";
+import { api } from "../../services/api";
 
 export default function GenerateVideoSection({ user, onNavigateBack }) {
   // Navigation tabs in left sidebar
@@ -47,20 +52,65 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
   const [aspectRatio, setAspectRatio] = useState("9:16"); // 16:9, 9:16, 1:1
   const [selectedDuration, setSelectedDuration] = useState("10s");
 
-  // Media Library state
-  const [activeVideo, setActiveVideo] = useState({
-    id: "vid-1",
-    title: "Velocity Kinetic Sneaker Ad",
-    prompt: "Cinematic commercial for high-performance sneakers in rain, dramatic slow motion, neon puddles",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    poster: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&auto=format&fit=crop&q=80",
-    duration: "00:15",
-  });
+  // Video Provider Status & Config Modal
+  const [videoStatus, setVideoStatus] = useState(null);
+  const [quotaError, setQuotaError] = useState(null);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
 
-  const [hasStartedGenerating, setHasStartedGenerating] = useState(true);
+  // Media Library state (zero fake assets)
+  const [activeVideo, setActiveVideo] = useState(null);
+  const [hasStartedGenerating, setHasStartedGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
+
+  // Media clips in All Media
+  const [mediaClips, setMediaClips] = useState([]);
+
+  // Fetch video capability status and existing user history on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInitialData() {
+      try {
+        const [statusRes, historyRes] = await Promise.allSettled([
+          api.getAiVideoStatus(),
+          api.getAiHistory("video", 10),
+        ]);
+
+        if (isMounted && statusRes.status === "fulfilled") {
+          setVideoStatus(statusRes.value);
+        }
+
+        if (isMounted && historyRes.status === "fulfilled" && Array.isArray(historyRes.value?.generations)) {
+          const loadedClips = historyRes.value.generations
+            .filter((g) => g.outputUrl)
+            .map((g) => ({
+              id: g._id,
+              name: (g.prompt || "Video clip").slice(0, 24) + "...",
+              duration: g.metadata?.duration || "10s",
+              type: "video",
+              url: g.outputUrl,
+              poster: g.metadata?.thumbnailUrl || "",
+              createdAt: g.createdAt,
+            }));
+
+          setMediaClips(loadedClips);
+          if (loadedClips.length > 0) {
+            setActiveVideo(loadedClips[0]);
+            setHasStartedGenerating(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load initial video data", err);
+      }
+    }
+
+    loadInitialData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Quick preset cards
   const PRESET_CARDS = [
@@ -90,26 +140,6 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
     },
   ];
 
-  // Media clips in All Media
-  const [mediaClips, setMediaClips] = useState([
-    {
-      id: "clip-1",
-      name: "Sneaker Drop Kinetic",
-      duration: "00:15",
-      type: "video",
-      url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      poster: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "clip-2",
-      name: "Mountain Adventure Hook",
-      duration: "00:10",
-      type: "video",
-      url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-      poster: "/poster_backpack.jpg",
-    },
-  ]);
-
   // Handle Play/Pause
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -122,52 +152,57 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
     }
   };
 
-  // Trigger Video Generation
+  // Trigger Video Generation via Backend
   const handleGenerateVideo = async (customPrompt) => {
     const finalPrompt = (customPrompt || prompt).trim();
     if (!finalPrompt || isGenerating) return;
 
     setIsGenerating(true);
-    setHasStartedGenerating(true);
-    setGenerationStep("Analyzing visual prompt & motion trajectory...");
+    setQuotaError(null);
+    setGenerationStep("Validating free-tier video pipeline & quota...");
 
     try {
-      await new Promise((r) => setTimeout(r, 800));
-      setGenerationStep("Synthesizing neural optical flow keyframes...");
-
-      await new Promise((r) => setTimeout(r, 1000));
-      setGenerationStep("Interpolating 60fps cinematic camera motion...");
-
-      await new Promise((r) => setTimeout(r, 700));
-
-      const newClip = {
-        id: `clip-${Date.now()}`,
-        name: finalPrompt.slice(0, 24) + "...",
+      const res = await api.generateAiVideo({
         prompt: finalPrompt,
+        aspectRatio,
         duration: selectedDuration,
-        type: "video",
-        url:
-          finalPrompt.toLowerCase().includes("backpack") ||
-          finalPrompt.toLowerCase().includes("adventure")
-            ? "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
-            : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        poster:
-          finalPrompt.toLowerCase().includes("backpack")
-            ? "/poster_backpack.jpg"
-            : "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&auto=format&fit=crop&q=80",
-      };
+        cameraMotion,
+      });
 
-      setMediaClips((prev) => [newClip, ...prev]);
-      setActiveVideo(newClip);
-      setSessionTitle(finalPrompt.slice(0, 28));
-      setPrompt("");
-      if (videoRef.current) {
-        videoRef.current.load();
-        videoRef.current.play().catch(() => {});
-        setIsPlaying(true);
+      if (!res.success && res.status === "CONFIG_REQUIRED") {
+        setVideoStatus(res);
+        setQuotaError(res.message);
+        setConfigModalOpen(true);
+      } else if (res.success && res.generation?.outputUrl) {
+        const newClip = {
+          id: res.generation._id,
+          name: finalPrompt.slice(0, 24) + "...",
+          prompt: finalPrompt,
+          duration: selectedDuration,
+          type: "video",
+          url: res.generation.outputUrl,
+          poster: res.generation.metadata?.thumbnailUrl || "",
+        };
+
+        setMediaClips((prev) => [newClip, ...prev]);
+        setActiveVideo(newClip);
+        setHasStartedGenerating(true);
+        setSessionTitle(finalPrompt.slice(0, 28));
+        setPrompt("");
+        if (videoRef.current) {
+          videoRef.current.load();
+          videoRef.current.play().catch(() => {});
+          setIsPlaying(true);
+        }
       }
     } catch (err) {
       console.error(err);
+      const msg = err.response?.data?.message || err.message || "Failed to generate video";
+      setQuotaError(msg);
+      if (err.response?.data?.status === "CONFIG_REQUIRED") {
+        setVideoStatus(err.response.data);
+        setConfigModalOpen(true);
+      }
     } finally {
       setIsGenerating(false);
       setGenerationStep("");
@@ -269,33 +304,43 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
                 Generated Takes
               </span>
               <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-                {mediaClips.map((clip) => (
-                  <div
-                    key={clip.id}
-                    onClick={() => {
-                      setActiveVideo(clip);
-                      if (videoRef.current) {
-                        videoRef.current.load();
-                        videoRef.current.play().catch(() => {});
-                        setIsPlaying(true);
-                      }
-                    }}
-                    className={`p-2 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                      activeVideo.id === clip.id
-                        ? "bg-white border-[#ff4a22]/60 shadow-xs ring-2 ring-orange-100"
-                        : "bg-white/80 border-slate-200 hover:bg-white"
-                    }`}
-                  >
-                    <div className="w-10 h-7 rounded-lg overflow-hidden bg-slate-900 shrink-0 relative">
-                      <img src={clip.poster} alt={clip.name} className="w-full h-full object-cover" />
-                      <Play className="w-2.5 h-2.5 fill-white text-white absolute inset-0 m-auto" />
+                {mediaClips.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic px-2 py-3">No generated takes yet</p>
+                ) : (
+                  mediaClips.map((clip) => (
+                    <div
+                      key={clip.id}
+                      onClick={() => {
+                        setActiveVideo(clip);
+                        if (videoRef.current) {
+                          videoRef.current.load();
+                          videoRef.current.play().catch(() => {});
+                          setIsPlaying(true);
+                        }
+                      }}
+                      className={`p-2 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
+                        activeVideo?.id === clip.id
+                          ? "bg-white border-[#ff4a22]/60 shadow-xs ring-2 ring-orange-100"
+                          : "bg-white/80 border-slate-200 hover:bg-white"
+                      }`}
+                    >
+                      <div className="w-10 h-7 rounded-lg overflow-hidden bg-slate-900 shrink-0 relative">
+                        {clip.poster ? (
+                          <img src={clip.poster} alt={clip.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-400">
+                            <Video className="w-3 h-3" />
+                          </div>
+                        )}
+                        <Play className="w-2.5 h-2.5 fill-white text-white absolute inset-0 m-auto" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11px] font-bold text-slate-800 truncate">{clip.name}</div>
+                        <div className="text-[9px] text-slate-400 font-medium">{clip.duration}</div>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-bold text-slate-800 truncate">{clip.name}</div>
-                      <div className="text-[9px] text-slate-400 font-medium">{clip.duration}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -307,6 +352,8 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
             onClick={() => {
               if (confirm("Clear session clips?")) {
                 setMediaClips([]);
+                setActiveVideo(null);
+                setHasStartedGenerating(false);
               }
             }}
             className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer ${
@@ -335,7 +382,7 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
 
           {!isLeftCollapsed && (
             <p className="text-[10px] text-slate-400 leading-tight px-1 font-medium">
-              Google Flow can make mistakes, so double check it.
+              ADOS Free-Tier AI Video Generation Pipeline.
             </p>
           )}
         </div>
@@ -345,31 +392,45 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
       {/* 2. CENTER CANVAS (PREVIEW / CREATIVE SPACE IN WHITE THEME) */}
       {/* ======================================================== */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#fafbfc] relative overflow-hidden">
+        {/* Top Warning / Policy Banner */}
+        {quotaError && (
+          <div className="absolute top-4 inset-x-6 z-20 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 shadow-sm animate-in fade-in duration-200">
+            <div className="flex items-center gap-2.5 text-xs font-semibold">
+              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{quotaError}</span>
+            </div>
+            <button
+              onClick={() => setConfigModalOpen(true)}
+              className="text-xs font-bold text-amber-800 underline hover:text-amber-950 cursor-pointer shrink-0"
+            >
+              Details
+            </button>
+          </div>
+        )}
+
         {/* If no video has been generated yet */}
-        {!hasStartedGenerating ? (
-          <div className="flex flex-col items-center justify-center text-center space-y-4 max-w-sm">
-            {/* Flower / Blossom creative icon from Google Flow screenshot */}
+        {!hasStartedGenerating || !activeVideo ? (
+          <div className="flex flex-col items-center justify-center text-center space-y-4 max-w-md">
             <div className="w-16 h-16 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-[#ff4a22] hover:scale-105 transition-transform">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-9 h-9 stroke-[1.8] fill-none stroke-current"
-              >
-                <path d="M12 2a4 4 0 0 0-4 4c0 2 2 3 4 5 2-2 4-3 4-5a4 4 0 0 0-4-4Z" />
-                <path d="M2 12a4 4 0 0 0 4 4c2 0 3-2 5-4-2-2-3-4-5-4a4 4 0 0 0-4 4Z" />
-                <path d="M12 22a4 4 0 0 0 4-4c0-2-2-3-4-5-2 2-4 3-4 5a4 4 0 0 0 4 4Z" />
-                <path d="M22 12a4 4 0 0 0-4-4c-2 0-3 2-5 4 2 2 3 4 5 4a4 4 0 0 0 4-4Z" />
-                <circle cx="12" cy="12" r="2.5" />
-              </svg>
+              <Film className="w-8 h-8 stroke-[1.8]" />
             </div>
 
-            <div>
+            <div className="space-y-1.5">
               <h3 className="text-sm font-bold text-slate-800">
-                Start creating or drop media
+                AI Video Studio (Zero-Cost Policy)
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Prompt our AI diffusion video model or drop reference video/images
+              <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
+                Prompt our AI video pipeline. Unlike image generation, commercial video generation APIs require dedicated GPU billing. ADOS will never silently bill you.
               </p>
             </div>
+
+            <button
+              onClick={() => setConfigModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-slate-900 hover:border-slate-300 shadow-2xs transition-all cursor-pointer"
+            >
+              <Info className="w-3.5 h-3.5 text-slate-500" />
+              <span>Provider & Free Quota Status</span>
+            </button>
           </div>
         ) : (
           /* Active Video Player Screen */
@@ -650,6 +711,69 @@ export default function GenerateVideoSection({ user, onNavigateBack }) {
           </div>
         </div>
       </div>
+
+      {/* Config / Zero-Cost Explanation Modal */}
+      <AnimatePresence>
+        {configModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 font-['Plus_Jakarta_Sans',sans-serif]"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                    <ShieldAlert className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      Free-Tier Video Policy
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Zero-Cost Guarantee & Provider Setup
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setConfigModalOpen(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="text-xs text-slate-600 space-y-2.5 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+                <p>
+                  <strong className="text-slate-800">Public Cloud Status:</strong> Unlike text-to-image models (which provide free community inference), public cloud providers (Veo, Runway, Luma, Kling, Hugging Face Serverless) currently require paid credit cards or dedicated GPU clusters to generate videos.
+                </p>
+                <p>
+                  <strong className="text-slate-800">ADOS Zero-Cost Rule:</strong> ADOS is strictly designed to protect your wallet. It will <span className="underline font-bold">never</span> silently bill you, fall back to paid endpoints, or fabricate fake video files.
+                </p>
+                <p className="text-[11px] text-slate-500 font-mono bg-white p-2.5 rounded-xl border border-slate-200">
+                  {videoStatus?.instructions ||
+                    "To enable custom video rendering: Set VIDEO_API_KEY and VIDEO_API_ENDPOINT in backend/.env"}
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setConfigModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs"
+                >
+                  Understood
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
