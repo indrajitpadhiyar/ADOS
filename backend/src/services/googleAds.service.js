@@ -1,5 +1,6 @@
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 import { env } from "../config/env.js";
 import { GoogleAdsAccount } from "../models/GoogleAdsAccount.model.js";
 import { ConnectedAccount } from "../models/ConnectedAccount.model.js";
@@ -31,8 +32,8 @@ export class GoogleAdsService {
    * Initialize a configured OAuth2 client
    */
   static getOAuth2Client() {
-    const clientId = env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID;
-    const clientSecret = env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT;
+    const clientId = env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID;
+    const clientSecret = env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT;
     const redirectUri = env.GOOGLE_ADS_REDIRECT_URI;
 
     if (!clientId || !clientSecret) {
@@ -51,12 +52,13 @@ export class GoogleAdsService {
     const redirectUri = env.GOOGLE_ADS_REDIRECT_URI;
     const oauth2Client = this.getOAuth2Client();
 
-    // Cryptographic anti-CSRF state token tied specifically to the user ID and active redirectUri (expires in 15m)
+    // Cryptographic anti-CSRF state token tied specifically to the user ID, redirectUri, and unique nonce (expires in 15m)
     const state = jwt.sign(
       {
         userId: userId.toString(),
         purpose: "google_ads_oauth",
         redirectUri,
+        jti: crypto.randomBytes(16).toString("hex"),
         issuedAt: Date.now(),
       },
       env.JWT_ACCESS_SECRET,
@@ -105,8 +107,8 @@ export class GoogleAdsService {
 
     const userId = decodedState.userId;
     const redirectUri = decodedState.redirectUri || env.GOOGLE_ADS_REDIRECT_URI;
-    const clientId = env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID;
-    const clientSecret = env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT;
+    const clientId = env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID;
+    const clientSecret = env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT;
     const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
     // 2. Exchange authorization code for tokens
@@ -180,11 +182,15 @@ export class GoogleAdsService {
       outcome: "SUCCESS",
     });
 
-    // 6. Proactively attempt customer accounts discovery
-    try {
-      await this.syncAccessibleCustomers(userId);
-    } catch (discoveryErr) {
-      console.warn("Notice: Initial customer discovery deferred:", discoveryErr.message);
+    // 6. Proactively attempt customer accounts discovery if developer token is available
+    if (env.GOOGLE_ADS_DEVELOPER_TOKEN) {
+      try {
+        await this.syncAccessibleCustomers(userId);
+      } catch (discoveryErr) {
+        console.warn("Notice: Initial customer discovery deferred:", discoveryErr.message);
+      }
+    } else {
+      console.info("Info: GOOGLE_ADS_DEVELOPER_TOKEN not configured; customer accounts discovery deferred.");
     }
 
     return await this.getStatus(userId);
@@ -348,6 +354,12 @@ export class GoogleAdsService {
    * @returns {Promise<Array>} List of accessible customers
    */
   static async syncAccessibleCustomers(userId) {
+    if (!env.GOOGLE_ADS_DEVELOPER_TOKEN) {
+      throw ApiError.badRequest(
+        "Google Ads Developer Token is not configured on the server. Please set GOOGLE_ADS_DEVELOPER_TOKEN in your backend environment variables to discover and query Google Ads accounts. (OAuth authorization was saved successfully)."
+      );
+    }
+
     const account = await GoogleAdsAccount.findOne({ userId }).select("+encryptedRefreshToken +encryptedAccessToken");
     if (!account) {
       throw ApiError.notFound("No connected Google Ads integration found. Please connect first.");
@@ -355,10 +367,9 @@ export class GoogleAdsService {
 
     const accessToken = await this.getValidAccessToken(account);
 
-    // Following Google's Sept 2026 developer token sunset, developer-token headers
-    // are obsolete. Access level is determined directly by the Google Cloud Project.
     const headers = {
       Authorization: `Bearer ${accessToken}`,
+      "developer-token": env.GOOGLE_ADS_DEVELOPER_TOKEN,
       "Content-Type": "application/json",
     };
 
@@ -530,14 +541,19 @@ export class GoogleAdsService {
       throw ApiError.badRequest("No Google Ads customer account selected. Please select an active account first.");
     }
 
+    if (!env.GOOGLE_ADS_DEVELOPER_TOKEN) {
+      throw ApiError.badRequest(
+        "Google Ads Developer Token is not configured on the server. Please set GOOGLE_ADS_DEVELOPER_TOKEN in your backend environment variables to query campaigns."
+      );
+    }
+
     const targetRange = VALID_DATE_RANGES.includes(dateRange.toUpperCase()) ? dateRange.toUpperCase() : "LAST_30_DAYS";
     const customerId = account.selectedCustomerId;
     const accessToken = await this.getValidAccessToken(account);
 
-    // Following Google's Sept 2026 developer token sunset, developer-token headers
-    // are obsolete. Access level is determined directly by the Google Cloud Project.
     const headers = {
       Authorization: `Bearer ${accessToken}`,
+      "developer-token": env.GOOGLE_ADS_DEVELOPER_TOKEN,
       "Content-Type": "application/json",
     };
 
@@ -680,6 +696,7 @@ export class GoogleAdsService {
       return {
         isConnected: false,
         status: "NOT_CONNECTED",
+        hasDeveloperToken: Boolean(env.GOOGLE_ADS_DEVELOPER_TOKEN),
         connectedEmail: null,
         selectedAccount: null,
         accessibleCustomers: [],
@@ -690,6 +707,7 @@ export class GoogleAdsService {
     return {
       isConnected: account.status === "CONNECTED",
       status: account.status,
+      hasDeveloperToken: Boolean(env.GOOGLE_ADS_DEVELOPER_TOKEN),
       connectedEmail: account.connectedEmail,
       selectedAccount: account.selectedCustomerId
         ? {

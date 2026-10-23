@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -13,9 +14,12 @@ import {
   X,
   Sliders,
   ChevronDown,
+  Rocket,
 } from "lucide-react";
 
 export default function GeneratePosterSection({ onNavigateBack }) {
+  const navigate = useNavigate();
+
   // Settings
   const [selectedSize, setSelectedSize] = useState("square"); // square (1:1), portrait (4:5), story (9:16)
   const [selectedStyle, setSelectedStyle] = useState("minimal"); // minimal, product, bold
@@ -148,6 +152,15 @@ export default function GeneratePosterSection({ onNavigateBack }) {
     navigator.clipboard?.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Run Ad with this generated visual helper
+  const handleRunAd = (gen) => {
+    try {
+      localStorage.setItem("ados_ad_preview_image", gen.imageUrl);
+      localStorage.setItem("ados_ad_preview_title", gen.userPrompt);
+    } catch {}
+    navigate("/publish-ads");
   };
 
   // Aspect ratio helper class
@@ -320,8 +333,17 @@ export default function GeneratePosterSection({ onNavigateBack }) {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                   />
 
-                  {/* Actions Toolbar on Hover (Download, Fullscreen, Copy) */}
+                  {/* Actions Toolbar on Hover (Run Ad, Download, Fullscreen, Copy) */}
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/15">
+                    <button
+                      onClick={() => handleRunAd(gen)}
+                      className="px-2.5 py-1.5 rounded-xl text-white bg-[#ff4a22] hover:bg-[#e63f19] transition-all cursor-pointer shadow-md flex items-center gap-1 text-xs font-bold"
+                      title="Run Ad Campaign with this Image"
+                    >
+                      <Rocket className="w-3.5 h-3.5" />
+                      <span>Run Ad</span>
+                    </button>
+
                     <button
                       onClick={() => setFullscreenImage(gen.imageUrl)}
                       className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors cursor-pointer"
@@ -356,18 +378,27 @@ export default function GeneratePosterSection({ onNavigateBack }) {
                     </button>
                   </div>
 
-                  {/* Bottom Hover Caption & Regenerate */}
+                  {/* Bottom Hover Caption, Regenerate & Run Ad */}
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity text-white flex items-center justify-between">
-                    <p className="text-xs font-medium truncate max-w-[80%] drop-shadow-xs">
+                    <p className="text-xs font-medium truncate max-w-[65%] drop-shadow-xs">
                       {gen.userPrompt}
                     </p>
-                    <button
-                      onClick={() => handleGenerate(gen.userPrompt)}
-                      className="text-[11px] font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1 cursor-pointer"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      <span>Regenerate</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleGenerate(gen.userPrompt)}
+                        className="text-[11px] font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Regenerate</span>
+                      </button>
+                      <button
+                        onClick={() => handleRunAd(gen)}
+                        className="px-2 py-1 rounded-lg bg-[#ff4a22] hover:bg-[#e63f19] text-white text-[11px] font-extrabold flex items-center gap-1 shadow-xs cursor-pointer transition-all"
+                      >
+                        <Rocket className="w-3 h-3" />
+                        <span>Run Ad</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

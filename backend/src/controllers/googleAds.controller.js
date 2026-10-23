@@ -6,8 +6,31 @@ import { env } from "../config/env.js";
 
 export const GoogleAdsController = {
   /**
+   * GET /api/v1/google-ads/connect
+   * Initiates Google Ads OAuth connection for the authenticated user.
+   * If requested via browser (Accept contains text/html or ?redirect=true), redirects directly to Google consent screen.
+   * Otherwise returns JSON with { authUrl, state }.
+   */
+  connect: asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const { authUrl, state } = GoogleAdsService.generateAuthUrl(userId);
+
+    const acceptsHtml = req.headers.accept?.includes("text/html");
+    const wantsRedirect = req.query.redirect === "true" || acceptsHtml;
+
+    if (wantsRedirect) {
+      return res.redirect(authUrl);
+    }
+
+    return ApiResponse.success(res, "Google Ads authorization URL generated successfully", {
+      authUrl,
+      state,
+    });
+  }),
+
+  /**
    * GET /api/v1/google-ads/auth-url
-   * Generates secure OAuth authorization URL for connecting Google Ads
+   * Generates secure OAuth authorization URL for connecting Google Ads (retained for frontend compatibility)
    */
   getAuthUrl: asyncHandler(async (req, res) => {
     const userId = req.user._id;

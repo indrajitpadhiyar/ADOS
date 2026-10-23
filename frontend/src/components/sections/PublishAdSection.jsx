@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PlatformLogo from "../common/PlatformLogo";
 import { api } from "../../services/api";
@@ -29,64 +30,94 @@ import {
   Info,
   ShieldCheck,
   ExternalLink,
+  Plus,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 
-const PLATFORMS_CONFIG = [
-  {
-    key: "meta",
+const PLATFORM_META = {
+  meta: {
     name: "Meta Ads",
     sub: "Instagram & Facebook Feed/Reels",
-    status: "Connected",
     defaultBudget: 1500,
-    minBudget: 200,
     estimatedReach: "45K - 92K",
     bestFor: "Viral UGC & Visual Conversions",
   },
-  {
-    key: "google",
+  facebook: {
+    name: "Facebook Ads",
+    sub: "Feed, Marketplace & Stories",
+    defaultBudget: 1500,
+    estimatedReach: "40K - 85K",
+    bestFor: "High-Converting Retargeting",
+  },
+  google: {
     name: "Google Ads",
     sub: "Search, Shopping & Performance Max",
-    status: "Connected",
     defaultBudget: 2000,
-    minBudget: 300,
     estimatedReach: "60K - 120K",
     bestFor: "High-Intent Shoppers",
   },
-  {
-    key: "amazon",
+  amazon: {
     name: "Amazon Sponsored",
     sub: "Sponsored Products & Brand Video",
-    status: "Connected",
     defaultBudget: 1200,
-    minBudget: 250,
     estimatedReach: "28K - 55K",
     bestFor: "Direct E-Commerce Checkout",
   },
-  {
-    key: "youtube",
+  youtube: {
     name: "YouTube Ads",
     sub: "In-Stream TrueView & Shorts Ads",
-    status: "Connected",
     defaultBudget: 1000,
-    minBudget: 200,
     estimatedReach: "35K - 75K",
     bestFor: "High Engagement Video",
   },
-  {
-    key: "linkedin",
+  linkedin: {
     name: "LinkedIn Sponsored",
     sub: "Single Image & Video Ads",
-    status: "Connected",
     defaultBudget: 800,
-    minBudget: 500,
     estimatedReach: "12K - 24K",
     bestFor: "B2B & High-Value Customers",
   },
-];
+  tiktok: {
+    name: "TikTok Ads",
+    sub: "In-Feed Ads & Spark Ads",
+    defaultBudget: 1200,
+    estimatedReach: "50K - 110K",
+    bestFor: "Viral Gen-Z Discovery",
+  },
+  snapchat: {
+    name: "Snapchat Ads",
+    sub: "Story & Spotlight Video Ads",
+    defaultBudget: 1000,
+    estimatedReach: "30K - 65K",
+    bestFor: "Young Visual Demographics",
+  },
+  pinterest: {
+    name: "Pinterest Ads",
+    sub: "Idea Pins & Collections",
+    defaultBudget: 1000,
+    estimatedReach: "25K - 50K",
+    bestFor: "Lifestyle & High-Intent Buyers",
+  },
+  other: {
+    name: "Ad Network",
+    sub: "Custom Integrated Channel",
+    defaultBudget: 1000,
+    estimatedReach: "20K - 45K",
+    bestFor: "Targeted Audience Reach",
+  },
+};
 
 export default function PublishAdSection({ onAdPublished, onNavigateToManage }) {
+  const navigate = useNavigate();
+
   // Stepper state: 1: Content, 2: Details, 3: Select Platform, 4: Review & Launch
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Connected Accounts State (Loaded dynamically from user's connected ad accounts)
+  const [connectedAccounts, setConnectedAccounts] = useState([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
+  const [accountSelections, setAccountSelections] = useState({});
 
   // Uploaded Files State
   const [files, setFiles] = useState([
@@ -124,18 +155,69 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Platform selection state (for Step 3)
-  const [channels, setChannels] = useState({
-    meta: { enabled: true, budget: 1500 },
-    google: { enabled: true, budget: 2000 },
-    amazon: { enabled: true, budget: 1200 },
-    youtube: { enabled: false, budget: 1000 },
-    linkedin: { enabled: false, budget: 800 },
-  });
-
   // Publishing State
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccessNotice, setPublishSuccessNotice] = useState(false);
+
+  // Load connected accounts on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAccounts = async () => {
+      try {
+        setIsLoadingAccounts(true);
+        const accs = await api.getAccounts().catch(() => []);
+        if (!isMounted) return;
+
+        const list = Array.isArray(accs) ? accs : [];
+        setConnectedAccounts(list);
+
+        // Pre-select all connected accounts with default budgets
+        const initialSelections = {};
+        list.forEach((acc) => {
+          const meta = PLATFORM_META[acc.platform?.toLowerCase()] || PLATFORM_META.other;
+          initialSelections[acc._id] = {
+            enabled: true,
+            budget: meta.defaultBudget || 1500,
+            account: acc,
+          };
+        });
+        setAccountSelections(initialSelections);
+      } catch (err) {
+        console.error("Failed to load connected accounts:", err);
+      } finally {
+        if (isMounted) setIsLoadingAccounts(false);
+      }
+    };
+
+    fetchAccounts();
+
+    // Check if an AI poster or prompt was sent from Generate Poster
+    try {
+      const savedImg = localStorage.getItem("ados_ad_preview_image");
+      const savedTitle = localStorage.getItem("ados_ad_preview_title");
+      if (savedImg) {
+        setFiles([
+          {
+            id: `gen-img-${Date.now()}`,
+            name: "ai-generated-poster.jpg",
+            size: "1.9 MB",
+            type: "image",
+            preview: savedImg,
+          },
+        ]);
+        if (savedTitle) {
+          setAdTitle(savedTitle.slice(0, 60));
+          setDescription(`Exclusive launch: ${savedTitle}. Premium quality crafted for you.`);
+        }
+        localStorage.removeItem("ados_ad_preview_image");
+        localStorage.removeItem("ados_ad_preview_title");
+      }
+    } catch {}
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Copy URL to clipboard
   const handleCopyUrl = () => {
@@ -170,60 +252,85 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const totalDailySpend = Object.keys(channels).reduce((acc, k) => {
-    return channels[k].enabled ? acc + channels[k].budget : acc;
+  // Calculations for active selected connected accounts
+  const activeSelectedAccounts = Object.values(accountSelections).filter(
+    (item) => item.enabled
+  );
+
+  const totalDailySpend = activeSelectedAccounts.reduce((acc, item) => {
+    return acc + (Number(item.budget) || 0);
   }, 0);
 
-  const activeChannelsCount = Object.keys(channels).filter(
-    (k) => channels[k].enabled
-  ).length;
+  const activeAccountsCount = activeSelectedAccounts.length;
 
-  const toggleChannel = (key) => {
-    setChannels((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        enabled: !prev[key].enabled,
-      },
-    }));
+  const toggleAccount = (accId) => {
+    setAccountSelections((prev) => {
+      const current = prev[accId];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [accId]: {
+          ...current,
+          enabled: !current.enabled,
+        },
+      };
+    });
   };
 
-  const updateBudget = (key, val) => {
+  const updateAccountBudget = (accId, val) => {
     const num = Math.max(0, parseInt(val, 10) || 0);
-    setChannels((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        budget: num,
-      },
-    }));
+    setAccountSelections((prev) => {
+      const current = prev[accId];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [accId]: {
+          ...current,
+          budget: num,
+        },
+      };
+    });
   };
 
-  // Execute Publishing
+  // Execute Publishing across selected connected ad accounts
   const handlePublish = async () => {
+    if (activeSelectedAccounts.length === 0) {
+      alert("Please select at least one connected ad account to run ads.");
+      return;
+    }
+
     setIsPublishing(true);
     try {
-      await new Promise((r) => setTimeout(r, 1200));
+      await new Promise((r) => setTimeout(r, 1000));
 
-      const enabledKeys = Object.keys(channels).filter((k) => channels[k].enabled);
-      const created = await api
-        .createAd({
-          name: adTitle,
-          campaign: `Omnichannel_${adTitle}`,
-          platform: enabledKeys[0] || "meta",
-          format: "image",
-          thumbnail: "/backpack.jpg",
-          budget: totalDailySpend,
-        })
-        .catch(() => ({
-          _id: `pub-${Date.now()}`,
-          name: adTitle,
-        }));
+      const publishedAds = [];
+      for (const item of activeSelectedAccounts) {
+        const acc = item.account;
+        const res = await api
+          .createAd({
+            name: adTitle,
+            campaign: `${acc.name}_${adTitle}`.replace(/\s+/g, "_"),
+            platform: acc.platform,
+            format: files[0]?.type === "video" ? "Video (9:16)" : "Image (1:1)",
+            thumbnail: files[0]?.preview || "/backpack.jpg",
+            budget: item.budget,
+            destinationUrl: landingUrl,
+            creativeTitle: adTitle,
+            primaryText: description,
+            category,
+          })
+          .catch(() => ({
+            _id: `pub-${Date.now()}-${acc._id}`,
+            name: adTitle,
+            platform: acc.platform,
+          }));
+        publishedAds.push(res);
+      }
 
       const newRecord = {
-        id: created._id || `pub-${Date.now()}`,
+        id: publishedAds[0]?._id || `pub-${Date.now()}`,
         name: adTitle,
-        networks: enabledKeys,
+        networks: activeSelectedAccounts.map((i) => i.account.platform),
         budget: `₹${totalDailySpend.toLocaleString()}/day`,
         status: "Active",
         time: "Just now",
@@ -623,7 +730,7 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
             </>
           )}
 
-          {/* STEP 3 VIEW: SELECT PLATFORM */}
+          {/* STEP 3 VIEW: SELECT PLATFORM & CONNECTED ACCOUNTS */}
           {currentStep === 3 && (
             <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-2xs space-y-6">
               <div className="flex items-start gap-3">
@@ -632,71 +739,146 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
                 </div>
                 <div>
                   <h2 className="text-sm sm:text-base font-extrabold text-[#111113]">
-                    Select Ad Networks & Allocate Daily Budget
+                    Select Connected Ad Accounts & Allocate Daily Budget
                   </h2>
                   <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                    Choose which channels to activate. ADOS AI routes impressions dynamically for optimal ROAS.
+                    Aapne jo ad accounts connect kiye hain, sirf wahi yahan show ho rahe hain. Choose which account(s) to run this ad on.
                   </p>
                 </div>
               </div>
 
-              {/* Channels List */}
-              <div className="space-y-3 pt-2">
-                {PLATFORMS_CONFIG.map((p) => {
-                  const state = channels[p.key];
-                  return (
-                    <div
-                      key={p.key}
-                      className={`p-4 rounded-2xl border transition-all ${
-                        state.enabled
-                          ? "bg-orange-50/20 border-orange-200 shadow-2xs"
-                          : "bg-slate-50/50 border-slate-200/70 opacity-60"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={state.enabled}
-                            onChange={() => toggleChannel(p.key)}
-                            className="w-4 h-4 rounded text-[#ff4a22] focus:ring-[#ff4a22] cursor-pointer"
-                          />
-                          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs">
-                            <PlatformLogo platform={p.key} size="xs" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-900">{p.name}</span>
-                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                {p.status}
-                              </span>
-                            </div>
-                            <span className="text-[11px] text-slate-500 font-medium">{p.sub}</span>
-                          </div>
-                        </div>
+              {/* Loading State */}
+              {isLoadingAccounts && (
+                <div className="p-10 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-center gap-3">
+                  <Loader2 className="w-6 h-6 text-[#ff4a22] animate-spin" />
+                  <p className="text-xs font-bold text-slate-700">
+                    Loading your connected ad accounts...
+                  </p>
+                </div>
+              )}
 
-                        {/* Budget allocation */}
-                        {state.enabled && (
-                          <div className="flex items-center gap-3 self-end sm:self-auto">
-                            <div className="text-right">
-                              <div className="text-[10px] uppercase font-bold text-slate-400">Daily Budget</div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs font-extrabold text-slate-700">₹</span>
-                                <input
-                                  type="number"
-                                  value={state.budget}
-                                  onChange={(e) => updateBudget(p.key, e.target.value)}
-                                  className="w-20 px-2 py-1 rounded-lg border border-slate-200 text-xs font-extrabold text-slate-900 text-right focus:border-[#ff4a22] outline-none"
-                                />
+              {/* Empty State: No connected accounts found */}
+              {!isLoadingAccounts && connectedAccounts.length === 0 && (
+                <div className="p-8 sm:p-10 rounded-3xl border-2 border-dashed border-amber-300 bg-amber-50/50 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-xs">
+                    <AlertCircle className="w-7 h-7" />
+                  </div>
+                  <div className="max-w-md space-y-1">
+                    <h3 className="text-base font-extrabold text-slate-900">
+                      No Ad Accounts Connected
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Ads run karne ke liye aapko pehle apna ad account (Meta, Google, LinkedIn, etc.) connect karna hoga.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/manage-account")}
+                    className="px-6 py-2.5 rounded-full bg-[#ff4a22] hover:bg-[#e63f19] text-white text-xs font-extrabold flex items-center gap-2 shadow-md shadow-orange-500/25 transition-all cursor-pointer hover:scale-[1.02]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Connect Ad Account Now</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Connected Accounts List */}
+              {!isLoadingAccounts && connectedAccounts.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  {connectedAccounts.map((acc) => {
+                    const selection = accountSelections[acc._id] || {
+                      enabled: false,
+                      budget: 1500,
+                    };
+                    const meta =
+                      PLATFORM_META[acc.platform?.toLowerCase()] || PLATFORM_META.other;
+
+                    return (
+                      <div
+                        key={acc._id}
+                        className={`p-4 rounded-2xl border transition-all ${
+                          selection.enabled
+                            ? "bg-orange-50/20 border-orange-200 shadow-2xs"
+                            : "bg-slate-50/50 border-slate-200/70 opacity-60"
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={selection.enabled}
+                              onChange={() => toggleAccount(acc._id)}
+                              className="w-4 h-4 rounded text-[#ff4a22] focus:ring-[#ff4a22] cursor-pointer"
+                            />
+                            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs shrink-0">
+                              <PlatformLogo platform={acc.platform} size="xs" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-bold text-slate-900">
+                                  {acc.name}
+                                </span>
+                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                  Connected ({acc.status || "Healthy"})
+                                </span>
+                                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-mono">
+                                  {acc.accountId}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                                <span>{meta.name}</span>
+                                <span>•</span>
+                                <span>{meta.sub}</span>
+                                {acc.spendCap && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-slate-400">
+                                      Limit: {acc.spendCap}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
-                        )}
+
+                          {/* Budget allocation */}
+                          {selection.enabled && (
+                            <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
+                              <div className="text-right">
+                                <div className="text-[10px] uppercase font-bold text-slate-400">
+                                  Daily Budget
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs font-extrabold text-slate-700">₹</span>
+                                  <input
+                                    type="number"
+                                    value={selection.budget}
+                                    onChange={(e) => updateAccountBudget(acc._id, e.target.value)}
+                                    className="w-24 px-2 py-1 rounded-lg border border-slate-200 text-xs font-extrabold text-slate-900 text-right focus:border-[#ff4a22] outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+
+                  {/* Connect another account helper bar */}
+                  <div className="pt-2 flex items-center justify-between text-xs">
+                    <button
+                      onClick={() => navigate("/manage-account")}
+                      className="text-xs font-bold text-[#ff4a22] hover:underline flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Connect another ad account</span>
+                    </button>
+                    <span className="text-[11px] text-slate-400 font-semibold">
+                      {connectedAccounts.length} connected account{connectedAccounts.length > 1 ? "s" : ""} available
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Bottom Buttons */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
@@ -709,8 +891,18 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
                 </button>
 
                 <button
+                  disabled={activeAccountsCount === 0}
                   onClick={() => setCurrentStep(4)}
-                  className="px-8 py-2.5 rounded-full bg-[#ff4a22] hover:bg-[#e63f19] text-white text-xs font-extrabold flex items-center gap-2 shadow-md shadow-orange-500/25 transition-all cursor-pointer"
+                  className={`px-8 py-2.5 rounded-full text-white text-xs font-extrabold flex items-center gap-2 transition-all ${
+                    activeAccountsCount > 0
+                      ? "bg-[#ff4a22] hover:bg-[#e63f19] shadow-md shadow-orange-500/25 cursor-pointer"
+                      : "bg-slate-300 cursor-not-allowed"
+                  }`}
+                  title={
+                    activeAccountsCount === 0
+                      ? "Please connect and select at least one ad account to proceed"
+                      : ""
+                  }
                 >
                   <span>Review & Launch</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -731,7 +923,7 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
                     Review & Launch Omnichannel Broadcast
                   </h2>
                   <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                    Review campaign parameters before dispatching across live network APIs.
+                    Review campaign parameters before dispatching across your connected ad accounts.
                   </p>
                 </div>
               </div>
@@ -754,10 +946,36 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase font-bold text-slate-400">Active Networks</div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400">Target Accounts</div>
                     <div className="text-xs font-bold text-emerald-600 truncate mt-0.5">
-                      {activeChannelsCount} Connected
+                      {activeAccountsCount} Selected
                     </div>
+                  </div>
+                </div>
+
+                {/* Selected Connected Accounts Details */}
+                <div className="pt-3 border-t border-slate-200/70 space-y-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">
+                    Selected Ad Accounts & Allocations
+                  </div>
+                  <div className="space-y-1.5">
+                    {activeSelectedAccounts.map((item) => (
+                      <div
+                        key={item.account._id}
+                        className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-200/70"
+                      >
+                        <div className="flex items-center gap-2">
+                          <PlatformLogo platform={item.account.platform} size="xs" />
+                          <span className="font-bold text-slate-800">{item.account.name}</span>
+                          <span className="font-mono text-[10px] text-slate-400">
+                            ({item.account.accountId})
+                          </span>
+                        </div>
+                        <div className="font-black text-[#ff4a22]">
+                          ₹{Number(item.budget).toLocaleString()}/day
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -783,7 +1001,7 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
                   className="px-8 py-3 rounded-full bg-gradient-to-r from-[#ff4a22] to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs font-black flex items-center gap-2.5 shadow-lg shadow-orange-500/30 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Rocket className={`w-4 h-4 text-white ${isPublishing ? "animate-spin" : "animate-bounce"}`} />
-                  <span>{isPublishing ? "Publishing to Networks..." : "Launch Ad Campaign"}</span>
+                  <span>{isPublishing ? "Publishing to Connected Accounts..." : "Launch Ad Campaign"}</span>
                 </button>
               </div>
             </div>
@@ -980,7 +1198,7 @@ export default function PublishAdSection({ onAdPublished, onNavigateToManage }) 
                   Campaign Successfully Published!
                 </h3>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                  "{adTitle}" has been queued and synchronized with {activeChannelsCount} ad network APIs.
+                  "{adTitle}" has been queued and synchronized with {activeAccountsCount} connected ad account{activeAccountsCount > 1 ? "s" : ""}.
                 </p>
               </div>
 

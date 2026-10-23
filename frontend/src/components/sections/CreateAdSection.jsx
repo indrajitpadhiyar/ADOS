@@ -1,6 +1,13 @@
 import React from "react";
-import GeneratePosterSection from "./GeneratePosterSection";
+import PublishAdSection from "./PublishAdSection";
 
-export default function CreateAdSection(props) {
-  return <GeneratePosterSection {...props} />;
+export default function CreateAdSection({ onAdCreated, onAdPublished, ...props }) {
+  return (
+    <PublishAdSection
+      onAdPublished={onAdPublished || onAdCreated}
+      onNavigateToManage={onAdCreated}
+      {...props}
+    />
+  );
 }
+

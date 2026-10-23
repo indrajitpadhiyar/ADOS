@@ -21,11 +21,14 @@ const envSchema = z.object({
   EMAIL_PASS: z.string().optional(),
   APP_URL: z.string().url("APP_URL must be a valid URL").default("http://localhost:5173"),
   EMAIL_VERIFICATION_EXPIRES_MINUTES: z.coerce.number().default(60),
-  GOOGLE_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_ID || process.env.GOOGLE_CLIENT_ID || ""),
-  GOOGLE_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || process.env.GOOGLE_CLIENT_SECRET || ""),
+  GOOGLE_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_ADS_CLIENT_ID || process.env.GOOGLE_ADS_CLINT_ID || ""),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
+  GOOGLE_ADS_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLIENT_ID || process.env.GOOGLE_ADS_CLINT_ID || process.env.GOOGLE_CLIENT_ID || ""),
+  GOOGLE_ADS_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_ADS_CLINT_SCRIPT || process.env.GOOGLE_CLIENT_SECRET || ""),
   GOOGLE_ADS_CLINT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_ID || ""),
   GOOGLE_ADS_CLINT_SCRIPT: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
   GOOGLE_ADS_REDIRECT_URI: z.string().default(process.env.GOOGLE_ADS_REDIRECT_URI || "http://localhost:5000/api/v1/google-ads/callback"),
+  GOOGLE_ADS_DEVELOPER_TOKEN: z.string().optional().default(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ""),
   ENCRYPTION_KEY: z.string().optional().default(process.env.ENCRYPTION_KEY || ""),
 });
 

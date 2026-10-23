@@ -74,3 +74,22 @@ export const apiLimiter = createLimiter(
   300, // 300 requests per 15 minutes
   ResponseMessages.TOO_MANY_REQUESTS
 );
+
+/**
+ * Google Ads OAuth Authorization Limiter (Connect, Auth URL, Callback)
+ */
+export const googleAdsOAuthLimiter = createLimiter(
+  15 * 60 * 1000,
+  20,
+  "Too many Google Ads authorization requests. Please try again in 15 minutes."
+);
+
+/**
+ * Google Ads Operations & Sync Limiter (Accounts discovery, campaigns query)
+ * Protects server and prevents Google Ads API quota exhaustion
+ */
+export const googleAdsApiLimiter = createLimiter(
+  15 * 60 * 1000,
+  60,
+  "Too many Google Ads API sync requests. Please try again shortly."
+);
