@@ -77,7 +77,7 @@ graph TD
         Layout[Search, Date Picker, User Pill]
     end
 
-    subgraph Security_Gate [API Security Layer]
+    subgraph Security_Gate [API Security Layer]    
         Helmet[Helmet Security Headers]
         CORS[Strict Origin CORS]
         Sanitize[NoSQL Injection Sanitizer]
