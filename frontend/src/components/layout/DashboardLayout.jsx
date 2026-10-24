@@ -2,52 +2,59 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft,
-  ArrowRight,
-  LogOut,
+  Search,
+  Calendar,
+  ChevronDown,
   Bell,
   Menu,
-  Plus,
-  Rocket,
-  Sparkles,
-  CreditCard,
   Settings as SettingsIcon,
-  ChevronDown,
+  LogOut,
+  User,
+  Check,
 } from "lucide-react";
 import DashboardSidebar from "./DashboardSidebar";
 
-export default function DashboardLayout({ children, user, onLogout }) {
+export const DATE_RANGE_OPTIONS = [
+  { id: "TODAY", label: "Today" },
+  { id: "YESTERDAY", label: "Yesterday" },
+  { id: "LAST_7_DAYS", label: "Last 7 days" },
+  { id: "LAST_14_DAYS", label: "Last 14 days" },
+  { id: "LAST_30_DAYS", label: "Last 30 days" },
+  { id: "THIS_MONTH", label: "This month" },
+  { id: "LAST_MONTH", label: "Last month" },
+];
+
+export default function DashboardLayout({
+  children,
+  user,
+  onLogout,
+  dateRange = "LAST_30_DAYS",
+  onDateRangeChange,
+  searchQuery = "",
+  onSearchChange,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  // References for click-outside dismissal
-  const notificationsMenuRef = useRef(null);
+  const dateMenuRef = useRef(null);
   const userMenuRef = useRef(null);
-
-  // Clear stale fake balance from localStorage
-  useEffect(() => {
-    try {
-      localStorage.removeItem("ados_user_balance");
-    } catch {}
-  }, []);
+  const notifMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        notificationsMenuRef.current &&
-        !notificationsMenuRef.current.contains(event.target)
-      ) {
-        setIsNotificationsOpen(false);
+      if (dateMenuRef.current && !dateMenuRef.current.contains(event.target)) {
+        setIsDateRangeOpen(false);
       }
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target)
-      ) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
+      }
+      if (notifMenuRef.current && !notifMenuRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
       }
     };
 
@@ -55,118 +62,39 @@ export default function DashboardLayout({ children, user, onLogout }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Determine active tab from URL path
   const getActiveTab = () => {
     const path = location.pathname;
-    if (path.includes("manage-ads")) return "manage-ads";
-    if (path.includes("generate-poster")) return "generate-poster";
-    if (path.includes("generate-video")) return "generate-video";
-    if (path.includes("create-ads")) return "generate-poster";
-    if (path.includes("publish-ads")) return "publish-ads";
-    if (path.includes("manage-account")) return "manage-account";
-    if (path.includes("settings")) return "settings";
-    if (path.includes("add-balance")) return "add-balance";
-    if (path.includes("upgrade-plan")) return "upgrade-plan";
+    if (path.includes("ad-accounts") || path.includes("manage-account")) return "ad-accounts";
+    if (path.includes("campaigns") || path.includes("manage-ads")) return "campaigns";
     if (path.includes("reports")) return "reports";
-    return "dashboard";
+    if (path.includes("settings")) return "settings";
+    return "overview";
   };
 
   const activeTab = getActiveTab();
 
   const handleNavigateTab = (tabId) => {
     switch (tabId) {
+      case "overview":
       case "dashboard":
         navigate("/dashboard");
         break;
+      case "ad-accounts":
+      case "manage-account":
+        navigate("/ad-accounts");
+        break;
+      case "campaigns":
       case "manage-ads":
-        navigate("/manage-ads");
-        break;
-      case "create-ads":
-      case "generate-poster":
-        navigate("/generate-poster");
-        break;
-      case "generate-video":
-        navigate("/generate-video");
-        break;
-      case "publish-ads":
-        navigate("/publish-ads");
-        break;
-      case "upgrade-plan":
-        navigate("/upgrade-plan");
+        navigate("/campaigns");
         break;
       case "reports":
         navigate("/reports");
         break;
-      case "manage-account":
-        navigate("/manage-account");
-        break;
       case "settings":
         navigate("/settings");
         break;
-      case "add-balance":
-        navigate("/add-balance");
-        break;
       default:
         navigate("/dashboard");
-    }
-  };
-
-  // Notifications mock
-  const [notifications, setNotifications] = useState([
-    {
-      id: "n-1",
-      title: "LinkedIn ROAS Surge",
-      desc: "B2B Decision Makers Campaign hit 5.2x ROAS in the last 60 minutes.",
-      time: "12m ago",
-      unread: true,
-    },
-    {
-      id: "n-2",
-      title: "Autonomous Budget Reallocation",
-      desc: "Shifted ₹450 daily budget from YouTube to Meta Advantage+.",
-      time: "1h ago",
-      unread: true,
-    },
-    {
-      id: "n-3",
-      title: "Attribution Sync Verified",
-      desc: "5/5 ad networks synchronized with 0 duplicate conversion flags.",
-      time: "3h ago",
-      unread: false,
-    },
-  ]);
-
-  const unreadCount = notifications.filter((n) => n.unread).length;
-
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
-
-  const getBreadcrumbTitle = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return "Consolidated Dashboard";
-      case "manage-ads":
-        return "Manage Ads";
-      case "create-ads":
-      case "generate-poster":
-        return "Generate Poster";
-      case "generate-video":
-        return "Generate Video";
-      case "publish-ads":
-        return "Publish Ads";
-      case "upgrade-plan":
-        return "Upgrade Plan & Quota";
-      case "reports":
-        return "Performance Reports";
-      case "manage-account":
-        return "Manage Account";
-      case "settings":
-        return "Settings";
-      case "add-balance":
-        return "Add Ad Account Balance";
-      default:
-        return "Dashboard";
     }
   };
 
@@ -180,14 +108,25 @@ export default function DashboardLayout({ children, user, onLogout }) {
     }
   };
 
+  const selectedDateOption = DATE_RANGE_OPTIONS.find((o) => o.id === dateRange) || DATE_RANGE_OPTIONS[4];
+
+  // Derive user name and initials
+  const userName = user?.name || "John Doe";
+  const userPlan = user?.plan || "Pro Plan";
+  const userInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <div className="min-h-screen w-full bg-[#fafbfc] text-[#111113] font-['Plus_Jakarta_Sans',sans-serif] flex selection:bg-slate-900 selection:text-white">
-      {/* 1. SIDEBAR NAVIGATION */}
+    <div className="min-h-screen w-full bg-[#f8fafc] text-[#0f172a] font-['Plus_Jakarta_Sans',sans-serif] flex selection:bg-blue-600 selection:text-white">
+      {/* 1. SIDEBAR */}
       <DashboardSidebar
         activeTab={activeTab}
         onSelectTab={handleNavigateTab}
         onBackToWebsite={() => navigate("/")}
-        onLogout={handleLogoutAction}
         user={user || { name: "Advertiser" }}
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -195,10 +134,10 @@ export default function DashboardLayout({ children, user, onLogout }) {
 
       {/* 2. MAIN APP CANVAS */}
       <div className="flex-1 min-w-0 flex flex-col min-h-screen">
-        {/* TOP APP BAR */}
-        <header className="sticky top-0 z-30 w-full backdrop-blur-xl bg-white/90 border-b border-slate-200/80 transition-all">
-          <div className="px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
-            {/* Left: Mobile hamburger + Breadcrumbs */}
+        {/* TOP HEADER */}
+        <header className="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
+          <div className="px-4 sm:px-8 h-18 flex items-center justify-between gap-4">
+            {/* Left: Mobile menu toggle & Search input */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
@@ -208,177 +147,146 @@ export default function DashboardLayout({ children, user, onLogout }) {
                 <Menu className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline text-xs font-semibold text-slate-400">
-                  ADOS Portal
-                </span>
-                <span className="hidden sm:inline text-xs text-slate-300">/</span>
-                <span className="text-sm font-extrabold text-[#111113]">
-                  {getBreadcrumbTitle()}
-                </span>
+              <div className="relative w-60 sm:w-80">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search anything..."
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                />
               </div>
             </div>
 
-            {/* Center: Live Sync Tag */}
-            <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-bold text-emerald-800 tracking-wide">
-                5 Networks Active
-              </span>
-            </div>
+            {/* Right: Date Range Selector, Notification Bell, User Menu */}
+            <div className="flex items-center gap-3">
+              {/* Date Range Dropdown */}
+              <div className="relative" ref={dateMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsDateRangeOpen(!isDateRangeOpen)}
+                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 text-xs font-semibold text-slate-700 flex items-center gap-2 cursor-pointer shadow-2xs hover:bg-slate-50/50 transition-all"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{selectedDateOption.label}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </button>
 
-            {/* Right: Quick "+ New", Notification Bell, Back to Landing, User & Sign Out */}
-            <div className="flex items-center gap-2.5">
-              {/* Quick "+ Create Ad" Button */}
-              <button
-                onClick={() => navigate("/create-ads")}
-                className="px-3.5 py-2 rounded-full bg-[#111113] hover:bg-black text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
-              >
-                <Plus className="w-3.5 h-3.5 text-[#ff4a22]" />
-                <span className="hidden sm:inline">Create Ad</span>
-              </button>
+                <AnimatePresence>
+                  {isDateRangeOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-1.5 w-44 bg-white rounded-2xl shadow-xl border border-slate-150 p-1.5 z-50 text-xs"
+                    >
+                      {DATE_RANGE_OPTIONS.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => {
+                            if (onDateRangeChange) onDateRangeChange(option.id);
+                            setIsDateRangeOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left cursor-pointer transition-colors ${
+                            dateRange === option.id
+                              ? "bg-blue-50 text-blue-600 font-bold"
+                              : "text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {dateRange === option.id && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Notification Bell */}
-              <div className="relative" ref={notificationsMenuRef}>
+              <div className="relative" ref={notifMenuRef}>
                 <button
-                  onClick={() => {
-                    setIsNotificationsOpen(!isNotificationsOpen);
-                    setIsBalanceOpen(false);
-                    setIsUserMenuOpen(false);
-                  }}
-                  className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 relative cursor-pointer transition-colors"
+                  type="button"
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className="p-2.5 rounded-full hover:bg-slate-100 text-slate-600 relative cursor-pointer transition-colors"
                   aria-label="View notifications"
                 >
                   <Bell className="w-4 h-4" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#ff4a22] animate-pulse" />
-                  )}
+                  <span className="w-2 h-2 rounded-full bg-red-500 absolute top-2 right-2 ring-2 ring-white" />
                 </button>
 
                 <AnimatePresence>
                   {isNotificationsOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 z-50 space-y-3"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-1.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-150 p-3 z-50 text-xs"
                     >
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-sm text-[#111113]">
-                            Telemetry Alerts
-                          </span>
-                          {unreadCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#ff4a22] text-white text-[10px] font-black">
-                              {unreadCount} new
-                            </span>
-                          )}
-                        </div>
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={markAllRead}
-                            className="text-[10px] text-[#ff4a22] font-bold hover:underline cursor-pointer"
-                          >
-                            Mark all as read
-                          </button>
-                        )}
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 font-bold text-slate-800">
+                        <span>Notifications</span>
+                        <span className="text-[10px] text-blue-600 font-semibold cursor-pointer">Mark read</span>
                       </div>
-
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            className={`p-2.5 rounded-xl border text-xs transition-colors ${
-                              n.unread
-                                ? "bg-orange-50/40 border-orange-200/80"
-                                : "bg-slate-50/60 border-slate-100"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between font-bold text-[#111113]">
-                              <span>{n.title}</span>
-                              <span className="text-[9px] text-slate-400 font-normal">{n.time}</span>
-                            </div>
-                            <p className="text-[11px] text-slate-500 mt-1">{n.desc}</p>
-                          </div>
-                        ))}
+                      <div className="py-2.5 space-y-2 text-slate-600 text-[11px]">
+                        <p className="font-semibold text-slate-800">Connected Accounts Synced</p>
+                        <p className="text-slate-400">All live telemetry metrics were refreshed successfully.</p>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* Back to Website Button */}
-              <button
-                onClick={() => navigate("/")}
-                className="hidden xl:flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Landing Page</span>
-              </button>
-
-              {/* User Avatar with Profile Dropdown */}
+              {/* User Profile Pill */}
               <div className="relative" ref={userMenuRef}>
                 <button
-                  onClick={() => {
-                    setIsUserMenuOpen(!isUserMenuOpen);
-                    setIsNotificationsOpen(false);
-                    setIsBalanceOpen(false);
-                  }}
-                  className="flex items-center gap-2 pl-1 sm:pl-2 cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors"
+                  type="button"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer select-none"
                 >
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-[#ff4a22] to-amber-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user?.name || "User"} className="w-full h-full object-cover" />
-                    ) : user?.name ? (
-                      user.name.slice(0, 2).toUpperCase()
-                    ) : (
-                      "AD"
-                    )}
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-[#2563eb] font-bold text-xs flex items-center justify-center">
+                    {userInitials}
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
-                    <span className="text-xs font-bold leading-tight text-[#111113] truncate max-w-[110px]">
-                      {user?.name || "Indrajit"}
+                    <span className="text-xs font-bold text-[#0f172a] leading-tight">
+                      {userName}
                     </span>
-                    <span className="text-[10px] text-slate-400 leading-tight">
-                      {user?.role || "User"}
+                    <span className="text-[10px] text-slate-400 font-medium leading-none">
+                      {userPlan}
                     </span>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
                 <AnimatePresence>
                   {isUserMenuOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-1.5 w-48 bg-white rounded-2xl shadow-xl border border-slate-150 p-1.5 z-50 text-xs"
                     >
                       <div className="px-3 py-2 border-b border-slate-100">
-                        <div className="font-bold text-[#111113] truncate">{user?.name || "Advertiser"}</div>
-                        <div className="text-[11px] text-slate-400 truncate">{user?.email || "admin@ados.io"}</div>
+                        <p className="font-bold text-slate-900 truncate">{userName}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{user?.email || "user@ados.io"}</p>
                       </div>
+
                       <button
                         onClick={() => {
                           setIsUserMenuOpen(false);
                           navigate("/settings");
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer text-left"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 font-medium cursor-pointer text-left mt-1"
                       >
                         <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
                         Settings
                       </button>
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          navigate("/manage-account");
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer text-left"
-                      >
-                        <CreditCard className="w-3.5 h-3.5 text-slate-400" />
-                        Account & Billing
-                      </button>
+
                       <div className="border-t border-slate-100 my-1" />
+
                       <button
                         onClick={() => {
                           setIsUserMenuOpen(false);
@@ -393,55 +301,14 @@ export default function DashboardLayout({ children, user, onLogout }) {
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* Sign Out */}
-              <button
-                onClick={handleLogoutAction}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-xs font-bold transition-all cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
             </div>
           </div>
         </header>
 
         {/* MAIN BODY */}
-        <main
-          className={`flex-1 w-full max-w-[1440px] mx-auto ${
-            activeTab === "generate-poster" || activeTab === "generate-video"
-              ? "p-3 sm:p-5 flex flex-col"
-              : "p-4 sm:p-8 lg:p-10"
-          }`}
-        >
+        <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
-
-        {/* FOOTER */}
-        {activeTab !== "generate-poster" && activeTab !== "generate-video" && (
-          <footer className="py-6 bg-white border-t border-slate-200/80 text-xs text-slate-500">
-            <div className="max-w-[1440px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-[#111113]">
-                  ADOS Autonomous Ad Operating System
-                </span>
-                <span>•</span>
-                <span>Version 2.4-enterprise</span>
-              </div>
-              <div className="flex items-center gap-6 text-[11px] font-semibold text-slate-400">
-                <span className="hover:text-slate-600 cursor-pointer">
-                  API Status: Operational
-                </span>
-                <span className="hover:text-slate-600 cursor-pointer">
-                  Security: SOC2 Certified
-                </span>
-                <span className="hover:text-slate-600 cursor-pointer">
-                  Live Sync: 14ms latency
-                </span>
-              </div>
-            </div>
-          </footer>
-        )}
       </div>
     </div>
   );

@@ -54,6 +54,18 @@ Built with a **Clean Layered Architecture (Controller-Service-Repository)** on t
 - **Responsive Workspace**: Split-screen design featuring 3D visuals and responsive full-height card layouts.
 - **Micro-Animations**: Framer Motion transitions, spring physics, and animated toast feedback.
 
+### 📊 Multi-Platform Advertising Analytics (New)
+
+- **Unified Overview Dashboard**: Consolidated advertising intelligence aggregating real-time performance across Google Ads and Meta Ads.
+- **Top Metrics & Cards**: Google Ads spend, Meta Ads spend, Total spend, and Total conversions with period comparisons.
+- **7 Granular KPI Metrics**: Impressions, Clicks, Average CPC, CTR, CPM, Conversion Rate, and ROAS.
+- **Interactive SVG Spline Line Chart**: Triple-series time visualization for Spend, Clicks, and Conversions with smooth bezier curves and responsive hover tooltips.
+- **Platform Performance Donut Chart**: Proportional platform spend shares with interactive hover states.
+- **Official Google Ads OAuth 2.0**: Official authorization code flow with `https://www.googleapis.com/auth/adwords` scope and multi-account selection.
+- **Official Meta Ads OAuth 2.0**: Long-lived 60-day token exchange via Meta Graph Marketing API with account discovery and insights synchronization.
+- **AES-256-GCM Token Encryption**: Server-side token encryption at rest with strict multi-user data isolation.
+- **Clean Read-Only Campaign Analytics**: Multi-platform filtering, status checks, search, and CSV reporting.
+
 ---
 
 ## 🏛️ System Architecture

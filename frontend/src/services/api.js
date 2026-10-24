@@ -288,6 +288,94 @@ export const api = {
     return handleResponse(res);
   },
 
+  // Meta Ads API Integration
+  async getMetaAdsStatus() {
+    const res = await fetch(`${API_BASE}/meta-ads/status`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getMetaAdsAuthUrl() {
+    const res = await fetch(`${API_BASE}/meta-ads/auth-url`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getMetaAdsAccounts() {
+    const res = await fetch(`${API_BASE}/meta-ads/accounts`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async selectMetaAdsAccount(accountId) {
+    const res = await fetch(`${API_BASE}/meta-ads/select-account`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify({ accountId }),
+    });
+    return handleResponse(res);
+  },
+
+  async getMetaAdsCampaigns(params = {}) {
+    const query = new URLSearchParams();
+    if (params.dateRange) query.append("dateRange", params.dateRange);
+    if (params.limit) query.append("limit", params.limit);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await fetch(`${API_BASE}/meta-ads/campaigns${qs}`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async disconnectMetaAds() {
+    const res = await fetch(`${API_BASE}/meta-ads/disconnect`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  // Unified Analytics API
+  async getAnalyticsOverview(dateRange = "LAST_30_DAYS") {
+    const query = new URLSearchParams({ dateRange });
+    const res = await fetch(`${API_BASE}/analytics/overview?${query.toString()}`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
+  async getAnalyticsCampaigns(params = {}) {
+    const query = new URLSearchParams();
+    if (params.dateRange) query.append("dateRange", params.dateRange);
+    if (params.platform) query.append("platform", params.platform);
+    if (params.search) query.append("search", params.search);
+    if (params.page) query.append("page", params.page);
+    if (params.limit) query.append("limit", params.limit);
+
+    const res = await fetch(`${API_BASE}/analytics/campaigns?${query.toString()}`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
+    });
+    return handleResponse(res);
+  },
+
   // AI Generation (Free-tier only)
   async generateAiImage(payload) {
     const res = await fetch(`${API_BASE}/ai/generate-image`, {

@@ -6,6 +6,8 @@ import accountRoutes from "./account.routes.js";
 import teamRoutes from "./team.routes.js";
 import settingsRoutes from "./settings.routes.js";
 import googleAdsRoutes from "./googleAds.routes.js";
+import metaAdsRoutes from "./metaAds.routes.js";
+import analyticsRoutes from "./analytics.routes.js";
 import aiRoutes from "./ai.routes.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
@@ -40,6 +42,8 @@ apiRouter.use("/accounts", accountRoutes);
 apiRouter.use("/team", teamRoutes);
 apiRouter.use("/settings", settingsRoutes);
 apiRouter.use("/google-ads", googleAdsRoutes);
+apiRouter.use("/meta-ads", metaAdsRoutes);
+apiRouter.use("/analytics", analyticsRoutes);
 apiRouter.use("/ai", aiRoutes);
 
 export default apiRouter;

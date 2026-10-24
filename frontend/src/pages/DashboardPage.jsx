@@ -1,12 +1,12 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import DashboardOverviewSection from "../components/sections/DashboardOverviewSection";
 
 export default function DashboardPage({ user, onLogout }) {
-  const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState("LAST_30_DAYS");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // If accidentally loaded inside a popup window, redirect opener to full browser dashboard and close popup
+  // If accidentally loaded inside a popup window, redirect opener and close popup
   useEffect(() => {
     if (window.opener && window.opener !== window) {
       try {
@@ -16,41 +16,20 @@ export default function DashboardPage({ user, onLogout }) {
     }
   }, []);
 
-  const handleNavigate = (tab) => {
-    switch (tab) {
-      case "dashboard":
-        navigate("/dashboard");
-        break;
-      case "manage-ads":
-        navigate("/manage-ads");
-        break;
-      case "create-ads":
-      case "create-campaign":
-        navigate("/create-ads");
-        break;
-      case "publish-ads":
-        navigate("/publish-ads");
-        break;
-      case "upgrade-plan":
-        navigate("/upgrade-plan");
-        break;
-      case "reports":
-        navigate("/reports");
-        break;
-      case "manage-account":
-        navigate("/manage-account");
-        break;
-      case "settings":
-        navigate("/settings");
-        break;
-      default:
-        navigate("/dashboard");
-    }
-  };
-
   return (
-    <DashboardLayout user={user} onLogout={onLogout}>
-      <DashboardOverviewSection user={user} onNavigate={handleNavigate} />
+    <DashboardLayout
+      user={user}
+      onLogout={onLogout}
+      dateRange={dateRange}
+      onDateRangeChange={setDateRange}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+    >
+      <DashboardOverviewSection
+        user={user}
+        dateRange={dateRange}
+        searchQuery={searchQuery}
+      />
     </DashboardLayout>
   );
 }

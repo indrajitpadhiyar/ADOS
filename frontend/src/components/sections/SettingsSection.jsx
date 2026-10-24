@@ -1,154 +1,100 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import PlatformLogo from "../common/PlatformLogo";
 import { api } from "../../services/api";
 import {
-  Settings,
-  Key,
-  Bell,
+  User,
   ShieldCheck,
-  Cpu,
-  Copy,
   CheckCircle2,
   Lock,
-  Globe,
-  Sliders,
-  Sparkles,
-  Zap,
   RefreshCw,
+  Trash2,
+  ExternalLink,
+  Bell,
+  Mail,
+  Key,
 } from "lucide-react";
 
-export default function SettingsSection() {
-  const [activeTab, setActiveTab] = useState("general"); // 'general' | 'api' | 'alerts' | 'pixel'
-  const [apiKeyCopied, setApiKeyCopied] = useState(false);
-  const [showKey, setShowKey] = useState(false);
+export default function SettingsSection({ user }) {
+  const [activeTab, setActiveTab] = useState("profile"); // 'profile' | 'connections' | 'security'
+  const [googleStatus, setGoogleStatus] = useState(null);
+  const [metaStatus, setMetaStatus] = useState(null);
   const [saveNotice, setSaveNotice] = useState(false);
-  const [isRotatingKey, setIsRotatingKey] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
 
-  // Settings state
-  const [attributionModel, setAttributionModel] = useState("data_driven");
-  const [refreshRate, setRefreshRate] = useState("14ms");
-  const [webhookUrl, setWebhookUrl] = useState("https://api.brand.com/v1/ados-webhooks");
-  const [minRoasAlert, setMinRoasAlert] = useState(2.8);
-  const [autoPauseFatigue, setAutoPauseFatigue] = useState(true);
-  const [emailAlerts, setEmailAlerts] = useState(true);
-  const [slackAlerts, setSlackAlerts] = useState(true);
-  const [apiKey, setApiKey] = useState("Loading API key...");
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(""), 3500);
+  };
 
   useEffect(() => {
-    loadSettings();
+    loadConnections();
   }, []);
 
-  const loadSettings = async () => {
+  const loadConnections = async () => {
     try {
-      const data = await api.getSettings();
-      if (data) {
-        if (data.attributionModel) setAttributionModel(data.attributionModel);
-        if (data.refreshRate) setRefreshRate(data.refreshRate);
-        if (data.webhookUrl) setWebhookUrl(data.webhookUrl);
-        if (data.minRoasAlert !== undefined) setMinRoasAlert(data.minRoasAlert);
-        if (data.autoPauseFatigue !== undefined) setAutoPauseFatigue(data.autoPauseFatigue);
-        if (data.emailAlerts !== undefined) setEmailAlerts(data.emailAlerts);
-        if (data.slackAlerts !== undefined) setSlackAlerts(data.slackAlerts);
-        if (data.apiKey) setApiKey(data.apiKey);
+      const [g, m] = await Promise.all([
+        api.getGoogleAdsStatus().catch(() => ({ isConnected: false })),
+        api.getMetaAdsStatus().catch(() => ({ isConnected: false })),
+      ]);
+      setGoogleStatus(g);
+      setMetaStatus(m);
+    } catch (e) {
+      // Ignore
+    }
+  };
+
+  const handleDisconnect = async (platform) => {
+    try {
+      if (platform === "google") {
+        await api.disconnectGoogleAds();
+        showToast("Google Ads account disconnected.");
+      } else {
+        await api.disconnectMetaAds();
+        showToast("Meta Ads account disconnected.");
       }
+      loadConnections();
     } catch (err) {
-      console.warn("Notice: Failed to fetch settings:", err.message);
+      showToast(err.message || "Failed to disconnect.");
     }
   };
 
-  const handleCopyKey = () => {
-    navigator.clipboard.writeText(apiKey);
-    setApiKeyCopied(true);
-    setTimeout(() => setApiKeyCopied(false), 2500);
-  };
-
-  const handleRotateKey = async () => {
-    try {
-      setIsRotatingKey(true);
-      const res = await api.regenerateApiKey();
-      if (res?.apiKey) {
-        setApiKey(res.apiKey);
-      }
-    } catch (err) {
-      console.error("Failed to regenerate key:", err);
-    } finally {
-      setIsRotatingKey(false);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      await api.updateSettings({
-        attributionModel,
-        refreshRate,
-        webhookUrl,
-        minRoasAlert,
-        autoPauseFatigue,
-        emailAlerts,
-        slackAlerts,
-      });
-      setSaveNotice(true);
-      setTimeout(() => setSaveNotice(false), 3000);
-    } catch (err) {
-      console.error("Failed to save settings:", err);
-    }
-  };
+  const userName = user?.name || "John Doe";
+  const userEmail = user?.email || "user@ados.io";
 
   return (
-    <div className="w-full space-y-8 animate-fadeIn">
+    <div className="space-y-6 font-['Plus_Jakarta_Sans',sans-serif] animate-fadeIn select-none">
       {/* Toast */}
-      <AnimatePresence>
-        {saveNotice && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 right-8 z-50 bg-[#111113] text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>Preferences and settings saved successfully.</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {toastMsg && (
+        <div className="fixed top-20 right-8 z-50 bg-[#0f172a] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2.5">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[11px] font-bold text-slate-700 mb-2">
-            <Settings className="w-3.5 h-3.5 text-[#ff4a22]" />
-            <span>System Configurations & Automation Engine</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111113] tracking-tight">
-            Settings
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Configure attribution logic, developer API webhooks, automated guardrails, and event tracking.
-          </p>
-        </div>
-
-        <button
-          onClick={handleSave}
-          className="px-6 py-2.5 rounded-full bg-[#111113] hover:bg-black text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
-        >
-          Save All Changes
-        </button>
+      <div className="pb-4 border-b border-slate-200/80">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] tracking-tight">
+          Settings & Preferences
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          Manage your user profile, connected advertising accounts, and workspace security.
+        </p>
       </div>
 
-      {/* Settings Navigation Tabs */}
+      {/* Sub Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3">
         {[
-          { id: "general", label: "General & Attribution" },
-          { id: "api", label: "API Keys & Webhooks" },
-          { id: "alerts", label: "Autonomous Alerts & Rules" },
-          { id: "pixel", label: "Tracking Pixels & CAPI" },
+          { id: "profile", label: "User Profile" },
+          { id: "connections", label: "Connected Ad Accounts" },
+          { id: "security", label: "Security & Privacy" },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === tab.id
-                ? "bg-[#111113] text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-[#2563eb] text-white shadow-xs"
+                : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50"
             }`}
           >
             {tab.label}
@@ -156,260 +102,136 @@ export default function SettingsSection() {
         ))}
       </div>
 
-      {/* TAB 1: GENERAL & ATTRIBUTION */}
-      {activeTab === "general" && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6 max-w-3xl">
+      {/* TAB 1: Profile */}
+      {activeTab === "profile" && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs max-w-2xl space-y-5">
+          <h3 className="text-sm font-bold text-[#0f172a]">User Profile Details</h3>
+
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                Primary Multi-Touch Attribution Model
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Full Name
               </label>
-              <select
-                value={attributionModel}
-                onChange={(e) => setAttributionModel(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900"
-              >
-                <option value="data_driven">ADOS Neural Data-Driven Attribution (Recommended)</option>
-                <option value="7d_click_1d_view">7-Day Click / 1-Day View (Meta Standard)</option>
-                <option value="last_touch">Last Interaction (Conservative)</option>
-                <option value="first_touch">First Touch (Top of Funnel)</option>
-              </select>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Data-driven attribution mathematically distributes ROAS credit across all touchpoints without bias.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                Telemetry Stream Pacing
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: "14ms", label: "14ms Sub-Second", note: "Real-time socket stream" },
-                  { id: "5m", label: "Every 5 Minutes", note: "Standard sync" },
-                  { id: "15m", label: "Every 15 Minutes", note: "Conserves network quota" },
-                ].map((rate) => (
-                  <button
-                    key={rate.id}
-                    type="button"
-                    onClick={() => setRefreshRate(rate.id)}
-                    className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
-                      refreshRate === rate.id
-                        ? "border-[#ff4a22] bg-orange-50/20 text-[#111113]"
-                        : "border-slate-200 bg-slate-50 text-slate-600"
-                    }`}
-                  >
-                    <div className="text-xs font-extrabold">{rate.label}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">{rate.note}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: API KEYS & WEBHOOKS */}
-      {activeTab === "api" && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6 max-w-3xl">
-          <div>
-            <h2 className="text-base font-extrabold text-[#111113]">Developer API Credentials</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Authenticate automated backend services and custom reporting scripts.
-            </p>
-          </div>
-
-          <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                Live Production Secret Key
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="text-[11px] font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
-              >
-                {showKey ? "Hide Secret" : "Reveal Secret"}
-              </button>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input
-                type={showKey ? "text" : "password"}
+                type="text"
+                defaultValue={userName}
                 readOnly
-                value={apiKey}
-                className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800"
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800"
               />
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleCopyKey}
-                  className="px-4 py-2 bg-[#111113] hover:bg-black text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
-                >
-                  {apiKeyCopied ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRotateKey}
-                  disabled={isRotatingKey}
-                  className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                  title="Generate a new live API secret key"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isRotatingKey ? "animate-spin" : ""}`} />
-                  <span>Rotate</span>
-                </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Email Address
+              </label>
+              <input
+                type="email"
+                defaultValue={userEmail}
+                readOnly
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Workspace Role
+                </label>
+                <div className="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800">
+                  Account Owner (Admin)
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Plan Tier
+                </label>
+                <div className="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-blue-600 font-bold">
+                  {user?.plan || "Pro Plan"}
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-              Outgoing Webhook Endpoint (POST)
-            </label>
-            <input
-              type="url"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono text-slate-900"
-            />
-            <p className="text-[11px] text-slate-400">
-              Receives instant JSON payloads whenever bid adjustments or fatigue warnings occur.
-            </p>
           </div>
         </div>
       )}
 
-      {/* TAB 3: ALERTS & RULES */}
-      {activeTab === "alerts" && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6 max-w-3xl">
-          <div>
-            <h2 className="text-base font-extrabold text-[#111113]">Autonomous Rule Engine</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Set guardrails that protect capital and notify your media buying team.
-            </p>
-          </div>
+      {/* TAB 2: Connected Ad Accounts */}
+      {activeTab === "connections" && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs max-w-3xl space-y-5">
+          <h3 className="text-sm font-bold text-[#0f172a]">
+            Active Advertising OAuth Connections
+          </h3>
 
           <div className="space-y-4">
-            {/* Rule 1: Auto Pause Fatigue */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-bold text-slate-800">Auto-Pause Creative Fatigue</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">
-                  Temporarily pause any ad creative when its 48h CTR decays by over 40%.
+            {/* Google Ads */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <PlatformLogo platform="google" size="sm" />
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Google Ads</h4>
+                  <p className="text-[11px] text-slate-500">
+                    {googleStatus?.isConnected
+                      ? `${googleStatus.selectedCustomerName || "Connected"} (${googleStatus.selectedCustomerId || "—"})`
+                      : "Not connected"}
+                  </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setAutoPauseFatigue(!autoPauseFatigue)}
-                className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
-                  autoPauseFatigue ? "bg-[#ff4a22]" : "bg-slate-300"
-                }`}
-              >
-                <div
-                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                    autoPauseFatigue ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
+
+              {googleStatus?.isConnected ? (
+                <button
+                  type="button"
+                  onClick={() => handleDisconnect("google")}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Disconnect</span>
+                </button>
+              ) : (
+                <span className="text-xs font-semibold text-slate-400">Disconnected</span>
+              )}
             </div>
 
-            {/* Rule 2: Minimum ROAS Guardrail */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-800">
-                <span>Critical Minimum ROAS Alert Threshold</span>
-                <span className="text-sm font-black text-[#ff4a22]">{minRoasAlert}x</span>
+            {/* Meta Ads */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <PlatformLogo platform="meta" size="sm" />
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Meta Ads</h4>
+                  <p className="text-[11px] text-slate-500">
+                    {metaStatus?.isConnected
+                      ? `${metaStatus.selectedAccountName || "Connected"} (${metaStatus.selectedAccountId || "—"})`
+                      : "Not connected"}
+                  </p>
+                </div>
               </div>
-              <input
-                type="range"
-                min="1.5"
-                max="5.0"
-                step="0.1"
-                value={minRoasAlert}
-                onChange={(e) => setMinRoasAlert(Number(e.target.value))}
-                className="w-full accent-[#ff4a22] cursor-pointer"
-              />
-              <div className="text-[11px] text-slate-400">
-                Triggers immediate push notifications if campaign blended ROAS drops below this level.
-              </div>
-            </div>
 
-            {/* Notification Channels */}
-            <div className="pt-2 grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700">Slack Notifications</span>
-                <input
-                  type="checkbox"
-                  checked={slackAlerts}
-                  onChange={(e) => setSlackAlerts(e.target.checked)}
-                  className="w-4 h-4 accent-[#ff4a22] cursor-pointer"
-                />
-              </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700">Email Digest Alerts</span>
-                <input
-                  type="checkbox"
-                  checked={emailAlerts}
-                  onChange={(e) => setEmailAlerts(e.target.checked)}
-                  className="w-4 h-4 accent-[#ff4a22] cursor-pointer"
-                />
-              </div>
+              {metaStatus?.isConnected ? (
+                <button
+                  type="button"
+                  onClick={() => handleDisconnect("meta")}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Disconnect</span>
+                </button>
+              ) : (
+                <span className="text-xs font-semibold text-slate-400">Disconnected</span>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 4: TRACKING PIXELS & CAPI */}
-      {activeTab === "pixel" && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6 max-w-3xl">
-          <div>
-            <h2 className="text-base font-extrabold text-[#111113]">Server-Side Tracking & CAPI</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              100% first-party cookies and cloud server-side event dispatching for iOS 14.5+ resilience.
-            </p>
-          </div>
+      {/* TAB 3: Security & Privacy */}
+      {activeTab === "security" && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs max-w-2xl space-y-4">
+          <h3 className="text-sm font-bold text-[#0f172a]">Security & Token Isolation</h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            All OAuth tokens and API secrets are encrypted at rest on the ADOS backend using AES-256-GCM. Client secrets and refresh tokens are strictly hidden from the frontend to preserve SOC2 and enterprise compliance.
+          </p>
 
-          <div className="space-y-3">
-            {[
-              {
-                name: "Meta Conversions API (CAPI Gateway)",
-                status: "Operational",
-                matchScore: "9.6 / 10 Event Quality",
-              },
-              {
-                name: "Google Ads Enhanced Conversions (GTM)",
-                status: "Operational",
-                matchScore: "9.4 / 10 Match Rate",
-              },
-              {
-                name: "LinkedIn Conversions API (CAPI Gateway)",
-                status: "Operational",
-                matchScore: "9.3 / 10 Match Rate",
-              },
-            ].map((p, i) => (
-              <div
-                key={i}
-                className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between"
-              >
-                <div>
-                  <div className="text-xs font-extrabold text-[#111113]">{p.name}</div>
-                  <div className="text-[11px] text-emerald-600 font-semibold mt-0.5">
-                    {p.matchScore}
-                  </div>
-                </div>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                  {p.status}
-                </span>
-              </div>
-            ))}
+          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2.5 font-semibold">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>256-bit AES-GCM Encrypted Token Vault Active</span>
           </div>
         </div>
       )}
