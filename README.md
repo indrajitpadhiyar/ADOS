@@ -1,11 +1,11 @@
-# ADOS — Intelligent Operations & Autonomous Platform
+# ADOS — Multi-Platform Advertising Analytics Dashboard
 
 <p align="center">
   <img src="frontend/public/ados2.png" alt="ADOS Logo" width="220" />
 </p>
 
 <p align="center">
-  <strong>Enterprise-Grade Full-Stack Authentication & Autonomous Digital Workspace</strong>
+  <strong>Enterprise-Grade Multi-Platform Advertising Analytics & Autonomous Intelligence</strong>
 </p>
 
 <p align="center">
@@ -14,7 +14,9 @@
   <img src="https://img.shields.io/badge/React-v19-61dafb.svg" alt="React" />
   <img src="https://img.shields.io/badge/Vite-v8-646cff.svg" alt="Vite" />
   <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248.svg" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Security-OWASP_Hardened-success.svg" alt="Security" />
+  <img src="https://img.shields.io/badge/Google%20Ads-API%20v18-4285F4.svg" alt="Google Ads" />
+  <img src="https://img.shields.io/badge/Meta%20Ads-Marketing%20API-0081FB.svg" alt="Meta Ads" />
+  <img src="https://img.shields.io/badge/Security-AES--256--GCM-success.svg" alt="Security" />
   <img src="https://img.shields.io/badge/License-ISC-lightgrey.svg" alt="License" />
 </p>
 
@@ -22,49 +24,44 @@
 
 ## 📖 Overview
 
-**ADOS** is a high-performance, full-stack enterprise web application delivering intelligent workflow orchestration and secure identity management.
+**ADOS** is a high-performance, full-stack multi-platform advertising analytics dashboard engineered for marketing teams, agencies, and businesses. It unifies campaign data from **Google Ads** and **Meta Ads (Facebook & Instagram)** into a single, clean, real-time analytics interface.
 
-Built with a **Clean Layered Architecture (Controller-Service-Repository)** on the backend and modern **React 19 + Tailwind CSS** on the frontend, ADOS implements defense-in-depth security principles, OWASP compliance, and responsive user experience features including dynamic canvas-driven smooth cursor inputs.
+Built with a **Clean Layered Architecture (Controller-Service-Repository)** on Express 5 and modern **React 19 + Tailwind CSS**, ADOS delivers robust multi-user isolation, official OAuth 2.0 flows, server-side token encryption at rest (AES-256-GCM), and normalized cross-platform metrics calculation (Spend, CPC, CTR, CPM, ROAS, and Conversion Rates).
 
 ---
 
 ## 🚀 Key Features
 
-### 🔐 Enterprise Security & Authentication (Backend)
-
-- **Zero-Trust Token Strategy**: Short-lived JWT Access Tokens (15m) paired with long-lived Refresh Tokens (7d).
-- **OWASP Secure Cookies**: Tokens stored in `HttpOnly`, `SameSite=Strict`, `Secure` cookies mitigating XSS and CSRF token theft.
-- **Refresh Token Rotation**: Automatic token family rotation with real-time detection of compromised/replayed sessions.
-- **Brute-Force & Lockout Protection**: Automatic 30-minute progressive account lockout following 5 consecutive failed attempts.
-- **Anti-User Enumeration**: Uniform response envelopes for authentication and password recovery endpoints.
-- **Bcrypt Password Hashing**: Adaptive work factor (salt rounds = 12) with schema-level `select: false` prevention.
-- **Strict Input Validation (Zod)**: Deep schema validation with `.strict()` enforcement preventing mass assignment.
-- **NoSQL Injection Defense**: Recursive in-place sanitization stripping `$` and `.` operators on all incoming requests.
-- **Dedicated Rate Limiters**: Calibrated limits for authentication (`15/15m`), password reset (`5/15m`), and refresh (`30/15m`).
-- **Security Headers (Helmet)**: Clickjacking defense (`X-Frame-Options: DENY`), strict MIME sniffing guards, and CSP.
-- **Sanitized Audit Logging**: Real-time structured security event tracking (`SecurityLogger`) with zero credential leakage.
-- **Graceful Shutdown**: Production-ready process signal interception (`SIGTERM`, `SIGINT`, `uncaughtException`).
-
-### 🎨 Modern UI & Interaction (Frontend)
-
-- **Smooth Caret Movement**: Custom input component (`SmoothInput`) utilizing canvas text-measuring and fluid CSS physics transitions (`cubic-bezier(0.16, 1, 0.3, 1)`).
-- **Password & Confirm Password**: Client-side regex verification, real-time match indicators, and visibility toggles.
-- **Keyboard Navigation**: Fluid `Enter` key auto-progression through inputs to submission.
-- **Interactive Analog Clock**: Live SVG minimalist clock widget syncing with real-time system hours, minutes, and seconds.
-- **Responsive Workspace**: Split-screen design featuring 3D visuals and responsive full-height card layouts.
-- **Micro-Animations**: Framer Motion transitions, spring physics, and animated toast feedback.
-
-### 📊 Multi-Platform Advertising Analytics (New)
-
-- **Unified Overview Dashboard**: Consolidated advertising intelligence aggregating real-time performance across Google Ads and Meta Ads.
-- **Top Metrics & Cards**: Google Ads spend, Meta Ads spend, Total spend, and Total conversions with period comparisons.
-- **7 Granular KPI Metrics**: Impressions, Clicks, Average CPC, CTR, CPM, Conversion Rate, and ROAS.
+### 📊 Unified Multi-Platform Analytics Dashboard
+- **Consolidated Overview**: Single pane of glass tracking advertising spend, impressions, clicks, conversions, and revenue across Google Ads and Meta Ads.
+- **Header Top KPI Cards**:
+  - **Google Ads Spend Card**: Platform logo, real-time connection status indicator, period spend, and percentage change.
+  - **Meta Ads Spend Card**: Platform logo, real-time connection status indicator, period spend, and percentage change.
+  - **Total Performance Card**: Aggregated cross-platform spend with tooltips and relative growth benchmarks.
+  - **Total Conversions Card**: Consolidated conversion events count and trends.
+- **7 Granular Secondary Metrics**: Total Impressions, Clicks, Average CPC, Click-Through Rate (CTR), Cost Per Mille (CPM), Conversion Rate, and Return On Ad Spend (ROAS).
 - **Interactive SVG Spline Line Chart**: Triple-series time visualization for Spend, Clicks, and Conversions with smooth bezier curves and responsive hover tooltips.
-- **Platform Performance Donut Chart**: Proportional platform spend shares with interactive hover states.
-- **Official Google Ads OAuth 2.0**: Official authorization code flow with `https://www.googleapis.com/auth/adwords` scope and multi-account selection.
-- **Official Meta Ads OAuth 2.0**: Long-lived 60-day token exchange via Meta Graph Marketing API with account discovery and insights synchronization.
-- **AES-256-GCM Token Encryption**: Server-side token encryption at rest with strict multi-user data isolation.
-- **Clean Read-Only Campaign Analytics**: Multi-platform filtering, status checks, search, and CSV reporting.
+- **Platform Performance Donut Chart**: Proportional spend visualization (e.g. 59.9% Google Ads vs. 40.1% Meta Ads) with centered totals and platform legends.
+- **Top Campaigns Table**: Campaign performance table displaying name, platform badges, status (`Active`/`Paused`), spend, impressions, clicks, CTR, conversions, and ROAS.
+- **Honest Connection States**: Clear empty and disconnected states prompting account connections rather than fabricated placeholder metrics.
+
+### 🔗 Ad Accounts Hub & Official OAuth 2.0
+- **Google Ads OAuth Integration**:
+  - Official authorization code flow with offline access (`https://www.googleapis.com/auth/adwords` scope).
+  - Multi-user account selector pulling accessible Google Ads customer IDs via the official Google Ads API.
+  - Multi-user account isolation with zero cross-tenant data exposure.
+- **Meta Ads OAuth Integration**:
+  - Official Meta authorization flow requesting `ads_read` and `read_insights` permissions.
+  - Automatic 60-day long-lived access token exchange via Meta Graph API.
+  - Accessible ad accounts discovery (`/me/adaccounts`) and account selector.
+- **Safe Disconnect & Reconnect**: Invalidate tokens, remove stored credentials, and re-link expired authorizations with confirmation modals.
+
+### 🔐 Enterprise Security & Token Encryption
+- **AES-256-GCM Token Encryption**: Provider refresh and access tokens are encrypted at rest with server-side secret keys.
+- **Zero Client Token Exposure**: OAuth client secrets, refresh tokens, and developer tokens never touch the client browser.
+- **Zero-Trust Session Strategy**: Short-lived JWT Access Tokens (15m) paired with rotating Refresh Tokens (7d) stored in `HttpOnly`, `SameSite=Strict`, `Secure` cookies.
+- **Brute-Force & Lockout Protection**: 30-minute progressive lockout on 5 consecutive failed attempts.
+- **NoSQL Injection & XSS Defense**: Strict in-place parameter sanitization and Helmet security headers.
 
 ---
 
@@ -73,38 +70,49 @@ Built with a **Clean Layered Architecture (Controller-Service-Repository)** on t
 ```mermaid
 graph TD
     subgraph Client [Frontend - React 19 + Vite]
-        UI[FullPageAuth View]
-        SI[SmoothInput Caret Engine]
-        CW[Analog Clock Widget]
-        Fetch[Credentials: Include Fetcher]
+        UI[Overview Dashboard]
+        AdHub[Ad Accounts Hub]
+        CampTbl[Campaigns Table]
+        RepView[Reports & CSV Export]
+        Layout[Search, Date Picker, User Pill]
     end
 
     subgraph Security_Gate [API Security Layer]
         Helmet[Helmet Security Headers]
         CORS[Strict Origin CORS]
         Sanitize[NoSQL Injection Sanitizer]
-        RL[Endpoint Rate Limiters]
+        AuthMW[JWT Cookie Auth Middleware]
         Zod[Zod Schema Validator]
     end
 
     subgraph App_Core [Backend - Express 5 Core]
-        AuthCtrl[Auth Controller]
-        AuthSvc[Auth Service]
-        TokenUtil[HS256 JWT & Crypto Util]
-        SecLog[Security Audit Logger]
+        AnalyticsCtrl[Analytics Controller]
+        AnalyticsSvc[Unified Aggregation Engine]
+        GoogleAdsSvc[Google Ads API Service]
+        MetaAdsSvc[Meta Graph API Service]
+        CryptoUtil[AES-256-GCM Encryptor]
+    end
+
+    subgraph Providers [Official Ad Platforms]
+        GoogleAPI[Google Ads API v18 / GAQL]
+        MetaAPI[Meta Marketing Graph API]
     end
 
     subgraph Persistence [Database Layer]
-        Mongoose[Mongoose Connection Pool]
         MongoAtlas[(MongoDB Atlas Database)]
+        UserColl[(Users Collection)]
+        GoogleColl[(GoogleAdsAccounts Collection)]
+        MetaColl[(MetaAdsAccounts Collection)]
     end
 
-    UI --> Fetch
-    Fetch -->|HTTP POST / Cookies| Security_Gate
+    Client -->|HTTP / Cookies| Security_Gate
     Security_Gate --> App_Core
-    App_Core --> Persistence
-    Persistence --> Mongoose
-    Mongoose --> MongoAtlas
+    App_Core --> GoogleAdsSvc
+    App_Core --> MetaAdsSvc
+    GoogleAdsSvc -->|OAuth & GAQL| GoogleAPI
+    MetaAdsSvc -->|OAuth & Insights| MetaAPI
+    App_Core --> CryptoUtil
+    CryptoUtil --> Persistence
 ```
 
 ---
@@ -123,31 +131,37 @@ ADOS/
 │       ├── config/
 │       │   ├── env.js                # Fail-fast Zod environment validation
 │       │   └── db.js                 # Resilient MongoDB connection pooling
-│       ├── constants/
-│       │   ├── httpStatus.js         # HTTP status code dictionary
-│       │   └── responseMessages.js   # Standardized anti-enumeration messages
 │       ├── controllers/
-│       │   └── auth.controller.js    # HTTP handlers & cookie management
+│       │   ├── analytics.controller.js # Multi-platform aggregated analytics
+│       │   ├── auth.controller.js    # Authentication & cookie management
+│       │   ├── googleAds.controller.js # Google Ads OAuth & account selection
+│       │   └── metaAds.controller.js   # Meta Ads OAuth & account selection
 │       ├── middlewares/
-│       │   ├── auth.middleware.js    # JWT bearer & cookie verification + RBAC
-│       │   ├── error.middleware.js   # Production error masking & centralized handler
-│       │   ├── mongoSanitize.middleware.js # Express 5 in-place operator sanitizer
-│       │   ├── notFound.middleware.js # 404 Route catcher
+│       │   ├── auth.middleware.js    # JWT bearer & cookie verification
+│       │   ├── error.middleware.js   # Production error masking
+│       │   ├── mongoSanitize.middleware.js # Express 5 operator sanitizer
 │       │   ├── rateLimiter.middleware.js # Auth, reset, and API rate limiters
-│       │   └── validate.middleware.js # Zod schema validation middleware
+│       │   └── validate.middleware.js # Zod schema validation
 │       ├── models/
-│       │   └── User.model.js         # User schema, bcrypt hooks, lockout methods
+│       │   ├── User.model.js         # User schema, bcrypt hooks, lockout
+│       │   ├── GoogleAdsAccount.model.js # Encrypted Google tokens & selected accounts
+│       │   └── MetaAdsAccount.model.js   # Encrypted Meta tokens & selected accounts
 │       ├── routes/
 │       │   ├── index.js              # Versioned API router (/api/v1) & health probe
-│       │   └── auth.routes.js        # Auth endpoint routing & rate limit attachment
+│       │   ├── analytics.routes.js   # Unified analytics endpoints (/overview, /campaigns)
+│       │   ├── auth.routes.js        # Auth endpoint routing & rate limit attachment
+│       │   ├── googleAds.routes.js   # Google Ads OAuth & management routes
+│       │   └── metaAds.routes.js     # Meta Ads OAuth & management routes
 │       ├── services/
-│       │   └── auth.service.js       # Core business logic & token family rotation
+│       │   ├── analytics.service.js  # Cross-platform normalization & metric calculation
+│       │   ├── auth.service.js       # Core business logic & token family rotation
+│       │   ├── GoogleAdsService.js   # Google Ads API client & GAQL metrics queries
+│       │   └── metaAds.service.js    # Meta Graph API client & insights retrieval
 │       └── utils/
 │           ├── ApiError.js           # Operational error abstraction
 │           ├── ApiResponse.js        # Unified JSON response wrapper
-│           ├── asyncHandler.js       # Async route controller wrapper
-│           ├── securityLogger.util.js # Sanitized audit logger
-│           └── token.util.js         # JWT signing/verification & crypto hashes
+│           ├── crypto.util.js        # AES-256-GCM token encryption / decryption
+│           └── starterData.util.js   # User initialization utility
 │
 └── frontend/
     ├── index.html                    # HTML5 entrypoint
@@ -157,15 +171,34 @@ ADOS/
     │   ├── ados.png                  # ADOS Brand Logo
     │   └── ados2.png                 # ADOS High-Res Visual Asset
     └── src/
-        ├── App.jsx                   # Root application component
-        ├── index.css                 # Global CSS, Tailwind v4, & smooth caret animations
+        ├── App.jsx                   # Application router & protected route guards
+        ├── index.css                 # Global CSS & Tailwind styling
         ├── main.jsx                  # React DOM root mounting
         ├── assets/
-        │   └── ados-character.jpg    # Visual 3D workspace imagery
-        └── components/
-            ├── ClockWidget.jsx       # Real-time minimalist analog clock
-            ├── FullPageAuth.jsx      # Primary split-view authentication page
-            └── SmoothInput.jsx       # Canvas-driven smooth gliding input cursor
+        │   └── platform_logo/
+        │       ├── google.png        # Official Google Ads logo asset
+        │       └── meta.png          # Official Meta Ads logo asset
+        ├── components/
+        │   ├── PlatformLogo.jsx      # Multi-platform badge and logo renderer
+        │   ├── layout/
+        │   │   ├── DashboardLayout.jsx  # Header bar with search, date range, user pill
+        │   │   └── DashboardSidebar.jsx # Sidebar matching UI design with promo card
+        │   └── sections/
+        │       ├── DashboardOverviewSection.jsx # KPI cards, spline chart, donut chart, table
+        │       ├── AdAccountsSection.jsx        # Google & Meta OAuth cards & account picker
+        │       ├── CampaignsSection.jsx         # Read-only campaign analytics table
+        │       ├── ReportsSection.jsx           # CSV export & spend breakdowns
+        │       └── SettingsSection.jsx          # Profile & token security status
+        ├── pages/
+        │   ├── DashboardPage.jsx     # Main Overview dashboard page
+        │   ├── AdAccountsPage.jsx    # Dedicated Connected Accounts page
+        │   ├── CampaignsPage.jsx     # Dedicated Campaigns analytics page
+        │   ├── ReportsPage.jsx       # Dedicated Reports page
+        │   ├── SettingsPage.jsx      # Settings & profile page
+        │   ├── AuthPage.jsx          # Login & signup split view
+        │   └── HomePage.jsx          # Landing page
+        └── services/
+            └── api.js                # Centralized Axios API service layer
 ```
 
 ---
@@ -175,10 +208,12 @@ ADOS/
 | Layer                | Technologies                                                                                                 |
 | :------------------- | :----------------------------------------------------------------------------------------------------------- |
 | **Frontend Core**    | React 19, JavaScript (ESModules), HTML5                                                                      |
-| **Styling & Motion** | Tailwind CSS v4, Framer Motion, Lucide Icons                                                                 |
+| **Styling & Motion** | Tailwind CSS v4, Lucide Icons, Framer Motion                                                                 |
+| **Visual Charts**    | Custom SVG Bezier Spline Charts, Donut Area Visualizations                                                    |
 | **Backend Runtime**  | Node.js (v20+ Recommended), Express v5.2                                                                     |
 | **Database**         | MongoDB Atlas, Mongoose v9                                                                                   |
-| **Security & Auth**  | JSON Web Tokens (`jsonwebtoken`), `bcryptjs`, `helmet`, `cors`, `cookie-parser`, `express-rate-limit`, `zod` |
+| **Ad Integrations**  | Google Ads API (`google-ads-api`), Meta Graph Marketing API                                                  |
+| **Security & Auth**  | AES-256-GCM Crypto, JWT (`jsonwebtoken`), `bcryptjs`, `helmet`, `cors`, `cookie-parser`, `express-rate-limit`, `zod` |
 | **Build & Tooling**  | Vite v8, npm                                                                                                 |
 
 ---
@@ -198,31 +233,81 @@ MONGO_URL=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/ados_db?retr
 # CORS Configuration
 CORS_ORIGIN=http://localhost:5173
 
-# JWT Security Secrets (Minimum 16 characters)
-JWT_ACCESS_SECRET=your_jwt_access_secret_key_here
+# JWT & Cookie Security Secrets
+JWT_ACCESS_SECRET=your_jwt_access_secret_key_here_minimum_16_chars
 JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_SECRET=your_jwt_refresh_secret_key_here
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_key_here_minimum_16_chars
 JWT_REFRESH_EXPIRES_IN=7d
-
-# Cookie Security Secret (Minimum 16 characters)
 COOKIE_SECRET=your_cookie_encryption_secret_here
+
+# Token Security (32-byte hex string for AES-256-GCM token encryption at rest)
+TOKEN_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+
+# Google Ads API & OAuth (Server-Side Only)
+GOOGLE_ADS_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+GOOGLE_ADS_CLIENT_SECRET=your-google-oauth-client-secret
+GOOGLE_ADS_REDIRECT_URI=http://localhost:5000/api/v1/google-ads/callback
+GOOGLE_ADS_DEVELOPER_TOKEN=your-google-ads-developer-token
+
+# Meta Marketing API & OAuth (Server-Side Only)
+META_APP_ID=your-meta-app-id
+META_APP_SECRET=your-meta-app-secret
+META_REDIRECT_URI=http://localhost:5000/api/v1/meta-ads/callback
 ```
+
+---
+
+## 📡 API Reference (`/api/v1`)
+
+### Analytics Endpoints (`/analytics`)
+
+| Method | Endpoint | Access | Description |
+| :----- | :------- | :----- | :---------- |
+| `GET`  | `/analytics/overview` | Protected | Aggregated KPI totals, spline time-series points, spend split, and top campaigns |
+| `GET`  | `/analytics/campaigns` | Protected | Paginated, filtered campaign analytics across all connected platforms |
+
+### Google Ads OAuth & Management (`/google-ads`)
+
+| Method | Endpoint | Access | Description |
+| :----- | :------- | :----- | :---------- |
+| `GET`  | `/google-ads/status` | Protected | Current user's Google Ads connection and sync status |
+| `GET`  | `/google-ads/connect` | Protected | Generates Google authorization URL and initiates OAuth flow |
+| `GET`  | `/google-ads/callback` | Public | Handles OAuth redirect, exchanges tokens, and discovers accessible accounts |
+| `GET`  | `/google-ads/accounts` | Protected | Lists accessible customer IDs for the authenticated user |
+| `POST` | `/google-ads/select-account` | Protected | Persists selected Google Ads account for dashboard synchronization |
+| `POST` | `/google-ads/disconnect` | Protected | Removes stored Google tokens and marks connection disconnected |
+
+### Meta Ads OAuth & Management (`/meta-ads`)
+
+| Method | Endpoint | Access | Description |
+| :----- | :------- | :----- | :---------- |
+| `GET`  | `/meta-ads/status` | Protected | Current user's Meta Ads connection and sync status |
+| `GET`  | `/meta-ads/connect` | Protected | Generates Meta authorization URL with `ads_read` & `read_insights` |
+| `GET`  | `/meta-ads/callback` | Public | Handles Meta OAuth redirect and exchanges for 60-day long-lived token |
+| `GET`  | `/meta-ads/accounts` | Protected | Lists accessible Meta ad accounts (`act_<id>`) for user selection |
+| `POST` | `/meta-ads/select-account` | Protected | Persists selected Meta Ad account for dashboard synchronization |
+| `GET`  | `/meta-ads/campaigns` | Protected | Fetches campaign-level metrics directly from Meta Graph Marketing API |
+| `POST` | `/meta-ads/disconnect` | Protected | Removes stored Meta tokens and marks connection disconnected |
+
+### Authentication (`/auth`)
+
+| Method | Endpoint | Access | Description |
+| :----- | :------- | :----- | :---------- |
+| `POST` | `/auth/register` | Public | Register new user account |
+| `POST` | `/auth/login` | Public | Authenticate user & set secure cookies |
+| `POST` | `/auth/refresh` | Public | Rotate access and refresh tokens |
+| `POST` | `/auth/logout` | Protected | Invalidate session and clear cookies |
+| `GET`  | `/auth/me` | Protected | Retrieve authenticated user profile |
 
 ---
 
 ## 🚦 Getting Started
 
-### Prerequisites
-
-- **Node.js** (v18.0.0 or higher)
-- **npm** (v9.0.0 or higher)
-- Active **MongoDB** instance (Local or MongoDB Atlas cluster)
-
 ### 1. Clone & Install Dependencies
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ADOS.git
+git clone https://github.com/drumilthakor/ADOS.git
 cd ADOS
 
 # Install Backend dependencies
@@ -234,90 +319,38 @@ cd ../frontend
 npm install
 ```
 
-### 2. Run the Development Servers
+### 2. Start Development Servers
 
 #### Terminal 1 — Backend API
-
 ```bash
 cd backend
 npm run dev
 ```
-
-> The API server will start on `http://localhost:5000` and automatically establish a pooled connection to MongoDB.
+> The API server starts on `http://localhost:5000` with MongoDB connection pooling.
 
 #### Terminal 2 — Frontend Client
-
 ```bash
 cd frontend
 npm run dev
 ```
-
-> The Vite client will launch on `http://localhost:5173`.
-
----
-
-## 📡 API Reference (`/api/v1`)
-
-### Health & Telemetry
-
-| Method | Endpoint  | Access | Description                                        |
-| :----- | :-------- | :----- | :------------------------------------------------- |
-| `GET`  | `/health` | Public | System status, database health, memory, and uptime |
-
-### Authentication (`/auth`)
-
-| Method | Endpoint                 | Access    | Rate Limit   | Description                                     |
-| :----- | :----------------------- | :-------- | :----------- | :---------------------------------------------- |
-| `POST` | `/auth/register`         | Public    | 15 req / 15m | Register new account & dispatch verification    |
-| `POST` | `/auth/login`            | Public    | 15 req / 15m | Authenticate user, set secure cookies & JWTs    |
-| `POST` | `/auth/verify-email`     | Public    | 15 req / 15m | Verify account via single-use cryptographic token |
-| `GET`  | `/auth/verify-email`     | Public    | 15 req / 15m | Verify account via direct email link click      |
-| `POST` | `/auth/resend-verification`| Public  | 3 req / 15m  | Rate-limited resend of verification email       |
-| `POST` | `/auth/refresh`          | Public    | 30 req / 15m | Rotate access & refresh tokens                  |
-| `POST` | `/auth/forgot-password`  | Public    | 5 req / 15m  | Request single-use password recovery link       |
-| `POST` | `/auth/reset-password`   | Public    | 5 req / 15m  | Reset password using valid cryptographic token  |
-| `POST` | `/auth/logout`           | Protected | —            | Clear cookies & invalidate server refresh token |
-| `GET`  | `/auth/me`               | Protected | —            | Retrieve current authenticated user profile     |
+> The client will be live on `http://localhost:5173`.
 
 ---
 
-## 🧪 Testing & Verification
-
-### Running Automated Security Verification
-
-You can test endpoints, brute-force defenses, and validation rules using PowerShell or cURL:
-
-```powershell
-# Test System Health
-Invoke-RestMethod -Uri "http://localhost:5000/api/v1/health" -Method Get
-
-# Test User Registration
-$body = @{
-    name = "Alex Morgan"
-    email = "alex.morgan@ados.io"
-    password = "Password@2026"
-    confirmPassword = "Password@2026"
-} | ConvertTo-Json
-
-Invoke-RestMethod -Uri "http://localhost:5000/api/v1/auth/register" -Method Post -ContentType "application/json" -Body $body
-```
-
-### Building for Production
+## 🛡️ Production Build & Verification
 
 ```bash
-# Verify Frontend Production Bundle
+# Build Frontend
 cd frontend
 npm run build
 
-# Start Backend in Production Mode
+# Verify Backend
 cd ../backend
-NODE_ENV=production npm start
+node -e "import('./src/config/env.js').then(() => import('./src/routes/index.js')).then(() => process.exit(0))"
 ```
 
 ---
 
-## 🛡️ Security Compliance
+## 📄 License
 
-- **OWASP Top 10 Aligned**: Protected against Broken Access Control, Injection, Cryptographic Failures, and Security Misconfiguration.
-- **CORS Restricted**: Credentials allowed exclusively for configured origin (`http://localhost:5173`).
-- **No Token Leakage**: Sensitive credentials, reset tokens, and passwords are never logged or exposed in API envelopes.
+ISC License. Built for enterprise advertising intelligence and analytics.
