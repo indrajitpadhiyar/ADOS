@@ -7,6 +7,9 @@ import AdAccountsPage from "./pages/AdAccountsPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
+import DataDeletionPage from "./pages/DataDeletionPage";
 import { api } from "./services/api";
 
 export default function App() {
@@ -151,6 +154,14 @@ export default function App() {
         <Route path="/dashboard/add-balance" element={<Navigate to="/dashboard" replace />} />
         <Route path="/upgrade-plan" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard/upgrade-plan" element={<Navigate to="/dashboard" replace />} />
+
+        {/* Legal & Compliance Pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
+        <Route path="/data-deletion" element={<DataDeletionPage />} />
+        <Route path="/data-deletion-instructions" element={<Navigate to="/data-deletion" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

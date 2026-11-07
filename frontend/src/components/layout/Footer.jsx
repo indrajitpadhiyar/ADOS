@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight } from "lucide-react";
@@ -271,20 +272,26 @@ export default function Footer({ onOpenContact }) {
             </div>
           </div>
 
-          {/* Privacy Policy & License Agreement in Middle-Right */}
-          <div className="flex items-center gap-6 sm:gap-10 text-xs sm:text-[13px] text-slate-400 font-medium md:mb-6">
-            <a
-              href="#privacy"
+          {/* Privacy Policy, Terms of Service & User Data Deletion in Middle-Right */}
+          <div className="flex flex-wrap items-center gap-5 sm:gap-8 text-xs sm:text-[13px] text-slate-400 font-medium md:mb-6">
+            <Link
+              to="/privacy-policy"
               className="footer-legal-link hover:text-white transition-colors duration-200"
             >
-              Privacy policy
-            </a>
-            <a
-              href="#license"
+              Privacy Policy
+            </Link>
+            <Link
+              to="/terms"
               className="footer-legal-link hover:text-white transition-colors duration-200"
             >
-              License agreement
-            </a>
+              Terms of Service
+            </Link>
+            <Link
+              to="/data-deletion"
+              className="footer-legal-link hover:text-white transition-colors duration-200"
+            >
+              User Data Deletion
+            </Link>
           </div>
 
           {/* White Rounded Square QR Code Badge (Exact Match to Video Screenshot) */}
