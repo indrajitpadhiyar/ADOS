@@ -709,6 +709,8 @@ export class GoogleAdsService {
       status: account.status,
       hasDeveloperToken: Boolean(env.GOOGLE_ADS_DEVELOPER_TOKEN),
       connectedEmail: account.connectedEmail,
+      selectedCustomerId: account.selectedCustomerId || null,
+      selectedCustomerName: account.selectedCustomerName || null,
       selectedAccount: account.selectedCustomerId
         ? {
             id: account.selectedCustomerId,

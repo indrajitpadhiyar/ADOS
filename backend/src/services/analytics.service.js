@@ -14,28 +14,61 @@ export class AnalyticsService {
       MetaAdsService.getStatus(userId).catch(() => ({ isConnected: false })),
     ]);
 
-    const isGoogleConnected = Boolean(googleStatus.isConnected && googleStatus.selectedCustomerId);
-    const isMetaConnected = Boolean(metaStatus.isConnected && metaStatus.selectedAccountId);
+    const googleCustomerId = googleStatus.selectedCustomerId || googleStatus.selectedAccount?.id;
+    const isGoogleConnected = Boolean(googleStatus.isConnected && googleCustomerId);
 
-    // If no ad platform is connected, return clear honest empty state
+    const metaAccountId = metaStatus.selectedAccountId || metaStatus.selectedAccount?.id;
+    const isMetaConnected = Boolean(metaStatus.isConnected && metaAccountId);
+
+    const googleAccountName = googleStatus.selectedCustomerName || googleStatus.selectedAccount?.name || "Google Ads";
+    const googleCurrency = googleStatus.selectedCustomerCurrency || googleStatus.selectedAccount?.currency || "INR";
+
+    const metaAccountName = metaStatus.selectedAccountName || metaStatus.selectedAccount?.name || "Meta Ads";
+    const metaCurrency = metaStatus.selectedAccountCurrency || metaStatus.selectedAccount?.currency || "INR";
+
+    // If no ad platform is connected, return clear honest empty state (ZERO fake dummy data)
     if (!isGoogleConnected && !isMetaConnected) {
       return {
         isConnected: false,
+        primaryCurrency: "INR",
+        currencySymbol: "₹",
         platforms: {
           google: {
             connected: false,
             configured: googleStatus.isConfigured,
             name: "Google Ads",
+            accountName: null,
+            accountId: null,
+            spend: 0,
+            percentage: 0,
+            currency: "INR",
+            error: null,
           },
           meta: {
             connected: false,
             configured: metaStatus.isConfigured,
             name: "Meta Ads",
+            accountName: null,
+            accountId: null,
+            spend: 0,
+            percentage: 0,
+            currency: "INR",
+            error: null,
           },
         },
-        totals: null,
+        totals: {
+          totalSpend: 0,
+          totalImpressions: 0,
+          totalClicks: 0,
+          totalConversions: 0,
+          avgCpc: 0,
+          ctr: 0,
+          cpm: 0,
+          conversionRate: 0,
+          roas: null,
+        },
         timeSeries: [],
-        campaigns: [],
+        topCampaigns: [],
         message: "No advertising accounts are connected yet. Connect Google Ads or Meta Ads to see live analytics.",
       };
     }
@@ -56,21 +89,59 @@ export class AnalyticsService {
         : Promise.resolve({ campaigns: [] }),
     ]);
 
-    const googleCampaigns = (googleData.campaigns || []).map((c) => ({
-      ...c,
-      platform: "google",
-      platformName: "Google Ads",
-    }));
+    const googleCampaigns = (googleData.campaigns || []).map((c) => {
+      const spend = Number(c.spend !== undefined ? c.spend : (c.cost !== undefined ? c.cost : 0)) || 0;
+      const impressions = Number(c.impressions) || 0;
+      const clicks = Number(c.clicks) || 0;
+      const ctr = c.ctr !== undefined ? Number(c.ctr) : (c.ctrPercent !== undefined ? Number(c.ctrPercent) : (impressions > 0 ? (clicks / impressions) * 100 : 0));
+      const cpc = c.cpc !== undefined ? Number(c.cpc) : (c.averageCpc !== undefined ? Number(c.averageCpc) : (clicks > 0 ? spend / clicks : 0));
+      const conversions = Number(c.conversions) || 0;
+      const roas = c.roas !== undefined && c.roas !== null ? Number(c.roas) : (spend > 0 && c.conversionsValue ? Number((c.conversionsValue / spend).toFixed(2)) : null);
 
-    const metaCampaigns = (metaData.campaigns || []).map((c) => ({
-      ...c,
-      platform: "meta",
-      platformName: "Meta Ads",
-    }));
+      return {
+        id: c.id || `g-${Math.random()}`,
+        name: c.name || "Google Campaign",
+        platform: "google",
+        platformName: "Google Ads",
+        status: c.status === "ENABLED" || c.status === "ACTIVE" || c.status === "Active" ? "Active" : (c.status || "Paused"),
+        spend,
+        impressions,
+        clicks,
+        ctr: Number(ctr.toFixed(2)),
+        cpc: Number(cpc.toFixed(2)),
+        conversions,
+        roas,
+      };
+    });
+
+    const metaCampaigns = (metaData.campaigns || []).map((c) => {
+      const spend = Number(c.spend) || 0;
+      const impressions = Number(c.impressions) || 0;
+      const clicks = Number(c.clicks) || 0;
+      const ctr = Number(c.ctr) || (impressions > 0 ? (clicks / impressions) * 100 : 0);
+      const cpc = Number(c.cpc) || (clicks > 0 ? spend / clicks : 0);
+      const conversions = Number(c.conversions) || 0;
+      const roas = c.roas !== undefined && c.roas !== null ? Number(c.roas) : null;
+
+      return {
+        id: c.id || `m-${Math.random()}`,
+        name: c.name || "Meta Campaign",
+        platform: "meta",
+        platformName: "Meta Ads",
+        status: c.status === "ACTIVE" || c.status === "Active" ? "Active" : (c.status || "Paused"),
+        spend,
+        impressions,
+        clicks,
+        ctr: Number(ctr.toFixed(2)),
+        cpc: Number(cpc.toFixed(2)),
+        conversions,
+        roas,
+      };
+    });
 
     const allCampaigns = [...googleCampaigns, ...metaCampaigns];
 
-    // 3. Compute platform totals
+    // 3. Compute real platform totals
     const googleSpend = googleCampaigns.reduce((sum, c) => sum + (Number(c.spend) || 0), 0);
     const metaSpend = metaCampaigns.reduce((sum, c) => sum + (Number(c.spend) || 0), 0);
     const totalSpend = googleSpend + metaSpend;
@@ -86,15 +157,15 @@ export class AnalyticsService {
     const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
     const roas = totalSpend > 0 && totalConversionsValue > 0 ? totalConversionsValue / totalSpend : null;
 
-    // Currency handling: check if accounts use different currencies
-    const googleCurrency = googleStatus.selectedCustomerCurrency || "INR";
-    const metaCurrency = metaStatus.selectedAccountCurrency || "INR";
+    // Currency handling
     const mixedCurrencies = isGoogleConnected && isMetaConnected && googleCurrency !== metaCurrency;
     const primaryCurrency = isGoogleConnected ? googleCurrency : metaCurrency;
     const currencySymbol = primaryCurrency === "INR" ? "₹" : "$";
 
     // 4. Generate Performance Overview time-series intervals for charts
-    const timeSeries = this.generateTimeSeries(totalSpend, totalClicks, totalConversions, dateRange);
+    const timeSeries = totalSpend > 0 || totalClicks > 0 || totalConversions > 0
+      ? this.generateTimeSeries(totalSpend, totalClicks, totalConversions, dateRange)
+      : [];
 
     // 5. Sort top campaigns
     const topCampaigns = allCampaigns
@@ -111,8 +182,8 @@ export class AnalyticsService {
           connected: isGoogleConnected,
           configured: googleStatus.isConfigured,
           name: "Google Ads",
-          accountName: googleStatus.selectedCustomerName,
-          accountId: googleStatus.selectedCustomerId,
+          accountName: googleAccountName,
+          accountId: googleCustomerId,
           spend: googleSpend,
           percentage: totalSpend > 0 ? Number(((googleSpend / totalSpend) * 100).toFixed(1)) : 0,
           currency: googleCurrency,
@@ -122,8 +193,8 @@ export class AnalyticsService {
           connected: isMetaConnected,
           configured: metaStatus.isConfigured,
           name: "Meta Ads",
-          accountName: metaStatus.selectedAccountName,
-          accountId: metaStatus.selectedAccountId,
+          accountName: metaAccountName,
+          accountId: metaAccountId,
           spend: metaSpend,
           percentage: totalSpend > 0 ? Number(((metaSpend / totalSpend) * 100).toFixed(1)) : 0,
           currency: metaCurrency,
