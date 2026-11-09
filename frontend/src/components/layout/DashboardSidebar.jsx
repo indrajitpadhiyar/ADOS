@@ -1,4 +1,5 @@
 import React from "react";
+import agentImg from "../../assets/agent.png";
 import {
   Home,
   Link2,
@@ -6,7 +7,6 @@ import {
   BarChart2,
   Settings,
   Sparkles,
-  Zap,
 } from "lucide-react";
 
 export default function DashboardSidebar({
@@ -77,8 +77,12 @@ export default function DashboardSidebar({
             onClick={onBackToWebsite}
             className="flex items-center gap-3 cursor-pointer group transition-all"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#2563eb] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
-              <Zap className="w-4 h-4 fill-white" />
+            <div className="relative flex items-center justify-center">
+              <img
+                src="/ados3.png"
+                alt="ADOS Logo"
+                className="h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-lg tracking-tight text-[#0f172a] leading-none">
@@ -119,11 +123,21 @@ export default function DashboardSidebar({
         </div>
       </div>
 
-      {/* BOTTOM "Better Ads. Bigger Results." CARD */}
+      {/* BOTTOM "Better Ads. Bigger Results." CARD WITH AI AGENT LOGO */}
       <div className="p-3.5">
-        <div className="p-4 rounded-2xl bg-[#f0f7ff] border border-blue-100/70 relative">
-          <div className="w-8 h-8 rounded-full bg-blue-100 text-[#2563eb] flex items-center justify-center mb-2.5">
-            <Sparkles className="w-4 h-4" />
+        <div className="p-4 rounded-2xl bg-gradient-to-b from-[#f0f7ff] to-[#f8faff] border border-blue-100/90 relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="w-10 h-10 rounded-xl bg-white border border-blue-200/70 p-1 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+              <img
+                src={agentImg}
+                alt="ADOS AI Agent"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              AI Agent
+            </span>
           </div>
           <h4 className="text-xs font-bold text-[#0f172a]">
             Better Ads. Bigger Results.

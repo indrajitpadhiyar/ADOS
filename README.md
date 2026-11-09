@@ -1,7 +1,7 @@
 # ADOS — Multi-Platform Advertising Analytics Dashboard
 
 <p align="center">
-  <img src="frontend/public/ados2.png" alt="ADOS Logo" width="220" />
+  <img src="frontend/public/ados3.png" alt="ADOS Logo" width="220" />
 </p>
 
 <p align="center">
@@ -169,7 +169,7 @@ ADOS/
     ├── vite.config.js                # Vite build configuration
     ├── public/
     │   ├── ados.png                  # ADOS Brand Logo
-    │   └── ados2.png                 # ADOS High-Res Visual Asset
+    │   └── ados3.png                 # ADOS High-Res Visual Asset
     └── src/
         ├── App.jsx                   # Application router & protected route guards
         ├── index.css                 # Global CSS & Tailwind styling

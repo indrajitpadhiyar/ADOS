@@ -82,11 +82,11 @@ export default function HomePage({ user }) {
         onOpenAuth={() => navigate("/auth")}
       />
 
-      {/* Pricing Plans Section */}
-      <AboutSection
+      {/* Pricing / Subscription Model Section (Commented Out) */}
+      {/* <AboutSection
         onOpenContact={() => setIsContactOpen(true)}
         onOpenAuth={() => navigate("/auth")}
-      />
+      /> */}
 
       {/* Footer */}
       <Footer onOpenContact={() => setIsContactOpen(true)} />

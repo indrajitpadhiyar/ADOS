@@ -15,7 +15,7 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
         <div className="flex items-center gap-3.5 group cursor-pointer">
           <div className="relative flex items-center justify-center">
             <img
-              src="/ados2.png"
+              src="/ados3.png"
               alt="ADOS Logo"
               className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />

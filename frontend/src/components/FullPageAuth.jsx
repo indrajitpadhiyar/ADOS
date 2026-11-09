@@ -130,21 +130,27 @@ export default function FullPageAuth({ onLoginSuccess }) {
         try {
           window.opener.postMessage(
             { type: "GOOGLE_AUTH_SUCCESS", user: data.data?.user },
-            window.location.origin
+            window.location.origin,
           );
         } catch (e) {}
         window.close();
         return;
       }
 
-      triggerToast("success", `Signed in with Google as ${data.data?.user?.name || "Advertiser"}!`);
+      triggerToast(
+        "success",
+        `Signed in with Google as ${data.data?.user?.name || "Advertiser"}!`,
+      );
       setTimeout(() => {
         if (onLoginSuccess) {
           onLoginSuccess(data.data?.user || { name: "Advertiser" });
         }
       }, 200);
     } catch (err) {
-      triggerToast("error", err.message || "Failed to authenticate with Google.");
+      triggerToast(
+        "error",
+        err.message || "Failed to authenticate with Google.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -157,15 +163,17 @@ export default function FullPageAuth({ onLoginSuccess }) {
     // Generate high-entropy anti-CSRF state parameter
     const stateBytes = new Uint8Array(24);
     window.crypto.getRandomValues(stateBytes);
-    const state = Array.from(stateBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    const state = Array.from(stateBytes, (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("");
     sessionStorage.setItem("ados_google_auth_state", state);
 
     // Full-browser redirect to Google OpenID Connect endpoint for user sign-in
     const redirectUri = encodeURIComponent("http://localhost:5173/auth");
     const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-      GOOGLE_CLIENT_ID
+      GOOGLE_CLIENT_ID,
     )}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
-      state
+      state,
     )}&nonce=${Date.now()}`;
     window.location.assign(oauthUrl);
   };
@@ -174,10 +182,19 @@ export default function FullPageAuth({ onLoginSuccess }) {
   useEffect(() => {
     const handleAuthMessage = (event) => {
       if (event.origin !== window.location.origin) return;
-      if (event.data?.type === "GOOGLE_AUTH_CREDENTIAL" && event.data?.credential) {
+      if (
+        event.data?.type === "GOOGLE_AUTH_CREDENTIAL" &&
+        event.data?.credential
+      ) {
         handleGoogleResponse({ credential: event.data.credential });
-      } else if (event.data?.type === "GOOGLE_AUTH_SUCCESS" && event.data?.user) {
-        triggerToast("success", `Signed in with Google as ${event.data.user.name || "Advertiser"}!`);
+      } else if (
+        event.data?.type === "GOOGLE_AUTH_SUCCESS" &&
+        event.data?.user
+      ) {
+        triggerToast(
+          "success",
+          `Signed in with Google as ${event.data.user.name || "Advertiser"}!`,
+        );
         if (onLoginSuccess) {
           onLoginSuccess(event.data.user);
         }
@@ -202,7 +219,10 @@ export default function FullPageAuth({ onLoginSuccess }) {
       window.history.replaceState({}, document.title, window.location.pathname);
 
       if (error) {
-        triggerToast("error", errorDesc || `Google authentication failed: ${error}`);
+        triggerToast(
+          "error",
+          errorDesc || `Google authentication failed: ${error}`,
+        );
         return;
       }
 
@@ -212,7 +232,10 @@ export default function FullPageAuth({ onLoginSuccess }) {
         sessionStorage.removeItem("ados_google_auth_state");
 
         if (!returnedState || returnedState !== expectedState) {
-          triggerToast("error", "Security validation failed: Invalid or expired OAuth state token.");
+          triggerToast(
+            "error",
+            "Security validation failed: Invalid or expired OAuth state token.",
+          );
           return;
         }
 
@@ -221,7 +244,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
           try {
             window.opener.postMessage(
               { type: "GOOGLE_AUTH_CREDENTIAL", credential: idToken },
-              window.location.origin
+              window.location.origin,
             );
           } catch (e) {}
           // Close popup immediately so dashboard opens in the main window
@@ -240,7 +263,10 @@ export default function FullPageAuth({ onLoginSuccess }) {
     const searchErrorDesc = params.get("error_description");
     if (searchError) {
       window.history.replaceState({}, document.title, window.location.pathname);
-      triggerToast("error", searchErrorDesc || `Google sign-in error: ${searchError}`);
+      triggerToast(
+        "error",
+        searchErrorDesc || `Google sign-in error: ${searchError}`,
+      );
       return;
     }
 
@@ -304,7 +330,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
         triggerToast("success", "Email verified! Redirecting to dashboard...");
         setTimeout(() => {
           if (onLoginSuccess) {
-            onLoginSuccess(data.data?.user || { email: data.data?.user?.email });
+            onLoginSuccess(
+              data.data?.user || { email: data.data?.user?.email },
+            );
           }
         }, 300);
       }
@@ -313,7 +341,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
         isOpen: true,
         status: "invalid",
         email: "",
-        message: err.message || "Network error while connecting to verification service.",
+        message:
+          err.message ||
+          "Network error while connecting to verification service.",
       });
     }
   };
@@ -345,7 +375,8 @@ export default function FullPageAuth({ onLoginSuccess }) {
       const data = await res.json();
 
       if (!res.ok) {
-        const errorMsg = data.message || "Invalid or expired verification code.";
+        const errorMsg =
+          data.message || "Invalid or expired verification code.";
         const isExpired = errorMsg.toLowerCase().includes("expired");
         setVerifyModal((prev) => ({
           ...prev,
@@ -374,10 +405,15 @@ export default function FullPageAuth({ onLoginSuccess }) {
           status: "success",
           message: data.message || "Email verified! You are now logged in.",
         }));
-        triggerToast("success", "Email verified successfully! Welcome to ADOS.");
+        triggerToast(
+          "success",
+          "Email verified successfully! Welcome to ADOS.",
+        );
         setTimeout(() => {
           if (onLoginSuccess) {
-            onLoginSuccess(data.data?.user || { name: emailToVerify.split("@")[0] });
+            onLoginSuccess(
+              data.data?.user || { name: emailToVerify.split("@")[0] },
+            );
           }
         }, 700);
       }
@@ -389,7 +425,13 @@ export default function FullPageAuth({ onLoginSuccess }) {
   };
 
   const handleResendVerification = async (targetEmail) => {
-    const emailToUse = (targetEmail || verifyModal.email || resendEmailInput || formData.email || "").trim();
+    const emailToUse = (
+      targetEmail ||
+      verifyModal.email ||
+      resendEmailInput ||
+      formData.email ||
+      ""
+    ).trim();
     if (!emailToUse) {
       triggerToast("error", "Please provide a valid email address.");
       return;
@@ -452,7 +494,10 @@ export default function FullPageAuth({ onLoginSuccess }) {
     setIsLoading(true);
 
     try {
-      const endpoint = mode === "signup" ? `${API_BASE_URL}/register` : `${API_BASE_URL}/login`;
+      const endpoint =
+        mode === "signup"
+          ? `${API_BASE_URL}/register`
+          : `${API_BASE_URL}/login`;
       const payload =
         mode === "signup"
           ? {
@@ -476,7 +521,11 @@ export default function FullPageAuth({ onLoginSuccess }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || (data.errors && data.errors[0]?.message) || "Authentication failed");
+        throw new Error(
+          data.message ||
+            (data.errors && data.errors[0]?.message) ||
+            "Authentication failed",
+        );
       }
 
       if (mode === "signup") {
@@ -484,11 +533,12 @@ export default function FullPageAuth({ onLoginSuccess }) {
           isOpen: true,
           status: "prompt",
           email: formData.email.trim(),
-          message: data.message || "Verification link sent! Please check your inbox.",
+          message:
+            data.message || "Verification link sent! Please check your inbox.",
         });
         triggerToast(
           "success",
-          `Account created! Please check your inbox at ${formData.email.trim()}`
+          `Account created! Please check your inbox at ${formData.email.trim()}`,
         );
       } else {
         // If login detects unverified email, immediately show 6-digit code entry modal
@@ -497,11 +547,13 @@ export default function FullPageAuth({ onLoginSuccess }) {
             isOpen: true,
             status: "prompt",
             email: formData.email.trim(),
-            message: data.message || `Verification required. Check your inbox at ${formData.email.trim()}`,
+            message:
+              data.message ||
+              `Verification required. Check your inbox at ${formData.email.trim()}`,
           });
           triggerToast(
             "error",
-            `Account unverified. 6-digit verification code sent to ${formData.email.trim()}`
+            `Account unverified. 6-digit verification code sent to ${formData.email.trim()}`,
           );
           return;
         }
@@ -515,16 +567,21 @@ export default function FullPageAuth({ onLoginSuccess }) {
 
         triggerToast(
           "success",
-          `Welcome back, ${data.data?.user?.name || formData.email.split("@")[0]}!`
+          `Welcome back, ${data.data?.user?.name || formData.email.split("@")[0]}!`,
         );
         setTimeout(() => {
           if (onLoginSuccess) {
-            onLoginSuccess(data.data?.user || { name: formData.email.split("@")[0] });
+            onLoginSuccess(
+              data.data?.user || { name: formData.email.split("@")[0] },
+            );
           }
         }, 200);
       }
     } catch (err) {
-      triggerToast("error", err.message || "Failed to connect to authentication server.");
+      triggerToast(
+        "error",
+        err.message || "Failed to connect to authentication server.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -545,7 +602,10 @@ export default function FullPageAuth({ onLoginSuccess }) {
       if (!res.ok) {
         throw new Error(data.message || "Failed to process password recovery");
       }
-      triggerToast("success", data.message || `Password recovery link sent to ${forgotEmail}`);
+      triggerToast(
+        "success",
+        data.message || `Password recovery link sent to ${forgotEmail}`,
+      );
       setTimeout(() => {
         setIsForgotModalOpen(false);
         setForgotSubmitted(false);
@@ -653,7 +713,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
               className="flex justify-center"
             >
               <img
-                src="/ados2.png"
+                src="/ados3.png"
                 alt="ADOS - Built For A Better Tomorrow"
                 className="h-40 sm:h-48 w-auto max-w-[280px] object-contain select-none"
               />
@@ -719,7 +779,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
               value={formData.password}
               onChange={handleInputChange}
               placeholder="Password"
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              autoComplete={
+                mode === "signup" ? "new-password" : "current-password"
+              }
               onEnterNext={() => {
                 if (mode === "signup") {
                   confirmPasswordInputRef.current?.focus();
@@ -765,8 +827,8 @@ export default function FullPageAuth({ onLoginSuccess }) {
                     onEnterNext={handleSubmit}
                     rightElement={
                       <div className="flex items-center gap-1.5">
-                        {formData.confirmPassword && (
-                          formData.password === formData.confirmPassword ? (
+                        {formData.confirmPassword &&
+                          (formData.password === formData.confirmPassword ? (
                             <span title="Passwords match">
                               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                             </span>
@@ -774,13 +836,18 @@ export default function FullPageAuth({ onLoginSuccess }) {
                             <span title="Passwords do not match yet">
                               <AlertCircle className="w-4 h-4 text-amber-500" />
                             </span>
-                          )
-                        )}
+                          ))}
                         <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
-                          title={showConfirmPassword ? "Hide password" : "Show password"}
+                          title={
+                            showConfirmPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
                         >
                           {showConfirmPassword ? (
                             <EyeOff className="w-4 h-4 text-slate-500" />
@@ -871,10 +938,22 @@ export default function FullPageAuth({ onLoginSuccess }) {
               title="Authenticate securely with Google"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
               </svg>
               <span>Continue with Google</span>
             </motion.button>
@@ -1023,7 +1102,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
               {verifyModal.status !== "verifying" && (
                 <button
                   type="button"
-                  onClick={() => setVerifyModal((prev) => ({ ...prev, isOpen: false }))}
+                  onClick={() =>
+                    setVerifyModal((prev) => ({ ...prev, isOpen: false }))
+                  }
                   className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors p-1"
                 >
                   <X className="w-5 h-5" />
@@ -1036,15 +1117,22 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f9e6] flex items-center justify-center text-[#548421]">
                     <Mail className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-[#1a2b20]">Check your inbox</h3>
+                  <h3 className="text-xl font-bold text-[#1a2b20]">
+                    Check your inbox
+                  </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
                     We sent a 6-digit verification code to{" "}
-                    <strong className="text-slate-900">{verifyModal.email || formData.email}</strong>.
-                    Enter the code below to activate your account.
+                    <strong className="text-slate-900">
+                      {verifyModal.email || formData.email}
+                    </strong>
+                    . Enter the code below to activate your account.
                   </p>
 
                   {/* 6-Digit Code Input Section */}
-                  <form onSubmit={handleCodeVerification} className="space-y-3 pt-1">
+                  <form
+                    onSubmit={handleCodeVerification}
+                    className="space-y-3 pt-1"
+                  >
                     <div className="flex flex-col items-center gap-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                         Enter 6-Digit Code
@@ -1056,7 +1144,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
                         maxLength={6}
                         value={verificationCode}
                         onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                          const val = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 6);
                           setVerificationCode(val);
                         }}
                         placeholder="• • • • • •"
@@ -1066,7 +1156,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
                     </div>
                     <button
                       type="submit"
-                      disabled={isVerifyingCode || verificationCode.length !== 6}
+                      disabled={
+                        isVerifyingCode || verificationCode.length !== 6
+                      }
                       className="w-full py-3 rounded-full bg-[#9ed84f] hover:bg-[#8ecb3e] active:bg-[#7ebd30] text-[#1c3a0e] font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isVerifyingCode ? (
@@ -1087,13 +1179,16 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   </div>
 
                   <p className="text-[11px] text-slate-400">
-                    The code and link will expire in 30 minutes. Be sure to check your spam/junk folder.
+                    The code and link will expire in 30 minutes. Be sure to
+                    check your spam/junk folder.
                   </p>
                   <div className="pt-1 flex flex-col sm:flex-row gap-2.5 justify-center">
                     <button
                       type="button"
                       disabled={isResending}
-                      onClick={() => handleResendVerification(verifyModal.email)}
+                      onClick={() =>
+                        handleResendVerification(verifyModal.email)
+                      }
                       className="px-5 py-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
                     >
                       {isResending ? (
@@ -1128,13 +1223,20 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f9e6] flex items-center justify-center">
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1,
+                        ease: "linear",
+                      }}
                       className="w-6 h-6 border-3 border-[#548421] border-t-transparent rounded-full"
                     />
                   </div>
-                  <h3 className="text-lg font-bold text-[#1a2b20]">Verifying your email...</h3>
+                  <h3 className="text-lg font-bold text-[#1a2b20]">
+                    Verifying your email...
+                  </h3>
                   <p className="text-xs text-slate-500 leading-relaxed">
-                    Validating your cryptographic token with the ADOS security service.
+                    Validating your cryptographic token with the ADOS security
+                    service.
                   </p>
                 </div>
               )}
@@ -1145,9 +1247,12 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">Email verified!</h3>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Email verified!
+                  </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-                    Your email address has been successfully verified. Your ADOS workspace account is now fully active.
+                    Your email address has been successfully verified. Your ADOS
+                    workspace account is now fully active.
                   </p>
                   <div className="pt-2">
                     <button
@@ -1170,9 +1275,12 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f9e6] text-[#548421] flex items-center justify-center">
                     <Check className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">Already verified</h3>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Already verified
+                  </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-                    Your email address was already verified previously. You can sign in to your workspace.
+                    Your email address was already verified previously. You can
+                    sign in to your workspace.
                   </p>
                   <div className="pt-2">
                     <button
@@ -1195,9 +1303,12 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   <div className="w-14 h-14 mx-auto rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
                     <AlertCircle className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">Link expired</h3>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Link expired
+                  </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-                    This verification link has expired. Verification links are valid for 30 minutes for security.
+                    This verification link has expired. Verification links are
+                    valid for 30 minutes for security.
                   </p>
                   <div className="pt-2 space-y-2">
                     <SmoothInput
@@ -1206,7 +1317,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
                       onChange={(e) => setResendEmailInput(e.target.value)}
                       placeholder="Enter your email to resend"
                       autoComplete="email"
-                      onEnterNext={() => handleResendVerification(resendEmailInput)}
+                      onEnterNext={() =>
+                        handleResendVerification(resendEmailInput)
+                      }
                     />
                     <button
                       type="button"
@@ -1233,9 +1346,12 @@ export default function FullPageAuth({ onLoginSuccess }) {
                   <div className="w-14 h-14 mx-auto rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
                     <AlertCircle className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">Invalid link</h3>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Invalid link
+                  </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-                    This verification link is invalid, malformed, or has already been used.
+                    This verification link is invalid, malformed, or has already
+                    been used.
                   </p>
                   <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
                     <button

@@ -161,12 +161,12 @@ export default function Footer({ onOpenContact }) {
             >
               Platform
             </a>
-            <a
+            {/* <a
               href="#pricing"
               className="footer-nav-link hover:text-white transition-colors duration-200"
             >
               Pricing
-            </a>
+            </a> */}
             <button
               onClick={onOpenContact}
               className="footer-nav-link hover:text-white transition-colors duration-200 cursor-pointer"
