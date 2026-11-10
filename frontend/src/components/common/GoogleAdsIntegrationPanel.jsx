@@ -44,8 +44,10 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [copiedUri, setCopiedUri] = useState(false);
 
+  const callbackUri = `${import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1"}/google-ads/callback`;
+
   const handleCopyRedirectUri = () => {
-    navigator.clipboard.writeText("http://localhost:5000/api/v1/google-ads/callback");
+    navigator.clipboard.writeText(callbackUri);
     setCopiedUri(true);
     setTimeout(() => setCopiedUri(false), 2500);
   };
@@ -286,7 +288,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
             <div className="text-xs text-blue-950 leading-relaxed">
               <span className="font-bold">Google Cloud Console Setup:</span> To prevent <span className="font-mono text-red-600 font-semibold">Error 400: redirect_uri_mismatch</span>, ensure your OAuth 2.0 Client has this exact URI in <span className="font-semibold underline">Authorized redirect URIs</span>:
               <div className="mt-1.5 font-mono text-[11px] bg-white/90 border border-blue-200 px-3 py-1.5 rounded-xl text-blue-800 select-all inline-block break-all">
-                http://localhost:5000/api/v1/google-ads/callback
+                {callbackUri}
               </div>
             </div>
           </div>

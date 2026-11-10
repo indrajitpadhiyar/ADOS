@@ -169,7 +169,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
     sessionStorage.setItem("ados_google_auth_state", state);
 
     // Full-browser redirect to Google OpenID Connect endpoint for user sign-in
-    const redirectUri = encodeURIComponent("http://localhost:5173/auth");
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth`);
     const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
       GOOGLE_CLIENT_ID,
     )}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
