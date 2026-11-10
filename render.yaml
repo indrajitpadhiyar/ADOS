@@ -22,7 +22,9 @@ services:
         value: nosniff
     envVars:
       - key: VITE_API_URL
-        value: https://ados-backend.onrender.com/api/v1
+        value: https://adosbackend.onrender.com/api/v1
+      - key: VITE_GOOGLE_CLIENT_ID
+        value: 821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com
 
   # =========================================================================
   # 2. ADOS Backend (Node.js + Express + MongoDB REST API)
@@ -52,9 +54,9 @@ services:
       - key: COOKIE_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://ados-frontend.onrender.com,https://ados-4hxi.onrender.com,https://idrtech.in
+        value: https://ados-44jf.onrender.com,https://ados-frontend.onrender.com,https://ados-4hxi.onrender.com,https://idrtech.in
       - key: APP_URL
-        value: https://ados-frontend.onrender.com
+        value: https://ados-44jf.onrender.com
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM

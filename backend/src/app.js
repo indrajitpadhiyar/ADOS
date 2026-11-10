@@ -62,6 +62,7 @@ const allowedOrigins = [
   ...configuredOrigins,
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "https://ados-44jf.onrender.com",
   "https://ados-4hxi.onrender.com",
   "https://idrtech.in",
   "https://www.idrtech.in",
@@ -126,6 +127,20 @@ app.use(cookieParser(env.COOKIE_SECRET));
  * 8. Global API Rate Limiter
  */
 app.use("/api", apiLimiter);
+
+/**
+ * 8.5. Graceful URL Normalization
+ * Automatically rewrites legacy / unversioned /auth/* requests to /api/v1/auth/*
+ * Ensures full backward compatibility without defining duplicate route handlers.
+ */
+app.use((req, res, next) => {
+  if (req.url.startsWith("/auth/")) {
+    req.url = `/api/v1${req.url}`;
+  } else if (req.url === "/auth") {
+    req.url = "/api/v1/auth";
+  }
+  next();
+});
 
 /**
  * 9. Mount Versioned Application Routes

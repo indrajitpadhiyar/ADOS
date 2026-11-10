@@ -44,7 +44,9 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [copiedUri, setCopiedUri] = useState(false);
 
-  const callbackUri = `${import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1"}/google-ads/callback`;
+  const rawApiUrl = (import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1").trim().replace(/\/+$/, "");
+  const apiBase = rawApiUrl.endsWith("/api/v1") ? rawApiUrl : `${rawApiUrl}/api/v1`;
+  const callbackUri = `${apiBase}/google-ads/callback`;
 
   const handleCopyRedirectUri = () => {
     navigator.clipboard.writeText(callbackUri);

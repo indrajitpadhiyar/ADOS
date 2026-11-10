@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1";
+// Normalize API base URL: ensure /api/v1 prefix is reliably present regardless of whether
+// VITE_API_URL was supplied with or without trailing slashes or the /api/v1 suffix.
+const rawApiUrl = (import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1").trim().replace(/\/+$/, "");
+const API_BASE = rawApiUrl.endsWith("/api/v1") ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 const getHeaders = () => {
   const token = localStorage.getItem("ados_token");

@@ -355,18 +355,6 @@ export const AuthService = {
   },
 
   /**
-   * Retrieve current user profile
-   * @param {string} userId
-   */
-  async getCurrentUser(userId) {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw ApiError.notFound(ResponseMessages.USER_NOT_FOUND);
-    }
-    return user.toJSON();
-  },
-
-  /**
    * Verify email address using cryptographically secure single-use token or 6-digit code
    * @param {Object} params - { token, code, email }
    * @param {Object} [context] - { req }
