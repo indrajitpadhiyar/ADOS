@@ -6,21 +6,28 @@ import {
   CheckCircle2,
   RefreshCw,
   Trash2,
-  ExternalLink,
   AlertCircle,
-  Sparkles,
-  Link2,
+  Key,
+  Check,
+  X,
   Layers,
-  ChevronDown,
+  ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdAccountsSection() {
   const [googleStatus, setGoogleStatus] = useState(null);
   const [metaStatus, setMetaStatus] = useState(null);
+  const [metaAccounts, setMetaAccounts] = useState([]);
+  const [selectedMetaIds, setSelectedMetaIds] = useState(new Set());
+  const [isAccountsLoading, setIsAccountsLoading] = useState(false);
+  const [isSavingAccounts, setIsSavingAccounts] = useState(false);
+  const [accountsError, setAccountsError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [disconnectModal, setDisconnectModal] = useState({ open: false, platform: null });
+  const [tokenModal, setTokenModal] = useState({ open: false, token: "", isSubmitting: false, error: null });
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -56,8 +63,31 @@ export default function AdAccountsSection() {
       ]);
       setGoogleStatus(gRes);
       setMetaStatus(mRes);
+
+      if (mRes?.isConnected) {
+        await loadMetaAccounts();
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadMetaAccounts = async () => {
+    try {
+      setIsAccountsLoading(true);
+      setAccountsError(null);
+      const accounts = await api.getMetaAdsAccounts();
+      if (Array.isArray(accounts)) {
+        setMetaAccounts(accounts);
+        const selected = new Set(
+          accounts.filter((a) => a.selected).map((a) => a.externalAccountId || a.id)
+        );
+        setSelectedMetaIds(selected);
+      }
+    } catch (err) {
+      setAccountsError(err.message || "Failed to load accessible Meta ad accounts.");
+    } finally {
+      setIsAccountsLoading(false);
     }
   };
 
@@ -85,24 +115,64 @@ export default function AdAccountsSection() {
     }
   };
 
-  // Select customer account
-  const handleSelectGoogleCustomer = async (customerId) => {
+  // Connect via Direct Developer Token
+  const handleConnectTokenSubmit = async (e) => {
+    e.preventDefault();
+    const token = tokenModal.token.trim();
+    if (!token) return;
+
+    setTokenModal((prev) => ({ ...prev, isSubmitting: true, error: null }));
     try {
-      await api.selectGoogleAdsAccount(customerId);
-      showToast(`Selected Google Ads Customer ID: ${customerId}`);
-      loadStatuses();
+      await api.connectMetaAdsToken(token);
+      setTokenModal({ open: false, token: "", isSubmitting: false, error: null });
+      showToast("Meta Ads connected successfully with access token!");
+      await loadStatuses();
     } catch (err) {
-      showToast(err.message || "Failed to select Google customer account.");
+      setTokenModal((prev) => ({
+        ...prev,
+        isSubmitting: false,
+        error: err.message || "Failed to connect with access token.",
+      }));
     }
   };
 
-  const handleSelectMetaAccount = async (accountId) => {
+  // Toggle single account selection
+  const handleToggleAccount = (accountId) => {
+    setSelectedMetaIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(accountId)) {
+        next.delete(accountId);
+      } else {
+        next.add(accountId);
+      }
+      return next;
+    });
+  };
+
+  // Select all accounts
+  const handleSelectAll = () => {
+    const allIds = new Set(metaAccounts.map((a) => a.externalAccountId || a.id));
+    setSelectedMetaIds(allIds);
+  };
+
+  // Deselect all accounts
+  const handleDeselectAll = () => {
+    setSelectedMetaIds(new Set());
+  };
+
+  // Save selected accounts to MongoDB
+  const handleSaveSelections = async () => {
     try {
-      await api.selectMetaAdsAccount(accountId);
-      showToast(`Selected Meta Ad Account: ${accountId}`);
-      loadStatuses();
+      setIsSavingAccounts(true);
+      const targetIds = Array.from(selectedMetaIds);
+      const updatedAccounts = await api.selectMetaAdsAccounts(targetIds);
+      setMetaAccounts(updatedAccounts);
+      showToast(`Saved ${targetIds.length} selected Meta ad account(s).`);
+      await loadStatuses();
     } catch (err) {
-      showToast(err.message || "Failed to select Meta ad account.");
+      showToast(err.message || "Failed to save selected accounts.");
+    } finally {
+      setIsSavingAccounts(false);
     }
   };
 
@@ -117,6 +187,8 @@ export default function AdAccountsSection() {
         showToast("Google Ads account disconnected.");
       } else if (platform === "meta") {
         await api.disconnectMetaAds();
+        setMetaAccounts([]);
+        setSelectedMetaIds(new Set());
         showToast("Meta Ads account disconnected.");
       }
       loadStatuses();
@@ -175,6 +247,72 @@ export default function AdAccountsSection() {
         </div>
       )}
 
+      {/* Developer Access Token Modal */}
+      {tokenModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-[#0f172a]">Connect with Access Token</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Paste your Meta Developer or Sandbox Access Token
+                </p>
+              </div>
+              <button
+                onClick={() => setTokenModal({ open: false, token: "", isSubmitting: false, error: null })}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConnectTokenSubmit} className="space-y-3">
+              <div>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+                  Meta Access Token:
+                </label>
+                <textarea
+                  rows={4}
+                  value={tokenModal.token}
+                  onChange={(e) => setTokenModal((prev) => ({ ...prev, token: e.target.value }))}
+                  placeholder="EAAUuResl..."
+                  required
+                  className="w-full mt-1.5 p-3 rounded-xl border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
+
+              {tokenModal.error && (
+                <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{tokenModal.error}</span>
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-400">
+                Note: Ensure the token has the <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">ads_read</code> permission in the Meta Developer Console.
+              </p>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setTokenModal({ open: false, token: "", isSubmitting: false, error: null })}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={tokenModal.isSubmitting || !tokenModal.token.trim()}
+                  className="px-4 py-2 rounded-xl bg-[#2563eb] hover:bg-blue-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {tokenModal.isSubmitting ? "Connecting..." : "Connect Token"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -182,7 +320,7 @@ export default function AdAccountsSection() {
             Ad Accounts
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Authorize official OAuth 2.0 connections for Google Ads and Meta Ads to power your unified analytics.
+            Authorize official OAuth 2.0 connections for Meta Ads and Google Ads to power unified analytics.
           </p>
         </div>
 
@@ -198,6 +336,132 @@ export default function AdAccountsSection() {
 
       {/* Platform Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ================= META ADS INTEGRATION CARD ================= */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div>
+            <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <PlatformLogo platform="meta" size="md" />
+                <div>
+                  <h3 className="text-base font-extrabold text-[#0f172a]">Meta Ads</h3>
+                  <p className="text-xs text-slate-400">Facebook + Instagram Advertising</p>
+                </div>
+              </div>
+
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  metaStatus?.isConnected
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    metaStatus?.isConnected ? "bg-emerald-500" : "bg-slate-400"
+                  }`}
+                />
+                <span>{metaStatus?.isConnected ? "Connected" : "Not Connected"}</span>
+              </span>
+            </div>
+
+            {/* Connection Info */}
+            <div className="py-5 space-y-3.5">
+              {metaStatus?.isConnected ? (
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Authenticated User:</span>
+                    <span className="font-bold text-slate-800">
+                      {metaStatus.metaUserName || metaStatus.connectedName || "Meta Business User"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Selected Accounts:</span>
+                    <span className="font-semibold text-blue-600">
+                      {metaStatus.selectedAccountsCount ?? selectedMetaIds.size} account(s) active
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Last Synchronized:</span>
+                    <span className="font-semibold text-slate-700">
+                      {metaStatus.lastSyncAt ? new Date(metaStatus.lastSyncAt).toLocaleTimeString() : "Just now"}
+                    </span>
+                  </div>
+                  {metaStatus.lastError && (
+                    <div className="pt-1 text-[11px] text-amber-700 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{metaStatus.lastError}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-150 text-xs text-slate-500 space-y-2 leading-relaxed">
+                  <p>
+                    Connect your Facebook & Instagram ad accounts via official Meta Login using the Marketing API (<code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">ads_read</code>).
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Provides read-only campaign telemetry, spend pacing, and ROAS attribution.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+            {metaStatus?.isConnected ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleConnectMeta}
+                  className="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Reconnect</span>
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTokenModal({ open: true, token: "", isSubmitting: false, error: null })}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                    title="Update Developer Access Token"
+                  >
+                    <Key className="w-3.5 h-3.5" />
+                    <span>Token</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDisconnectModal({ open: true, platform: "meta" })}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Disconnect</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="w-full flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleConnectMeta}
+                  className="flex-1 py-2.5 rounded-xl bg-[#2563eb] hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Connect Meta Ads</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTokenModal({ open: true, token: "", isSubmitting: false, error: null })}
+                  className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Developer / Sandbox Token"
+                >
+                  <Key className="w-4 h-4 text-slate-500" />
+                  <span>Token</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* ================= GOOGLE ADS CARD ================= */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
           <div>
@@ -226,57 +490,35 @@ export default function AdAccountsSection() {
               </span>
             </div>
 
-            {/* Connection Information */}
+            {/* Connection Info */}
             <div className="py-5 space-y-3.5">
               {googleStatus?.isConnected ? (
-                <>
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 space-y-2 text-xs">
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Account Name:</span>
-                      <span className="font-bold text-slate-800">
-                        {googleStatus.selectedCustomerName || "Active Google Ads Account"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Customer ID:</span>
-                      <span className="font-mono font-semibold text-slate-700">
-                        {googleStatus.selectedCustomerId || "—"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Currency & Timezone:</span>
-                      <span className="font-semibold text-slate-700">
-                        {googleStatus.selectedCustomerCurrency} • {googleStatus.selectedCustomerTimeZone}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Last Synchronized:</span>
-                      <span className="font-semibold text-slate-700">
-                        {googleStatus.lastSyncAt ? new Date(googleStatus.lastSyncAt).toLocaleTimeString() : "Just now"}
-                      </span>
-                    </div>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Account Name:</span>
+                    <span className="font-bold text-slate-800">
+                      {googleStatus.selectedCustomerName || "Active Google Ads Account"}
+                    </span>
                   </div>
-
-                  {/* Discovered Accessible Customer Selector */}
-                  {Array.isArray(googleStatus.accessibleCustomers) && googleStatus.accessibleCustomers.length > 1 && (
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                        Switch Customer Account:
-                      </label>
-                      <select
-                        value={googleStatus.selectedCustomerId || ""}
-                        onChange={(e) => handleSelectGoogleCustomer(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
-                      >
-                        {googleStatus.accessibleCustomers.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.descriptiveName} ({c.id})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </>
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Customer ID:</span>
+                    <span className="font-mono font-semibold text-slate-700">
+                      {googleStatus.selectedCustomerId || "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Currency & Timezone:</span>
+                    <span className="font-semibold text-slate-700">
+                      {googleStatus.selectedCustomerCurrency} • {googleStatus.selectedCustomerTimeZone}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span>Last Synchronized:</span>
+                    <span className="font-semibold text-slate-700">
+                      {googleStatus.lastSyncAt ? new Date(googleStatus.lastSyncAt).toLocaleTimeString() : "Just now"}
+                    </span>
+                  </div>
+                </div>
               ) : (
                 <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-150 text-xs text-slate-500 space-y-2 leading-relaxed">
                   <p>
@@ -323,133 +565,175 @@ export default function AdAccountsSection() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* ================= META ADS CARD ================= */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div>
-            <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <PlatformLogo platform="meta" size="md" />
-                <div>
-                  <h3 className="text-base font-extrabold text-[#0f172a]">Meta Ads</h3>
-                  <p className="text-xs text-slate-400">Facebook Feed, Instagram Reels & Messenger</p>
-                </div>
+      {/* ================= META AD ACCOUNTS SELECTOR ================= */}
+      {metaStatus?.isConnected && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-blue-600" />
+                <h3 className="text-base font-extrabold text-[#0f172a]">
+                  Meta Advertising Accounts
+                </h3>
               </div>
-
-              <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  metaStatus?.isConnected
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
-                    : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    metaStatus?.isConnected ? "bg-emerald-500" : "bg-slate-400"
-                  }`}
-                />
-                <span>{metaStatus?.isConnected ? "Connected" : "Not Connected"}</span>
-              </span>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Select one or more advertising accounts to synchronize with your ADOS analytics engine.
+              </p>
             </div>
 
-            {/* Connection Information */}
-            <div className="py-5 space-y-3.5">
-              {metaStatus?.isConnected ? (
-                <>
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 space-y-2 text-xs">
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Account Name:</span>
-                      <span className="font-bold text-slate-800">
-                        {metaStatus.selectedAccountName || "Active Meta Ad Account"}
-                      </span>
+            <div className="flex items-center gap-2.5 self-start sm:self-auto">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+                {selectedMetaIds.size} of {metaAccounts.length} Selected
+              </span>
+              <button
+                type="button"
+                onClick={handleSaveSelections}
+                disabled={isSavingAccounts}
+                className="px-4 py-2 rounded-xl bg-[#2563eb] hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isSavingAccounts ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Save Selected Accounts</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Select Controls */}
+          {metaAccounts.length > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                >
+                  Select all
+                </button>
+                <span className="text-slate-300">•</span>
+                <button
+                  type="button"
+                  onClick={handleDeselectAll}
+                  className="font-semibold text-slate-500 hover:text-slate-700 cursor-pointer"
+                >
+                  Deselect all
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={loadMetaAccounts}
+                disabled={isAccountsLoading}
+                className="text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+              >
+                <RefreshCw className={`w-3 h-3 ${isAccountsLoading ? "animate-spin" : ""}`} />
+                <span>Refresh Accounts</span>
+              </button>
+            </div>
+          )}
+
+          {/* Error State */}
+          {accountsError && (
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{accountsError}</span>
+            </div>
+          )}
+
+          {/* Loading Skeleton */}
+          {isAccountsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse space-y-3">
+                  <div className="h-4 bg-slate-200 rounded w-2/3" />
+                  <div className="h-3 bg-slate-200 rounded w-1/2" />
+                  <div className="h-3 bg-slate-200 rounded w-3/4" />
+                </div>
+              ))}
+            </div>
+          ) : metaAccounts.length === 0 ? (
+            /* Empty State */
+            <div className="p-8 text-center rounded-xl bg-slate-50/60 border border-slate-200/80 space-y-2">
+              <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
+              <h4 className="text-xs font-bold text-slate-700">No Meta Advertising Accounts Discovered</h4>
+              <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                No accessible ad accounts were returned for this user. Ensure your Facebook account has admin or advertiser role on the Business Manager.
+              </p>
+            </div>
+          ) : (
+            /* Account Cards Grid */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {metaAccounts.map((account) => {
+                const actId = account.externalAccountId || account.id;
+                const isSelected = selectedMetaIds.has(actId);
+                const isActive = account.status === "ACTIVE" || account.status === 1;
+
+                return (
+                  <div
+                    key={actId}
+                    onClick={() => handleToggleAccount(actId)}
+                    className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      isSelected
+                        ? "bg-blue-50/40 border-blue-300 ring-1 ring-blue-300"
+                        : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-[#0f172a] leading-tight">
+                          {account.name || "Meta Ad Account"}
+                        </h4>
+                        <div className="text-[11px] font-mono text-slate-500">
+                          {actId}
+                        </div>
+                      </div>
+
+                      {/* Selection Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}} // Handled by card click
+                        className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+                      />
                     </div>
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Account ID:</span>
-                      <span className="font-mono font-semibold text-slate-700">
-                        {metaStatus.selectedAccountId || "—"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Currency:</span>
-                      <span className="font-semibold text-slate-700">
-                        {metaStatus.selectedAccountCurrency || "USD"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500">
-                      <span>Last Synchronized:</span>
-                      <span className="font-semibold text-slate-700">
-                        {metaStatus.lastSyncAt ? new Date(metaStatus.lastSyncAt).toLocaleTimeString() : "Just now"}
+
+                    <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-slate-700">
+                          {account.currency || "USD"}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-slate-500 truncate max-w-[120px]">
+                          {account.timezone || "UTC"}
+                        </span>
+                      </div>
+
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          isActive
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {isActive ? "ACTIVE" : account.status || "DISABLED"}
                       </span>
                     </div>
                   </div>
-
-                  {/* Discovered Accessible Meta Account Selector */}
-                  {Array.isArray(metaStatus.accessibleAccounts) && metaStatus.accessibleAccounts.length > 1 && (
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                        Switch Ad Account:
-                      </label>
-                      <select
-                        value={metaStatus.selectedAccountId || ""}
-                        onChange={(e) => handleSelectMetaAccount(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
-                      >
-                        {metaStatus.accessibleAccounts.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name} ({a.accountId})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-150 text-xs text-slate-500 space-y-2 leading-relaxed">
-                  <p>
-                    Connect your Meta Business ad account via Meta OAuth using the official Meta Marketing API (<code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">ads_read, read_insights</code>).
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    Provides live campaign tracking, conversion action telemetry, and spend pacing.
-                  </p>
-                </div>
-              )}
+                );
+              })}
             </div>
-          </div>
-
-          {/* Action Button */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-            {metaStatus?.isConnected ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleConnectMeta}
-                  className="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Re-authorize</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDisconnectModal({ open: true, platform: "meta" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-1.5 cursor-pointer transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Disconnect</span>
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={handleConnectMeta}
-                className="w-full py-2.5 rounded-xl bg-[#2563eb] hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Connect Meta Ads</span>
-              </button>
-            )}
-          </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

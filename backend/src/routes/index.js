@@ -42,6 +42,7 @@ apiRouter.use("/accounts", accountRoutes);
 apiRouter.use("/team", teamRoutes);
 apiRouter.use("/settings", settingsRoutes);
 apiRouter.use("/google-ads", googleAdsRoutes);
+apiRouter.use("/meta", metaAdsRoutes);
 apiRouter.use("/meta-ads", metaAdsRoutes);
 apiRouter.use("/analytics", analyticsRoutes);
 apiRouter.use("/ai", aiRoutes);

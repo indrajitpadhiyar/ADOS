@@ -134,7 +134,10 @@ export class AnalyticsService {
         clicks,
         ctr: Number(ctr.toFixed(2)),
         cpc: Number(cpc.toFixed(2)),
+        reach: Number(c.reach) || 0,
+        frequency: Number(c.frequency) || 0,
         conversions,
+        conversionValue: Number(c.conversionValue) || 0,
         roas,
       };
     });

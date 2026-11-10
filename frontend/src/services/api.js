@@ -288,9 +288,19 @@ export const api = {
     return handleResponse(res);
   },
 
-  // Meta Ads API Integration
+  // Meta Ads API Integration (Official OAuth 2.0 & Marketing API)
+  async connectMetaAdsToken(accessToken) {
+    const res = await fetch(`${API_BASE}/meta/connect-token`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify({ accessToken }),
+    });
+    return handleResponse(res);
+  },
+
   async getMetaAdsStatus() {
-    const res = await fetch(`${API_BASE}/meta-ads/status`, {
+    const res = await fetch(`${API_BASE}/meta/status`, {
       method: "GET",
       headers: getHeaders(),
       credentials: "include",
@@ -299,7 +309,7 @@ export const api = {
   },
 
   async getMetaAdsAuthUrl() {
-    const res = await fetch(`${API_BASE}/meta-ads/auth-url`, {
+    const res = await fetch(`${API_BASE}/meta/auth-url`, {
       method: "GET",
       headers: getHeaders(),
       credentials: "include",
@@ -308,7 +318,7 @@ export const api = {
   },
 
   async getMetaAdsAccounts() {
-    const res = await fetch(`${API_BASE}/meta-ads/accounts`, {
+    const res = await fetch(`${API_BASE}/meta/accounts`, {
       method: "GET",
       headers: getHeaders(),
       credentials: "include",
@@ -317,23 +327,50 @@ export const api = {
   },
 
   async selectMetaAdsAccount(accountId) {
-    const res = await fetch(`${API_BASE}/meta-ads/select-account`, {
+    const targetIds = Array.isArray(accountId) ? accountId : [accountId];
+    const res = await fetch(`${API_BASE}/meta/accounts/select`, {
       method: "POST",
       headers: getHeaders(),
       credentials: "include",
-      body: JSON.stringify({ accountId }),
+      body: JSON.stringify({ accountIds: targetIds }),
+    });
+    return handleResponse(res);
+  },
+
+  async selectMetaAdsAccounts(accountIds) {
+    const res = await fetch(`${API_BASE}/meta/accounts/select`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify({ accountIds }),
+    });
+    return handleResponse(res);
+  },
+
+  async getMetaAdsAnalytics(params = {}) {
+    const query = new URLSearchParams();
+    if (params.accountId) query.append("accountId", params.accountId);
+    if (params.dateRange) query.append("dateRange", params.dateRange);
+    if (params.since) query.append("since", params.since);
+    if (params.until) query.append("until", params.until);
+    if (params.limit) query.append("limit", params.limit);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await fetch(`${API_BASE}/meta/analytics${qs}`, {
+      method: "GET",
+      headers: getHeaders(),
+      credentials: "include",
     });
     return handleResponse(res);
   },
 
   async getMetaAdsCampaigns(params = {}) {
-    const query = new URLSearchParams();
-    if (params.dateRange) query.append("dateRange", params.dateRange);
-    if (params.limit) query.append("limit", params.limit);
+    return this.getMetaAdsAnalytics(params);
+  },
 
-    const qs = query.toString() ? `?${query.toString()}` : "";
-    const res = await fetch(`${API_BASE}/meta-ads/campaigns${qs}`, {
-      method: "GET",
+  async disconnectMetaAds() {
+    const res = await fetch(`${API_BASE}/meta/disconnect`, {
+      method: "POST",
       headers: getHeaders(),
       credentials: "include",
     });
