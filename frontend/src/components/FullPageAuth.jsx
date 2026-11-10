@@ -157,6 +157,80 @@ export default function FullPageAuth({ onLoginSuccess }) {
   };
 
   const handleGoogleButtonClick = () => {
+    // 1. Try modern Google Identity Services OAuth2 token client (popup flow)
+    if (window.google?.accounts?.oauth2) {
+      try {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: "email profile openid",
+          callback: async (tokenResponse) => {
+            if (tokenResponse.error) {
+              if (tokenResponse.error !== "popup_closed_by_user") {
+                triggerToast(
+                  "error",
+                  tokenResponse.error_description || tokenResponse.error,
+                );
+              }
+              setIsLoading(false);
+              return;
+            }
+            if (tokenResponse.access_token) {
+              setIsLoading(true);
+              try {
+                const res = await fetch(`${API_BASE_URL}/google`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({
+                    accessToken: tokenResponse.access_token,
+                  }),
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                  throw new Error(
+                    data.message || "Google authentication failed.",
+                  );
+                }
+
+                if (data.data?.accessToken) {
+                  localStorage.setItem("ados_token", data.data.accessToken);
+                  if (data.data.user) {
+                    localStorage.setItem(
+                      "ados_user",
+                      JSON.stringify(data.data.user),
+                    );
+                  }
+                }
+
+                triggerToast(
+                  "success",
+                  `Signed in with Google as ${data.data?.user?.name || "Advertiser"}!`,
+                );
+                setTimeout(() => {
+                  if (onLoginSuccess) {
+                    onLoginSuccess(data.data?.user || { name: "Advertiser" });
+                  }
+                }, 200);
+              } catch (err) {
+                triggerToast(
+                  "error",
+                  err.message || "Failed to authenticate with Google.",
+                );
+              } finally {
+                setIsLoading(false);
+              }
+            }
+          },
+        });
+        client.requestAccessToken({ prompt: "" });
+        return;
+      } catch (e) {
+        console.warn("Google popup flow failed, falling back to redirect:", e);
+      }
+    }
+
+    // 2. Fallback to full-browser redirect
     setIsLoading(true);
     triggerToast("info", "Redirecting to Google secure authentication...");
 
