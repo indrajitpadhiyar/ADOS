@@ -1,12 +1,79 @@
 services:
-  # ADOS Frontend (Static Site)
-  - type: static
+  # =========================================================================
+  # 1. ADOS Frontend (React + Vite + Tailwind CSS Single-Page Application)
+  # =========================================================================
+  - type: web
     name: ados-frontend
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     routes:
-      # Single-Page Application (SPA) catch-all rewrite rule for React Router
+      # React Router SPA catch-all rewrite: routes all deep URLs to /index.html
       - type: rewrite
         source: /*
         destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    envVars:
+      - key: VITE_API_URL
+        value: https://ados-backend.onrender.com/api/v1
 
+  # =========================================================================
+  # 2. ADOS Backend (Node.js + Express + MongoDB REST API)
+  # =========================================================================
+  - type: web
+    name: ados-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://ados-frontend.onrender.com,https://ados-4hxi.onrender.com,https://idrtech.in
+      - key: APP_URL
+        value: https://ados-frontend.onrender.com
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: ADOS <onboarding@resend.dev>
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_ADS_CLIENT_ID
+        sync: false
+      - key: GOOGLE_ADS_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_ADS_REDIRECT_URI
+        sync: false
+      - key: META_APP_ID
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: META_GRAPH_VERSION
+        value: v19.0
+      - key: META_REDIRECT_URI
+        sync: false

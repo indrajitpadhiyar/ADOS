@@ -53,7 +53,19 @@ app.use(
  * 3. Strict Cross-Origin Resource Sharing (CORS)
  * Mitigates CSRF and unauthorized cross-origin requests
  */
-const allowedOrigins = [env.CORS_ORIGIN, "http://localhost:5173", "http://127.0.0.1:5173"].filter(Boolean);
+const configuredOrigins = (env.CORS_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const allowedOrigins = [
+  ...configuredOrigins,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://ados-4hxi.onrender.com",
+  "https://idrtech.in",
+  "https://www.idrtech.in",
+].filter(Boolean);
 
 app.use(
   cors({
@@ -64,6 +76,15 @@ app.use(
       }
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
+      }
+      // Allow any official Render deployment subdomains (e.g. ados-4hxi.onrender.com)
+      try {
+        const hostname = new URL(origin).hostname;
+        if (hostname.endsWith(".onrender.com") || hostname === "idrtech.in" || hostname === "www.idrtech.in") {
+          return callback(null, true);
+        }
+      } catch {
+        // invalid URL format
       }
       // Rejects disallowed origins cleanly without throwing uncaught 500 exceptions
       return callback(null, false);

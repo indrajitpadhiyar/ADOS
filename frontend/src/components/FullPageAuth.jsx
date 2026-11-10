@@ -67,7 +67,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
   const GOOGLE_CLIENT_ID =
     import.meta.env?.VITE_GOOGLE_CLIENT_ID ||
     "821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com";
-  const API_BASE_URL = "http://localhost:5000/api/v1/auth";
+  const API_BASE_URL = `${import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1"}/auth`;
 
   // Initialize Google Identity Services
   useEffect(() => {
