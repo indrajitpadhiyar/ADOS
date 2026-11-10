@@ -1,0 +1,12 @@
+services:
+  # ADOS Frontend (Static Site)
+  - type: static
+    name: ados-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      # Single-Page Application (SPA) catch-all rewrite rule for React Router
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
