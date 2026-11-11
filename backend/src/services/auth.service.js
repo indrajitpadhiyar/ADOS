@@ -640,12 +640,20 @@ export const AuthService = {
         });
         googleUser = ticket.getPayload();
       } catch (verifyError) {
+        console.warn("[Google Auth] verifyIdToken failed, trying tokeninfo fallback:", verifyError?.message);
         // Fallback: verify directly via Google tokeninfo endpoint
         const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${rawCredential}`);
         if (!res.ok) {
+          console.error("[Google Auth] Tokeninfo verification failed with HTTP status:", res.status);
           throw ApiError.unauthorized("Failed to verify Google identity credential.");
         }
-        googleUser = await res.json();
+        const tokenInfo = await res.json();
+        const allowedAudiences = [env.GOOGLE_CLIENT_ID, env.GOOGLE_ADS_CLINT_ID].filter(Boolean);
+        if (allowedAudiences.length > 0 && !allowedAudiences.includes(tokenInfo.aud)) {
+          console.error("[Google Auth] Audience verification failed: token audience does not match configured Google Client ID.");
+          throw ApiError.unauthorized("Google token audience mismatch.");
+        }
+        googleUser = tokenInfo;
       }
     } else if (code) {
       const client = new OAuth2Client(
