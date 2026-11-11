@@ -192,128 +192,66 @@ export default function FullPageAuth({ onLoginSuccess }) {
     }
   };
 
-  const performGoogleRedirectAuth = (preferredRedirectUri = null) => {
-    setIsLoading(true);
-    triggerToast("info", "Redirecting to Google secure authentication...");
-
-    // State payload contains current frontend origin and a random nonce
-    const statePayload = {
-      origin: window.location.origin,
-      t: Date.now(),
-    };
-    const state = btoa(JSON.stringify(statePayload));
-    sessionStorage.setItem("ados_google_auth_state", state);
-
-    // In production, default to backend redirect URI which is pre-registered in Google Cloud Console
+  const getGoogleOAuthUrl = (preferredRedirectUri = null) => {
     const isProduction =
       typeof window !== "undefined" &&
       !window.location.hostname.includes("localhost") &&
       !window.location.hostname.includes("127.0.0.1");
+
     const backendRedirectUri = "https://adosbackend.onrender.com/auth";
-    const frontendRedirectUri = `${window.location.origin}/auth`;
+    const frontendRedirectUri =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth`
+        : "https://ados-4hxi.onrender.com/auth";
 
-    const redirectUri = preferredRedirectUri || (isProduction ? backendRedirectUri : frontendRedirectUri);
+    const redirectUri =
+      typeof preferredRedirectUri === "string" && preferredRedirectUri
+        ? preferredRedirectUri
+        : isProduction
+          ? backendRedirectUri
+          : frontendRedirectUri;
 
-    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-      GOOGLE_CLIENT_ID,
+    let state = "";
+    try {
+      const statePayload = {
+        origin:
+          typeof window !== "undefined"
+            ? window.location.origin
+            : "https://ados-4hxi.onrender.com",
+        t: Date.now(),
+      };
+      state = btoa(JSON.stringify(statePayload));
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem("ados_google_auth_state", state);
+      }
+    } catch {
+      state = "eyJvcmlnaW4iOiJodHRwczovL2Fkb3MtNGh4aS5vbnJlbmRlci5jb20ifQ==";
+    }
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+      GOOGLE_CLIENT_ID
     )}&redirect_uri=${encodeURIComponent(
-      redirectUri,
+      redirectUri
     )}&response_type=code&scope=openid%20email%20profile&state=${encodeURIComponent(
-      state,
+      state
     )}&access_type=offline&prompt=select_account`;
-
-    window.location.assign(oauthUrl);
   };
 
-  const handleGoogleButtonClick = (forceRedirect = false) => {
-    if (forceRedirect) {
-      return performGoogleRedirectAuth();
+  const performGoogleRedirectAuth = (preferredRedirectUri = null) => {
+    try {
+      triggerToast("info", "Redirecting to Google secure authentication...");
+      const url = getGoogleOAuthUrl(preferredRedirectUri);
+      window.location.href = url;
+    } catch (err) {
+      console.error("Google redirect failed:", err);
+      triggerToast("error", "Failed to start Google sign-in. Please try again.");
     }
+  };
 
-    // 1. Try modern Google Identity Services OAuth2 token client (popup flow)
-    if (window.google?.accounts?.oauth2) {
-      try {
-        const client = window.google.accounts.oauth2.initTokenClient({
-          client_id: GOOGLE_CLIENT_ID,
-          scope: "email profile openid",
-          callback: async (tokenResponse) => {
-            if (tokenResponse.error) {
-              if (
-                tokenResponse.error === "origin_mismatch" ||
-                tokenResponse.error === "access_denied"
-              ) {
-                triggerToast(
-                  "info",
-                  "Origin mismatch detected in popup. Switching to direct sign-in...",
-                );
-                return performGoogleRedirectAuth();
-              }
-              if (tokenResponse.error !== "popup_closed_by_user") {
-                triggerToast(
-                  "error",
-                  tokenResponse.error_description || tokenResponse.error,
-                );
-              }
-              setIsLoading(false);
-              return;
-            }
-            if (tokenResponse.access_token) {
-              setIsLoading(true);
-              try {
-                const res = await fetch(`${API_BASE_URL}/google`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  credentials: "include",
-                  body: JSON.stringify({
-                    accessToken: tokenResponse.access_token,
-                  }),
-                });
-
-                const data = await res.json();
-                if (!res.ok) {
-                  throw new Error(
-                    data.message || "Google authentication failed.",
-                  );
-                }
-
-                if (data.data?.accessToken) {
-                  localStorage.setItem("ados_token", data.data.accessToken);
-                  if (data.data.user) {
-                    localStorage.setItem(
-                      "ados_user",
-                      JSON.stringify(data.data.user),
-                    );
-                  }
-                }
-
-                triggerToast(
-                  "success",
-                  `Signed in with Google as ${data.data?.user?.name || "Advertiser"}!`,
-                );
-                setTimeout(() => {
-                  if (onLoginSuccess) {
-                    onLoginSuccess(data.data?.user || { name: "Advertiser" });
-                  }
-                }, 200);
-              } catch (err) {
-                triggerToast(
-                  "error",
-                  err.message || "Failed to authenticate with Google.",
-                );
-              } finally {
-                setIsLoading(false);
-              }
-            }
-          },
-        });
-        client.requestAccessToken({ prompt: "" });
-        return;
-      } catch (e) {
-        console.warn("Google popup flow failed, falling back to redirect:", e);
-      }
+  const handleGoogleButtonClick = (e) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
     }
-
-    // 2. Fallback to full-browser redirect
     performGoogleRedirectAuth();
   };
 
@@ -1127,14 +1065,15 @@ export default function FullPageAuth({ onLoginSuccess }) {
 
           {/* Real Google OAuth Action */}
           <div className="space-y-3">
-            <motion.button
+            <motion.a
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              type="button"
               id="google-signin-btn"
-              onClick={handleGoogleButtonClick}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs transition-all shadow-xs hover:shadow-sm cursor-pointer disabled:opacity-50"
+              href={getGoogleOAuthUrl()}
+              onClick={() => {
+                triggerToast("info", "Opening Google secure authentication...");
+              }}
+              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs transition-all shadow-xs hover:shadow-sm cursor-pointer"
               title="Authenticate securely with Google"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -1156,17 +1095,15 @@ export default function FullPageAuth({ onLoginSuccess }) {
                 />
               </svg>
               <span>Continue with Google</span>
-            </motion.button>
+            </motion.a>
 
             <div className="flex items-center justify-center pt-0.5">
-              <button
-                type="button"
-                onClick={() => performGoogleRedirectAuth()}
-                disabled={isLoading}
-                className="text-[11px] text-slate-400 hover:text-slate-600 underline transition-colors cursor-pointer disabled:opacity-50"
+              <a
+                href={getGoogleOAuthUrl()}
+                className="text-[11px] text-slate-400 hover:text-slate-600 underline transition-colors cursor-pointer"
               >
-                Having trouble with popups? Use direct Google sign-in
-              </button>
+                Having trouble? Click here to sign in with Google
+              </a>
             </div>
           </div>
 
