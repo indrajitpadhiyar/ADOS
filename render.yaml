@@ -1,10 +1,12 @@
-services:
+# =============================================================================
+# ADOS – Render Blueprint Specification (Infrastructure as Code)
+# =============================================================================
+
+staticSites:
   # =========================================================================
   # 1. ADOS Frontend (React + Vite + Tailwind CSS Single-Page Application)
   # =========================================================================
-  - type: web
-    name: ados-frontend
-    runtime: static
+  - name: ados-frontend
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
@@ -26,6 +28,7 @@ services:
       - key: VITE_GOOGLE_CLIENT_ID
         value: 821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com
 
+services:
   # =========================================================================
   # 2. ADOS Backend (Node.js + Express + MongoDB REST API)
   # =========================================================================
