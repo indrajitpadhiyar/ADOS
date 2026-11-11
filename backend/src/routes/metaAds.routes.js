@@ -8,6 +8,11 @@ const router = Router();
 router.get("/callback", MetaAdsController.handleCallback);
 router.post("/callback", MetaAdsController.handleCallback);
 
+// Public Meta Data Deletion Request Callback (Meta App Compliance)
+router.post("/data-deletion", MetaAdsController.handleDataDeletion);
+router.get("/data-deletion/status", MetaAdsController.getDataDeletionStatus);
+router.get("/data-deletion", MetaAdsController.getDataDeletionStatus);
+
 // Protected routes (JWT authenticated)
 router.use(authenticate);
 

@@ -4,6 +4,7 @@ import { AdConnection } from "../models/AdConnection.model.js";
 import { OAuthState } from "../models/OAuthState.model.js";
 import { MetaAdsAccount } from "../models/MetaAdsAccount.model.js";
 import { ConnectedAccount } from "../models/ConnectedAccount.model.js";
+import { DataDeletionRequest } from "../models/DataDeletionRequest.model.js";
 import { CryptoUtil } from "../utils/crypto.util.js";
 import { ApiError } from "../utils/ApiError.js";
 import { env } from "../config/env.js";
@@ -682,5 +683,158 @@ export class MetaAdsService {
       success: true,
       message: "Meta Ads account successfully disconnected and credentials removed.",
     };
+  }
+
+  /**
+   * Securely parses and validates Meta signed_request using HMAC-SHA256
+   * @param {string} signedRequest - The raw signed_request sent by Meta
+   * @returns {Object} Decoded payload containing user_id
+   */
+  static parseSignedRequest(signedRequest) {
+    if (!signedRequest || typeof signedRequest !== "string") {
+      throw ApiError.badRequest("Invalid request: signed_request is required.");
+    }
+
+    const parts = signedRequest.trim().split(".");
+    if (parts.length !== 2) {
+      throw ApiError.badRequest("Invalid signed_request format. Expected <signature>.<payload>");
+    }
+
+    const [encodedSig, payload] = parts;
+    if (!encodedSig || !payload) {
+      throw ApiError.badRequest("Malformed signed_request components.");
+    }
+
+    if (!env.META_APP_SECRET) {
+      throw ApiError.internal("META_APP_SECRET is not configured on the server.");
+    }
+
+    // Convert base64url to base64
+    const base64Sig = encodedSig.replace(/-/g, "+").replace(/_/g, "/");
+    const sigBuffer = Buffer.from(base64Sig, "base64");
+
+    // Compute expected HMAC-SHA256 signature
+    const expectedSigBuffer = crypto
+      .createHmac("sha256", env.META_APP_SECRET)
+      .update(payload)
+      .digest();
+
+    if (
+      sigBuffer.length !== expectedSigBuffer.length ||
+      !crypto.timingSafeEqual(sigBuffer, expectedSigBuffer)
+    ) {
+      throw ApiError.unauthorized("Signature verification failed: signed_request HMAC does not match META_APP_SECRET.");
+    }
+
+    // Decode and parse payload
+    const base64Payload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    let data;
+    try {
+      data = JSON.parse(Buffer.from(base64Payload, "base64").toString("utf8"));
+    } catch {
+      throw ApiError.badRequest("Invalid signed_request payload: JSON decoding failed.");
+    }
+
+    if (data.algorithm?.toUpperCase() !== "HMAC-SHA256") {
+      throw ApiError.badRequest("Unknown algorithm. Only HMAC-SHA256 is supported.");
+    }
+
+    if (!data.user_id) {
+      throw ApiError.badRequest("Missing user_id in signed_request payload.");
+    }
+
+    return data;
+  }
+
+  /**
+   * Processes Meta User Data Deletion Request callback
+   * Purges all stored Facebook access tokens, ad accounts, and synced campaign metadata
+   * for the given Facebook User ID while preserving the ADOS user account.
+   */
+  static async handleDataDeletion(signedRequest) {
+    const data = this.parseSignedRequest(signedRequest);
+    const facebookUserId = String(data.user_id).trim();
+
+    // Generate high-entropy unique deletion reference code
+    const confirmationCode = `DEL_META_${crypto.randomBytes(12).toString("hex").toUpperCase()}`;
+
+    // 1. Locate all credentials and accounts linked to this Meta User ID
+    const matchingCreds = await PlatformCredential.find({
+      platform: "meta",
+      metaUserId: facebookUserId,
+    });
+
+    const matchingMetaAccounts = await MetaAdsAccount.find({
+      metaUserId: facebookUserId,
+    });
+
+    const linkedUserIds = new Set();
+    matchingCreds.forEach((c) => c.userId && linkedUserIds.add(c.userId.toString()));
+    matchingMetaAccounts.forEach((a) => a.userId && linkedUserIds.add(a.userId.toString()));
+
+    const targetUserIds = Array.from(linkedUserIds);
+
+    // 2. Permanently delete all stored Meta access tokens and platform credentials
+    const credDeleteResult = await PlatformCredential.deleteMany({
+      platform: "meta",
+      $or: [
+        { metaUserId: facebookUserId },
+        ...(targetUserIds.length > 0 ? [{ userId: { $in: targetUserIds } }] : []),
+      ],
+    });
+
+    const metaAccountDeleteResult = await MetaAdsAccount.deleteMany({
+      $or: [
+        { metaUserId: facebookUserId },
+        ...(targetUserIds.length > 0 ? [{ userId: { $in: targetUserIds } }] : []),
+      ],
+    });
+
+    let connectionsDeleted = 0;
+    if (targetUserIds.length > 0) {
+      const connDeleteResult = await AdConnection.deleteMany({
+        platform: "meta",
+        userId: { $in: targetUserIds },
+      });
+      connectionsDeleted = connDeleteResult.deletedCount;
+
+      await ConnectedAccount.deleteMany({
+        platform: "meta",
+        userId: { $in: targetUserIds },
+      });
+    }
+
+    // 3. Persist official audit record for Meta compliance and user tracking
+    await DataDeletionRequest.create({
+      confirmationCode,
+      platform: "meta",
+      platformUserId: facebookUserId,
+      userId: targetUserIds.length > 0 ? targetUserIds[0] : null,
+      status: "COMPLETED",
+      details: {
+        deletedCredentialsCount: credDeleteResult.deletedCount,
+        deletedAccountsCount: metaAccountDeleteResult.deletedCount,
+        deletedConnectionsCount: connectionsDeleted,
+        message: "All Meta access tokens, ad accounts, and synced campaign data successfully purged.",
+      },
+      requestedAt: new Date(),
+      completedAt: new Date(),
+    });
+
+    // 4. Return Meta's strictly required payload: { url, confirmation_code }
+    const statusUrl = `${env.APP_URL}/data-deletion?id=${encodeURIComponent(confirmationCode)}`;
+
+    return {
+      url: statusUrl,
+      confirmation_code: confirmationCode,
+    };
+  }
+
+  /**
+   * Retrieves status for a given confirmation code
+   */
+  static async getDataDeletionStatus(confirmationCode) {
+    if (!confirmationCode) return null;
+    return DataDeletionRequest.findOne({ confirmationCode: String(confirmationCode).trim() });
   }
 }

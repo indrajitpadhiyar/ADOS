@@ -130,12 +130,70 @@ async function runTests() {
     if (credCheck || connCheck.length > 0) throw new Error("Credentials or connections not cleaned up");
     console.log("✅ Passed: Disconnected cleanly, credentials and connections deleted.\n");
 
+    // 7. Test Meta Data Deletion Request (signed_request validation & automated purge)
+    console.log("TEST 7: Meta User Data Deletion Callback (signed_request HMAC-SHA256)");
+    const mockAppSecret = process.env.META_APP_SECRET || "mock_secret_abcdef1234567890";
+    process.env.META_APP_SECRET = mockAppSecret;
+
+    const deletionPayload = {
+      user_id: "109876543210987",
+      algorithm: "HMAC-SHA256",
+      issued_at: Math.floor(Date.now() / 1000),
+    };
+    const payloadBase64Url = Buffer.from(JSON.stringify(deletionPayload))
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+
+    const cryptoModule = await import("node:crypto");
+    const validSig = cryptoModule.default
+      .createHmac("sha256", mockAppSecret)
+      .update(payloadBase64Url)
+      .digest("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+
+    const validSignedRequest = `${validSig}.${payloadBase64Url}`;
+    const parsed = MetaAdsService.parseSignedRequest(validSignedRequest);
+    if (parsed.user_id !== "109876543210987") {
+      throw new Error("Failed to extract user_id from signed_request");
+    }
+
+    // Test tampered signed_request
+    let tamperedRejected = false;
+    try {
+      MetaAdsService.parseSignedRequest(`tampered_sig.${payloadBase64Url}`);
+    } catch (e) {
+      tamperedRejected = true;
+    }
+    if (!tamperedRejected) {
+      throw new Error("Tampered signed_request was not rejected");
+    }
+
+    // Test handleDataDeletion execution
+    const deletionRes = await MetaAdsService.handleDataDeletion(validSignedRequest);
+    if (!deletionRes.url || !deletionRes.confirmation_code) {
+      throw new Error("Missing url or confirmation_code in deletion response");
+    }
+    if (!deletionRes.confirmation_code.startsWith("DEL_META_")) {
+      throw new Error("Invalid confirmation_code format");
+    }
+    const statusRecord = await MetaAdsService.getDataDeletionStatus(deletionRes.confirmation_code);
+    if (!statusRecord || statusRecord.platformUserId !== "109876543210987") {
+      throw new Error("DataDeletionRequest audit record was not found or has wrong user ID");
+    }
+    console.log("✅ Passed: Meta signed_request HMAC verified and data deletion processed.\n");
+
     console.log("🎉 ALL TESTS PASSED SUCCESSFULLY!");
   } finally {
     // Cleanup test data
     await OAuthState.deleteMany({ userId: { $in: [testUserId1, testUserId2] } });
     await PlatformCredential.deleteMany({ userId: { $in: [testUserId1, testUserId2] } });
     await AdConnection.deleteMany({ userId: { $in: [testUserId1, testUserId2] } });
+    const { DataDeletionRequest } = await import("../models/DataDeletionRequest.model.js");
+    await DataDeletionRequest.deleteMany({ platformUserId: "109876543210987" });
     process.exit(0);
   }
 }

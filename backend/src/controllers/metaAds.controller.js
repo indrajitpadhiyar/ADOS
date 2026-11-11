@@ -165,4 +165,51 @@ export const MetaAdsController = {
     const result = await MetaAdsService.disconnect(userId);
     return ApiResponse.success(res, result.message, result);
   }),
+
+  /**
+   * POST /api/v1/meta/data-deletion & /api/v1/meta-ads/data-deletion
+   * Official Meta User Data Deletion Request Callback.
+   * Receives signed_request, verifies HMAC-SHA256 signature,
+   * purges all associated Facebook credentials and tokens,
+   * and returns Meta's required JSON: { url, confirmation_code }
+   */
+  handleDataDeletion: asyncHandler(async (req, res) => {
+    const signedRequest = req.body?.signed_request || req.query?.signed_request;
+
+    if (!signedRequest) {
+      throw ApiError.badRequest("Missing signed_request parameter.");
+    }
+
+    const result = await MetaAdsService.handleDataDeletion(signedRequest);
+
+    // Meta strictly requires direct top-level keys: { url, confirmation_code }
+    return res.status(200).json({
+      url: result.url,
+      confirmation_code: result.confirmation_code,
+    });
+  }),
+
+  /**
+   * GET /api/v1/meta/data-deletion & /api/v1/meta/data-deletion/status
+   * Status lookup endpoint for a deletion confirmation code
+   */
+  getDataDeletionStatus: asyncHandler(async (req, res) => {
+    const code = req.query.id || req.query.code;
+    if (!code) {
+      throw ApiError.badRequest("Confirmation code (id) query parameter is required.");
+    }
+
+    const record = await MetaAdsService.getDataDeletionStatus(code);
+    if (!record) {
+      throw ApiError.notFound("No deletion request found for the provided confirmation code.");
+    }
+
+    return ApiResponse.success(res, "Data deletion request status retrieved", {
+      confirmationCode: record.confirmationCode,
+      status: record.status,
+      requestedAt: record.requestedAt,
+      completedAt: record.completedAt,
+      details: record.details,
+    });
+  }),
 };

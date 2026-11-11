@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import LegalLayout from "../components/legal/LegalLayout";
 import {
   ExternalLink,
@@ -11,6 +11,11 @@ import {
 
 export default function DataDeletionPage() {
   const [copiedTemplate, setCopiedTemplate] = useState(false);
+  const [searchParams] = useSearchParams();
+  const confirmationCode =
+    searchParams.get("id") ||
+    searchParams.get("code") ||
+    searchParams.get("confirmation_code");
 
   const tocItems = [
     { id: "overview", label: "1. Overview & Commitment" },
@@ -54,6 +59,26 @@ Thank you,
       effectiveDate="November 7, 2026"
       tocItems={tocItems}
     >
+      {/* Active Data Deletion Confirmation Status Banner (Meta Compliance) */}
+      {confirmationCode && (
+        <div className="mb-6 p-6 rounded-2xl bg-emerald-50 border border-emerald-200/90 text-emerald-950 shadow-xs">
+          <div className="flex items-center gap-2.5 font-bold text-emerald-900 text-base mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            Meta Data Deletion Request Processed Successfully
+          </div>
+          <p className="text-sm text-emerald-800 leading-relaxed mb-3">
+            Your data deletion request has been recorded and processed by ADOS in compliance with Meta's platform policies and GDPR / CCPA standards.
+          </p>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-emerald-900 bg-emerald-100/70 border border-emerald-200 px-3 py-2 rounded-xl">
+            <span className="font-semibold text-emerald-700">Confirmation Reference:</span>
+            <code className="font-mono font-bold tracking-wider">{confirmationCode}</code>
+          </div>
+          <p className="text-xs text-emerald-700/90 mt-3">
+            All stored Facebook OAuth access tokens, cached advertising insights, and connected ad accounts associated with this Facebook User ID have been purged from our databases. Your ADOS profile remains intact.
+          </p>
+        </div>
+      )}
+
       {/* High-End Editorial Key Provisions Grid */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
