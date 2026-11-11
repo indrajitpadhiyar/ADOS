@@ -55,3 +55,4 @@ export const DataDeletionRequest = mongoose.model(
   "DataDeletionRequest",
   dataDeletionRequestSchema
 );
+
