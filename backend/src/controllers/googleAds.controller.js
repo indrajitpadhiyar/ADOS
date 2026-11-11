@@ -53,7 +53,7 @@ export const GoogleAdsController = {
 
     // Check if this was a browser redirect GET request
     const isBrowserRedirect = req.method === "GET";
-    const redirectBase = `${env.APP_URL}/manage-account`;
+    const redirectBase = `${env.APP_URL}/ad-accounts`;
 
     if (error) {
       const errorMsg = req.query.error_description || error || "Google authorization was denied or cancelled.";

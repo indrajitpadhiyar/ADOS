@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import PlatformLogo from "../common/PlatformLogo";
 import { api } from "../../services/api";
@@ -108,53 +108,79 @@ export default function DashboardOverviewSection({ user, dateRange = "LAST_30_DA
     (t) => (t.spend || 0) > 0 || (t.clicks || 0) > 0 || (t.conversions || 0) > 0
   );
 
-  // Calculate SVG dimensions for the Performance Overview Line Chart
+  // Calculate SVG dimensions and bezier paths for the Line Chart (Memoized)
   const svgWidth = 650;
   const svgHeight = 220;
   const paddingX = 40;
   const paddingY = 30;
 
-  const maxSpend = Math.max(...timeSeries.map((t) => t.spend || 0), 100);
-  const maxClicks = Math.max(...timeSeries.map((t) => t.clicks || 0), 10);
-  const maxConv = Math.max(...timeSeries.map((t) => t.conversions || 0), 5);
-
-  const getPoints = (accessor, maxVal) => {
-    if (timeSeries.length === 0) return [];
-    return timeSeries.map((d, i) => {
-      const divisor = timeSeries.length > 1 ? timeSeries.length - 1 : 1;
-      const x = paddingX + (i / divisor) * (svgWidth - paddingX * 2);
-      const val = accessor(d) || 0;
-      const y = svgHeight - paddingY - (val / (maxVal || 1)) * (svgHeight - paddingY * 2);
-      return { x, y, data: d, val };
-    });
-  };
-
-  const spendPoints = getPoints((d) => d.spend, maxSpend);
-  const clicksPoints = getPoints((d) => d.clicks, maxClicks);
-  const convPoints = getPoints((d) => d.conversions, maxConv);
-
-  const createSmoothPath = (points) => {
-    if (points.length < 2) return "";
-    let d = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i === 0 ? 0 : i - 1];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+  const { spendPoints, clicksPoints, convPoints, spendPath, clicksPath, convPath } = useMemo(() => {
+    if (timeSeries.length === 0) {
+      return {
+        spendPoints: [],
+        clicksPoints: [],
+        convPoints: [],
+        spendPath: "",
+        clicksPath: "",
+        convPath: "",
+      };
     }
-    return d;
-  };
 
-  const spendPath = createSmoothPath(spendPoints);
-  const clicksPath = createSmoothPath(clicksPoints);
-  const convPath = createSmoothPath(convPoints);
+    let maxSpend = 100;
+    let maxClicks = 10;
+    let maxConv = 5;
+
+    for (let i = 0; i < timeSeries.length; i++) {
+      const s = timeSeries[i].spend || 0;
+      const c = timeSeries[i].clicks || 0;
+      const cv = timeSeries[i].conversions || 0;
+      if (s > maxSpend) maxSpend = s;
+      if (c > maxClicks) maxClicks = c;
+      if (cv > maxConv) maxConv = cv;
+    }
+
+    const getPoints = (accessor, maxVal) => {
+      const divisor = timeSeries.length > 1 ? timeSeries.length - 1 : 1;
+      return timeSeries.map((d, i) => {
+        const x = paddingX + (i / divisor) * (svgWidth - paddingX * 2);
+        const val = accessor(d) || 0;
+        const y = svgHeight - paddingY - (val / (maxVal || 1)) * (svgHeight - paddingY * 2);
+        return { x, y, data: d, val };
+      });
+    };
+
+    const spPoints = getPoints((d) => d.spend, maxSpend);
+    const clPoints = getPoints((d) => d.clicks, maxClicks);
+    const coPoints = getPoints((d) => d.conversions, maxConv);
+
+    const createSmoothPath = (points) => {
+      if (points.length < 2) return "";
+      let d = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i === 0 ? 0 : i - 1];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[i + 2] || p2;
+
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+      }
+      return d;
+    };
+
+    return {
+      spendPoints: spPoints,
+      clicksPoints: clPoints,
+      convPoints: coPoints,
+      spendPath: createSmoothPath(spPoints),
+      clicksPath: createSmoothPath(clPoints),
+      convPath: createSmoothPath(coPoints),
+    };
+  }, [timeSeries]);
 
   // Platform performance donut calculation (Strictly proportional to real spend)
   const totalSpendNum = totals.totalSpend || 0;

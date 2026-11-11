@@ -53,6 +53,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
   const confirmPasswordInputRef = useRef(null);
+  const toastTimerRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,9 +61,23 @@ export default function FullPageAuth({ onLoginSuccess }) {
   };
 
   const triggerToast = (type, message) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
     setToast({ type, message });
-    setTimeout(() => setToast(null), 4500);
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 4500);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   const GOOGLE_CLIENT_ID =
     import.meta.env?.VITE_GOOGLE_CLIENT_ID ||

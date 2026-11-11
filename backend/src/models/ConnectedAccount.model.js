@@ -56,4 +56,7 @@ const connectedAccountSchema = new mongoose.Schema(
   }
 );
 
+// Compound index for sorted user account queries
+connectedAccountSchema.index({ userId: 1, createdAt: -1 });
+
 export const ConnectedAccount = mongoose.model("ConnectedAccount", connectedAccountSchema);

@@ -341,13 +341,7 @@ export const api = {
   },
 
   async selectMetaAdsAccounts(accountIds) {
-    const res = await fetch(`${API_BASE}/meta/accounts/select`, {
-      method: "POST",
-      headers: getHeaders(),
-      credentials: "include",
-      body: JSON.stringify({ accountIds }),
-    });
-    return handleResponse(res);
+    return this.selectMetaAdsAccount(accountIds);
   },
 
   async getMetaAdsAnalytics(params = {}) {
@@ -373,15 +367,6 @@ export const api = {
 
   async disconnectMetaAds() {
     const res = await fetch(`${API_BASE}/meta/disconnect`, {
-      method: "POST",
-      headers: getHeaders(),
-      credentials: "include",
-    });
-    return handleResponse(res);
-  },
-
-  async disconnectMetaAds() {
-    const res = await fetch(`${API_BASE}/meta-ads/disconnect`, {
       method: "POST",
       headers: getHeaders(),
       credentials: "include",

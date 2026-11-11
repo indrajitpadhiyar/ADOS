@@ -1,16 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import AuthPage from "./pages/AuthPage";
-import DashboardPage from "./pages/DashboardPage";
-import AdAccountsPage from "./pages/AdAccountsPage";
-import CampaignsPage from "./pages/CampaignsPage";
-import ReportsPage from "./pages/ReportsPage";
-import SettingsPage from "./pages/SettingsPage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import TermsPage from "./pages/TermsPage";
-import DataDeletionPage from "./pages/DataDeletionPage";
 import { api } from "./services/api";
+
+// Lazy-loaded route components for high-speed initial page loads & code splitting
+const HomePage = lazy(() => import("./pages/HomePage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const AdAccountsPage = lazy(() => import("./pages/AdAccountsPage"));
+const CampaignsPage = lazy(() => import("./pages/CampaignsPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-white font-['Plus_Jakarta_Sans',sans-serif]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-slate-200 border-t-[#2563eb] rounded-full animate-spin" />
+        <span className="text-xs font-semibold text-slate-400 tracking-wide">Loading ADOS...</span>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -53,7 +66,8 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
         {/* Landing Page */}
         <Route path="/" element={<HomePage user={user} />} />
 
@@ -166,6 +180,7 @@ export default function App() {
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Suspense>
+  </BrowserRouter>
   );
 }

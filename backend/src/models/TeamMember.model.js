@@ -44,4 +44,8 @@ const teamMemberSchema = new mongoose.Schema(
   }
 );
 
+// Compound indexes for fast lookup and race-condition prevention
+teamMemberSchema.index({ userId: 1, email: 1 }, { unique: true });
+teamMemberSchema.index({ userId: 1, createdAt: 1 });
+
 export const TeamMember = mongoose.model("TeamMember", teamMemberSchema);

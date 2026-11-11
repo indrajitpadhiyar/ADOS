@@ -20,9 +20,11 @@ export const AdController = {
       filter.status = status;
     }
     if (search) {
+      // Escape special regex characters to prevent ReDoS attacks
+      const escapedSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { campaign: { $regex: search, $options: "i" } },
+        { name: { $regex: escapedSearch, $options: "i" } },
+        { campaign: { $regex: escapedSearch, $options: "i" } },
       ];
     }
 

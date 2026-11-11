@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PlatformLogo from "../common/PlatformLogo";
 import { api } from "../../services/api";
 import {
@@ -66,27 +66,31 @@ export default function CampaignsSection({ dateRange = "LAST_30_DAYS", searchQue
     return Number(val).toLocaleString("en-IN");
   };
 
-  // Filter & sort
-  let filtered = [...campaignsData];
+  // Filter & sort (Memoized to prevent unnecessary re-computations)
+  const filtered = useMemo(() => {
+    let result = [...campaignsData];
 
-  if (platformFilter !== "all") {
-    filtered = filtered.filter((c) => c.platform?.toLowerCase() === platformFilter.toLowerCase());
-  }
+    if (platformFilter !== "all") {
+      result = result.filter((c) => c.platform?.toLowerCase() === platformFilter.toLowerCase());
+    }
 
-  if (statusFilter !== "all") {
-    filtered = filtered.filter((c) => c.status?.toLowerCase() === statusFilter.toLowerCase());
-  }
+    if (statusFilter !== "all") {
+      result = result.filter((c) => c.status?.toLowerCase() === statusFilter.toLowerCase());
+    }
 
-  if (localSearch) {
-    const q = localSearch.toLowerCase();
-    filtered = filtered.filter((c) => (c.name || "").toLowerCase().includes(q));
-  }
+    if (localSearch) {
+      const q = localSearch.toLowerCase();
+      result = result.filter((c) => (c.name || "").toLowerCase().includes(q));
+    }
 
-  filtered.sort((a, b) => {
-    const valA = Number(a[sortBy]) || 0;
-    const valB = Number(b[sortBy]) || 0;
-    return sortOrder === "asc" ? valA - valB : valB - valA;
-  });
+    result.sort((a, b) => {
+      const valA = Number(a[sortBy]) || 0;
+      const valB = Number(b[sortBy]) || 0;
+      return sortOrder === "asc" ? valA - valB : valB - valA;
+    });
+
+    return result;
+  }, [campaignsData, platformFilter, statusFilter, localSearch, sortBy, sortOrder]);
 
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);

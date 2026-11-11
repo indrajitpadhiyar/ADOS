@@ -101,4 +101,8 @@ const adSchema = new mongoose.Schema(
   }
 );
 
+// Compound indexes for user filtered & sorted queries
+adSchema.index({ userId: 1, createdAt: -1 });
+adSchema.index({ userId: 1, platform: 1, status: 1 });
+
 export const Ad = mongoose.model("Ad", adSchema);
