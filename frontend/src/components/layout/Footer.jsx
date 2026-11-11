@@ -11,7 +11,6 @@ export default function Footer({ onOpenContact }) {
   const dividerRef = useRef(null);
   const emailRef = useRef(null);
   const adosLogoRef = useRef(null);
-  const qrRef = useRef(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -61,20 +60,7 @@ export default function Footer({ onOpenContact }) {
         0.25
       );
 
-      // 3. Middle row: Office addresses & Social links
-      tl.fromTo(
-        ".footer-office-col",
-        { y: 30, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.12,
-          ease: "power2.out",
-        },
-        0.45
-      );
-
+      // 3. Middle row: Social links
       tl.fromTo(
         ".footer-social-link",
         { y: 25, opacity: 0 },
@@ -85,7 +71,7 @@ export default function Footer({ onOpenContact }) {
           stagger: 0.09,
           ease: "power2.out",
         },
-        0.5
+        0.45
       );
 
       // 4. Bottom row: Giant 'ADOS' wordmark letter-by-letter reveal
@@ -106,28 +92,13 @@ export default function Footer({ onOpenContact }) {
         );
       }
 
-      // 5. Legal links and QR Code bounce in
+      // 5. Legal links bounce/fade in
       tl.fromTo(
         ".footer-legal-link",
         { opacity: 0, y: 15 },
         { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" },
         0.8
       );
-
-      if (qrRef.current) {
-        tl.fromTo(
-          qrRef.current,
-          { scale: 0.6, opacity: 0, rotate: -8 },
-          {
-            scale: 1,
-            opacity: 1,
-            rotate: 0,
-            duration: 0.7,
-            ease: "back.out(2)",
-          },
-          0.75
-        );
-      }
     }, footerRef);
 
     return () => ctx.revert();
@@ -178,10 +149,10 @@ export default function Footer({ onOpenContact }) {
           {/* Right: Giant Email Link */}
           <div ref={emailRef} className="overflow-hidden">
             <a
-              href="mailto:hello@ados.com"
-              className="group inline-flex items-center text-3xl sm:text-5xl md:text-6xl lg:text-[4.2rem] font-light text-white tracking-tight hover:text-[#ff5e3a] transition-colors duration-300"
+              href="mailto:adoshub.online@gmail.com"
+              className="group inline-flex items-center text-2xl sm:text-4xl md:text-5xl lg:text-[4.2rem] font-light text-white tracking-tight hover:text-[#ff5e3a] transition-colors duration-300"
             >
-              <span>hello@ados.com</span>
+              <span>adoshub.online@gmail.com</span>
               <ArrowUpRight className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 ml-2 opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300 text-[#ff5e3a]" />
             </a>
           </div>
@@ -193,41 +164,33 @@ export default function Footer({ onOpenContact }) {
           className="w-full h-px bg-white/15 my-8 sm:my-12 lg:my-14 will-change-transform"
         />
 
-        {/* ================= ROW 2: OFFICE ADDRESSES & SOCIAL MEDIA ================= */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start py-4 sm:py-6">
-          {/* Office 1: Raleigh */}
-          <div className="footer-office-col md:col-span-4 lg:col-span-3 space-y-2">
-            <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">Raleigh</h4>
-            <div className="text-xs sm:text-[13px] text-slate-400 font-normal leading-relaxed space-y-0.5">
-              <p>125 N. Harrington Street Raleigh,</p>
-              <p>NC 27603 919.833.6413</p>
-            </div>
-          </div>
-
-          {/* Office 2: Charlotte */}
-          <div className="footer-office-col md:col-span-4 lg:col-span-3 space-y-2">
-            <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">Charlotte</h4>
-            <div className="text-xs sm:text-[13px] text-slate-400 font-normal leading-relaxed space-y-0.5">
-              <p>220 East Peterson Drive Charlotte,</p>
-              <p>NC 28217 704.333.7272</p>
-            </div>
+        {/* ================= ROW 2: BRAND TAGLINE & SOCIAL MEDIA ================= */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 py-4 sm:py-6">
+          {/* Brand Tagline */}
+          <div className="footer-social-link flex flex-col space-y-1">
+            <span className="text-xs uppercase font-bold tracking-widest text-[#ff5e3a]">
+              Ad Operating System
+            </span>
+            <span className="text-xs sm:text-sm text-slate-400 font-light">
+              Next-generation autonomous AI advertising platform
+            </span>
           </div>
 
           {/* Social Links on Right */}
-          <div className="md:col-span-4 lg:col-span-6 flex flex-col md:items-end justify-start space-y-2 sm:space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5">
             <a
               href="https://linkedin.com"
               target="_blank"
               rel="noreferrer"
-              className="footer-social-link text-sm sm:text-base text-slate-300 hover:text-white transition-colors duration-200 inline-block"
+              className="footer-social-link inline-flex items-center text-xs sm:text-sm text-slate-300 hover:text-white px-3.5 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/20 transition-all duration-200"
             >
-              Linkedin
+              LinkedIn
             </a>
             <a
               href="https://instagram.com"
               target="_blank"
               rel="noreferrer"
-              className="footer-social-link text-sm sm:text-base text-slate-300 hover:text-white transition-colors duration-200 inline-block"
+              className="footer-social-link inline-flex items-center text-xs sm:text-sm text-slate-300 hover:text-white px-3.5 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/20 transition-all duration-200"
             >
               Instagram
             </a>
@@ -235,14 +198,14 @@ export default function Footer({ onOpenContact }) {
               href="https://facebook.com"
               target="_blank"
               rel="noreferrer"
-              className="footer-social-link text-sm sm:text-base text-slate-300 hover:text-white transition-colors duration-200 inline-block"
+              className="footer-social-link inline-flex items-center text-xs sm:text-sm text-slate-300 hover:text-white px-3.5 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/20 transition-all duration-200"
             >
               Facebook
             </a>
           </div>
         </div>
 
-        {/* ================= ROW 3: GIANT ADOS ®, LEGAL LINKS & QR CODE ================= */}
+        {/* ================= ROW 3: GIANT ADOS ® & LEGAL LINKS ================= */}
         <div className="pt-16 sm:pt-24 lg:pt-32 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           {/* Giant 'ADOS ®' Brand Wordmark (Matching Reference 'Ramos ®') */}
           <div
@@ -272,82 +235,43 @@ export default function Footer({ onOpenContact }) {
             </div>
           </div>
 
-          {/* Privacy Policy, Terms of Service & User Data Deletion in Middle-Right */}
-          <div className="flex flex-wrap items-center gap-5 sm:gap-8 text-xs sm:text-[13px] text-slate-400 font-medium md:mb-6">
-            <Link
-              to="/privacy-policy"
-              className="footer-legal-link hover:text-white transition-colors duration-200"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              to="/terms"
-              className="footer-legal-link hover:text-white transition-colors duration-200"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              to="/data-deletion"
-              className="footer-legal-link hover:text-white transition-colors duration-200"
-            >
-              User Data Deletion
-            </Link>
-          </div>
+          {/* Legal & Compliance Section: Structured in 2 rows + Copyright */}
+          <div className="flex flex-col items-start md:items-end gap-2.5 sm:gap-3 md:mb-4 lg:mb-6">
+            {/* Row 1: [Privacy Policy] [Terms of Service] */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <Link
+                to="/privacy-policy"
+                className="footer-legal-link px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                to="/terms"
+                className="footer-legal-link px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Terms of Service
+              </Link>
+            </div>
 
-          {/* White Rounded Square QR Code Badge (Exact Match to Video Screenshot) */}
-          <div
-            ref={qrRef}
-            className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl sm:rounded-3xl bg-white p-2 sm:p-2.5 flex items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform duration-300 cursor-pointer group md:mb-3"
-            title="Scan to explore ADOS on Mobile"
-          >
-            {/* Crisp High-Res Vector QR Code */}
-            <svg
-              viewBox="0 0 100 100"
-              className="w-full h-full text-slate-950 group-hover:scale-[1.02] transition-transform"
-              fill="currentColor"
-            >
-              {/* Outer Top-Left Finder */}
-              <rect x="8" y="8" width="28" height="28" rx="4" fill="black" />
-              <rect x="14" y="14" width="16" height="16" rx="2" fill="white" />
-              <rect x="18" y="18" width="8" height="8" rx="1.5" fill="black" />
+            {/* Row 2: [User Data Deletion] */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <Link
+                to="/data-deletion"
+                className="footer-legal-link px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+              >
+                User Data Deletion
+              </Link>
+            </div>
 
-              {/* Outer Top-Right Finder */}
-              <rect x="64" y="8" width="28" height="28" rx="4" fill="black" />
-              <rect x="70" y="14" width="16" height="16" rx="2" fill="white" />
-              <rect x="74" y="18" width="8" height="8" rx="1.5" fill="black" />
-
-              {/* Outer Bottom-Left Finder */}
-              <rect x="8" y="64" width="28" height="28" rx="4" fill="black" />
-              <rect x="14" y="70" width="16" height="16" rx="2" fill="white" />
-              <rect x="18" y="74" width="8" height="8" rx="1.5" fill="black" />
-
-              {/* Micro Data Matrix Dots */}
-              <rect x="42" y="12" width="6" height="6" rx="1" fill="black" />
-              <rect x="52" y="12" width="6" height="6" rx="1" fill="black" />
-              <rect x="42" y="24" width="6" height="6" rx="1" fill="black" />
-              <rect x="52" y="28" width="6" height="6" rx="1" fill="black" />
-              <rect x="42" y="38" width="6" height="6" rx="1" fill="black" />
-              <rect x="52" y="44" width="6" height="6" rx="1" fill="black" />
-
-              <rect x="12" y="44" width="6" height="6" rx="1" fill="black" />
-              <rect x="22" y="44" width="6" height="6" rx="1" fill="black" />
-              <rect x="32" y="44" width="6" height="6" rx="1" fill="black" />
-
-              <rect x="68" y="42" width="6" height="6" rx="1" fill="black" />
-              <rect x="80" y="44" width="6" height="6" rx="1" fill="black" />
-              <rect x="74" y="52" width="6" height="6" rx="1" fill="black" />
-
-              <rect x="42" y="58" width="6" height="6" rx="1" fill="black" />
-              <rect x="52" y="66" width="6" height="6" rx="1" fill="black" />
-              <rect x="42" y="76" width="6" height="6" rx="1" fill="black" />
-              <rect x="52" y="82" width="6" height="6" rx="1" fill="black" />
-
-              <rect x="66" y="68" width="6" height="6" rx="1" fill="black" />
-              <rect x="76" y="68" width="6" height="6" rx="1" fill="black" />
-              <rect x="86" y="68" width="6" height="6" rx="1" fill="black" />
-              <rect x="70" y="78" width="6" height="6" rx="1" fill="black" />
-              <rect x="82" y="80" width="6" height="6" rx="1" fill="black" />
-            </svg>
+            {/* Copyright & Attribution */}
+            <div className="flex flex-col items-start md:items-end text-[11px] sm:text-xs text-slate-500 font-normal tracking-wide mt-2 space-y-0.5">
+              <p className="footer-legal-link">
+                © {new Date().getFullYear()} IDR TECH. All rights reserved.
+              </p>
+              <p className="footer-legal-link text-slate-400 font-medium">
+                Powered by IDR TECH
+              </p>
+            </div>
           </div>
         </div>
       </div>

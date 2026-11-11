@@ -13,6 +13,7 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
+const AgentPage = lazy(() => import("./pages/AgentPage"));
 
 function PageLoader() {
   return (
@@ -176,6 +177,10 @@ export default function App() {
         <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
         <Route path="/data-deletion" element={<DataDeletionPage />} />
         <Route path="/data-deletion-instructions" element={<Navigate to="/data-deletion" replace />} />
+
+        {/* AI Agent Coming Soon Page */}
+        <Route path="/agent" element={<AgentPage />} />
+        <Route path="/ai-agent" element={<Navigate to="/agent" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
