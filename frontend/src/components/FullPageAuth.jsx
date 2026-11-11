@@ -82,8 +82,27 @@ export default function FullPageAuth({ onLoginSuccess }) {
   const GOOGLE_CLIENT_ID =
     import.meta.env?.VITE_GOOGLE_CLIENT_ID ||
     "821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com";
-  const rawApiUrl = (import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1").trim().replace(/\/+$/, "");
-  const API_BASE = rawApiUrl.endsWith("/api/v1") ? rawApiUrl : `${rawApiUrl}/api/v1`;
+  const isProd =
+    typeof window !== "undefined" &&
+    !window.location.hostname.includes("localhost") &&
+    !window.location.hostname.includes("127.0.0.1");
+
+  const defaultApiUrl = isProd
+    ? "https://adosbackend.onrender.com/api/v1"
+    : "http://localhost:5000/api/v1";
+
+  const rawApiUrl = (import.meta.env?.VITE_API_URL || defaultApiUrl)
+    .trim()
+    .replace(/\/+$/, "");
+
+  const resolvedApiUrl =
+    isProd && rawApiUrl.includes("localhost")
+      ? "https://adosbackend.onrender.com/api/v1"
+      : rawApiUrl;
+
+  const API_BASE = resolvedApiUrl.endsWith("/api/v1")
+    ? resolvedApiUrl
+    : `${resolvedApiUrl}/api/v1`;
   const API_BASE_URL = `${API_BASE}/auth`;
 
   // Initialize Google Identity Services
@@ -186,8 +205,11 @@ export default function FullPageAuth({ onLoginSuccess }) {
     sessionStorage.setItem("ados_google_auth_state", state);
 
     // In production, default to backend redirect URI which is pre-registered in Google Cloud Console
-    const isProduction = !window.location.origin.includes("localhost");
-    const backendRedirectUri = `${API_BASE_URL.replace(/\/api\/v1\/auth$/, "")}/auth`;
+    const isProduction =
+      typeof window !== "undefined" &&
+      !window.location.hostname.includes("localhost") &&
+      !window.location.hostname.includes("127.0.0.1");
+    const backendRedirectUri = "https://adosbackend.onrender.com/auth";
     const frontendRedirectUri = `${window.location.origin}/auth`;
 
     const redirectUri = preferredRedirectUri || (isProduction ? backendRedirectUri : frontendRedirectUri);

@@ -1,13 +1,26 @@
-// Normalize API base URL: ensure /api/v1 prefix is reliably present regardless of whether
-// VITE_API_URL was supplied with or without trailing slashes or the /api/v1 suffix.
-const rawApiUrl = (
-  import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1"
-)
+// Production-aware API base URL resolution:
+// If running in production (e.g. *.onrender.com), never use localhost even if .env had it.
+const isProd =
+  typeof window !== "undefined" &&
+  !window.location.hostname.includes("localhost") &&
+  !window.location.hostname.includes("127.0.0.1");
+
+const defaultApiUrl = isProd
+  ? "https://adosbackend.onrender.com/api/v1"
+  : "http://localhost:5000/api/v1";
+
+const rawApiUrl = (import.meta.env?.VITE_API_URL || defaultApiUrl)
   .trim()
   .replace(/\/+$/, "");
-const API_BASE = rawApiUrl.endsWith("/api/v1")
-  ? rawApiUrl
-  : `${rawApiUrl}/api/v1`;
+
+const resolvedApiUrl =
+  isProd && rawApiUrl.includes("localhost")
+    ? "https://adosbackend.onrender.com/api/v1"
+    : rawApiUrl;
+
+const API_BASE = resolvedApiUrl.endsWith("/api/v1")
+  ? resolvedApiUrl
+  : `${resolvedApiUrl}/api/v1`;
 
 const getHeaders = () => {
   const token = localStorage.getItem("ados_token");
