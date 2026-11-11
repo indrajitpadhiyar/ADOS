@@ -173,7 +173,33 @@ export default function FullPageAuth({ onLoginSuccess }) {
     }
   };
 
-  const handleGoogleButtonClick = () => {
+  const performGoogleRedirectAuth = () => {
+    setIsLoading(true);
+    triggerToast("info", "Redirecting to Google secure authentication...");
+
+    // Generate high-entropy anti-CSRF state parameter
+    const stateBytes = new Uint8Array(24);
+    window.crypto.getRandomValues(stateBytes);
+    const state = Array.from(stateBytes, (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("");
+    sessionStorage.setItem("ados_google_auth_state", state);
+
+    // Full-browser redirect to Google OpenID Connect endpoint for user sign-in
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth`);
+    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+      GOOGLE_CLIENT_ID,
+    )}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
+      state,
+    )}&nonce=${Date.now()}`;
+    window.location.assign(oauthUrl);
+  };
+
+  const handleGoogleButtonClick = (forceRedirect = false) => {
+    if (forceRedirect) {
+      return performGoogleRedirectAuth();
+    }
+
     // 1. Try modern Google Identity Services OAuth2 token client (popup flow)
     if (window.google?.accounts?.oauth2) {
       try {
@@ -182,6 +208,16 @@ export default function FullPageAuth({ onLoginSuccess }) {
           scope: "email profile openid",
           callback: async (tokenResponse) => {
             if (tokenResponse.error) {
+              if (
+                tokenResponse.error === "origin_mismatch" ||
+                tokenResponse.error === "access_denied"
+              ) {
+                triggerToast(
+                  "info",
+                  "Origin mismatch detected in popup. Switching to direct sign-in...",
+                );
+                return performGoogleRedirectAuth();
+              }
               if (tokenResponse.error !== "popup_closed_by_user") {
                 triggerToast(
                   "error",
@@ -248,25 +284,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
     }
 
     // 2. Fallback to full-browser redirect
-    setIsLoading(true);
-    triggerToast("info", "Redirecting to Google secure authentication...");
-
-    // Generate high-entropy anti-CSRF state parameter
-    const stateBytes = new Uint8Array(24);
-    window.crypto.getRandomValues(stateBytes);
-    const state = Array.from(stateBytes, (b) =>
-      b.toString(16).padStart(2, "0"),
-    ).join("");
-    sessionStorage.setItem("ados_google_auth_state", state);
-
-    // Full-browser redirect to Google OpenID Connect endpoint for user sign-in
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth`);
-    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-      GOOGLE_CLIENT_ID,
-    )}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
-      state,
-    )}&nonce=${Date.now()}`;
-    window.location.assign(oauthUrl);
+    performGoogleRedirectAuth();
   };
 
   // Listen for messages from popup window
@@ -1048,6 +1066,17 @@ export default function FullPageAuth({ onLoginSuccess }) {
               </svg>
               <span>Continue with Google</span>
             </motion.button>
+
+            <div className="flex items-center justify-center pt-0.5">
+              <button
+                type="button"
+                onClick={() => performGoogleRedirectAuth()}
+                disabled={isLoading}
+                className="text-[11px] text-slate-400 hover:text-slate-600 underline transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Having trouble with popups? Use direct Google sign-in
+              </button>
+            </div>
           </div>
 
           {/* Terms and Privacy Notice */}
