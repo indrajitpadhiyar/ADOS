@@ -1,7 +1,13 @@
 // Normalize API base URL: ensure /api/v1 prefix is reliably present regardless of whether
 // VITE_API_URL was supplied with or without trailing slashes or the /api/v1 suffix.
-const rawApiUrl = (import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1").trim().replace(/\/+$/, "");
-const API_BASE = rawApiUrl.endsWith("/api/v1") ? rawApiUrl : `${rawApiUrl}/api/v1`;
+const rawApiUrl = (
+  import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1"
+)
+  .trim()
+  .replace(/\/+$/, "");
+const API_BASE = rawApiUrl.endsWith("/api/v1")
+  ? rawApiUrl
+  : `${rawApiUrl}/api/v1`;
 
 const getHeaders = () => {
   const token = localStorage.getItem("ados_token");
@@ -15,7 +21,10 @@ const getHeaders = () => {
 const handleResponse = async (res) => {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const errorMsg = data.message || (data.errors && data.errors[0]?.message) || `HTTP Error ${res.status}`;
+    const errorMsg =
+      data.message ||
+      (data.errors && data.errors[0]?.message) ||
+      `HTTP Error ${res.status}`;
     throw new Error(errorMsg);
   }
   return data.data !== undefined ? data.data : data;
@@ -93,8 +102,10 @@ export const api = {
   // Ads & Campaigns
   async getAds(params = {}) {
     const query = new URLSearchParams();
-    if (params.platform && params.platform !== "all") query.append("platform", params.platform);
-    if (params.status && params.status !== "all") query.append("status", params.status);
+    if (params.platform && params.platform !== "all")
+      query.append("platform", params.platform);
+    if (params.status && params.status !== "all")
+      query.append("status", params.status);
     if (params.search) query.append("search", params.search);
 
     const qs = query.toString() ? `?${query.toString()}` : "";
@@ -377,11 +388,14 @@ export const api = {
   // Unified Analytics API
   async getAnalyticsOverview(dateRange = "LAST_30_DAYS") {
     const query = new URLSearchParams({ dateRange });
-    const res = await fetch(`${API_BASE}/analytics/overview?${query.toString()}`, {
-      method: "GET",
-      headers: getHeaders(),
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${API_BASE}/analytics/overview?${query.toString()}`,
+      {
+        method: "GET",
+        headers: getHeaders(),
+        credentials: "include",
+      },
+    );
     return handleResponse(res);
   },
 
@@ -393,11 +407,14 @@ export const api = {
     if (params.page) query.append("page", params.page);
     if (params.limit) query.append("limit", params.limit);
 
-    const res = await fetch(`${API_BASE}/analytics/campaigns?${query.toString()}`, {
-      method: "GET",
-      headers: getHeaders(),
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${API_BASE}/analytics/campaigns?${query.toString()}`,
+      {
+        method: "GET",
+        headers: getHeaders(),
+        credentials: "include",
+      },
+    );
     return handleResponse(res);
   },
 
@@ -451,4 +468,3 @@ export const api = {
 };
 
 export default api;
-
