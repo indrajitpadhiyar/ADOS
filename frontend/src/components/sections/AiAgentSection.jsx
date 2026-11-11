@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -11,8 +12,6 @@ import {
   Bot,
   ArrowRight,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import agentImg from "../../assets/agent.png";
 import PlatformLogo from "../common/PlatformLogo";
@@ -20,12 +19,10 @@ import PlatformLogo from "../common/PlatformLogo";
 gsap.registerPlugin(ScrollTrigger);
 
 export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
+  const navigate = useNavigate();
   const containerRef = useRef(null);
   const avatarWrapperRef = useRef(null);
   const contentRef = useRef(null);
-
-  // Toggle for expanded details if user wants to see more on-page
-  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -91,7 +88,7 @@ export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
   }, []);
 
   const handleSeeMore = () => {
-    setIsExpanded((prev) => !prev);
+    navigate("/agent");
   };
 
   return (
@@ -186,11 +183,7 @@ export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
                 className="px-8 py-4 rounded-full bg-[#111113] hover:bg-black text-white font-bold text-sm sm:text-base tracking-wide transition-all duration-300 shadow-md hover:shadow-xl flex items-center gap-2.5 cursor-pointer group"
               >
                 <span>See more about the agent</span>
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
-                ) : (
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-white transition-all" />
-                )}
+                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-white transition-all" />
               </button>
 
               <button
@@ -276,63 +269,6 @@ export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
             </div>
           </div>
         </div>
-
-        {/* ================= EXPANDABLE DETAILS: TRIGGERED BY "SEE MORE ABOUT THE AGENT" ================= */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.45, ease: "easeInOut" }}
-              className="overflow-hidden mt-16 pt-12 border-t border-slate-200"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                {/* Detail Card 1 */}
-                <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
-                  <div className="w-11 h-11 rounded-2xl bg-cyan-100/80 text-cyan-800 flex items-center justify-center mb-4">
-                    <Cpu className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-2">Sub-Second Bid Automation</h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Evaluates live network auction spikes. Outbids competitors when high-intent prospects enter the funnel and suppresses spend during low-conversion hours.
-                  </p>
-                </div>
-
-                {/* Detail Card 2 */}
-                <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-11 h-11 rounded-2xl bg-orange-100/80 text-[#ff4a22] flex items-center justify-center">
-                      <Zap className="w-5 h-5" />
-                    </div>
-                    <div className="flex items-center -space-x-1.5 p-1 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
-                      <PlatformLogo platform="meta" size="xs" />
-                      <PlatformLogo platform="google" size="xs" />
-                      <PlatformLogo platform="amazon" size="xs" />
-                      <PlatformLogo platform="linkedin" size="xs" />
-                      <PlatformLogo platform="youtube" size="xs" />
-                    </div>
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-2">Cross-Channel Liquidity Engine</h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Breaks siloed budgets. Spend dynamically flows between Meta, Google, Amazon, LinkedIn, and YouTube depending on real-time CPA performance.
-                  </p>
-                </div>
-
-                {/* Detail Card 3 */}
-                <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
-                  <div className="w-11 h-11 rounded-2xl bg-purple-100/80 text-purple-700 flex items-center justify-center mb-4">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-2">Auto-Creative Re-Hooking</h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Detects early CTR drop-off and recommends fresh hook angles, aspect ratios, and headline variants before ad sets burn out.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </section>
   );
