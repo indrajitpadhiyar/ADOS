@@ -623,11 +623,11 @@ export const AuthService = {
   /**
    * Google OAuth authentication handler
    * Supports Google Identity Services (GIS) ID Token credentials, Access Tokens, and Authorization Codes.
-   * @param {Object} payload - { credential, token, code, accessToken, idToken }
+   * @param {Object} payload - { credential, token, code, accessToken, idToken, redirectUri }
    * @param {Object} [context] - { req }
    * @returns {Promise<{ user: Object, accessToken: string, refreshToken: string }>}
    */
-  async googleAuth({ credential, token, code, accessToken, idToken }, context = {}) {
+  async googleAuth({ credential, token, code, accessToken, idToken, redirectUri }, context = {}) {
     const rawCredential = credential || token || idToken;
     let googleUser = null;
 
@@ -651,7 +651,7 @@ export const AuthService = {
       const client = new OAuth2Client(
         env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID,
         env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT,
-        "postmessage"
+        redirectUri || "postmessage"
       );
       try {
         const { tokens } = await client.getToken(code);

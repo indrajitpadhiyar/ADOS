@@ -18,6 +18,7 @@ import {
   resendVerificationSchema,
 } from "../validations/auth.validation.js";
 
+import jwt from "jsonwebtoken";
 import { GoogleAdsController } from "../controllers/googleAds.controller.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
@@ -26,13 +27,28 @@ const router = Router();
 /**
  * Public Authentication Routes
  */
-// Fallback for Google OAuth callback if redirected to the exact base URI configured in Google Cloud Console
+// Handles OAuth callback for both Google Ads and Google User Login if redirected to backend /auth
 router.get("/", (req, res, next) => {
   if (req.query.code || req.query.error) {
-    return GoogleAdsController.handleCallback(req, res, next);
+    let isGoogleAds = false;
+    if (req.query.state) {
+      try {
+        const decoded = jwt.decode(req.query.state);
+        if (decoded?.purpose === "google_ads_oauth") {
+          isGoogleAds = true;
+        }
+      } catch (e) {}
+    }
+
+    if (isGoogleAds) {
+      return GoogleAdsController.handleCallback(req, res, next);
+    }
+    return AuthController.handleGoogleLoginCallback(req, res, next);
   }
   return ApiResponse.success(res, "ADOS Authentication API operational");
 });
+
+router.get("/callback", AuthController.handleGoogleLoginCallback);
 
 router.post("/register", authLimiter, validate(registerSchema), AuthController.register);
 router.post("/login", authLimiter, validate(loginSchema), AuthController.login);

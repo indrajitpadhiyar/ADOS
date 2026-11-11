@@ -136,8 +136,8 @@ app.use("/api", apiLimiter);
 app.use((req, res, next) => {
   if (req.url.startsWith("/auth/")) {
     req.url = `/api/v1${req.url}`;
-  } else if (req.url === "/auth") {
-    req.url = "/api/v1/auth";
+  } else if (req.url === "/auth" || req.url.startsWith("/auth?")) {
+    req.url = req.url.replace(/^\/auth/, "/api/v1/auth");
   }
   next();
 });

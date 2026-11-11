@@ -173,25 +173,33 @@ export default function FullPageAuth({ onLoginSuccess }) {
     }
   };
 
-  const performGoogleRedirectAuth = () => {
+  const performGoogleRedirectAuth = (preferredRedirectUri = null) => {
     setIsLoading(true);
     triggerToast("info", "Redirecting to Google secure authentication...");
 
-    // Generate high-entropy anti-CSRF state parameter
-    const stateBytes = new Uint8Array(24);
-    window.crypto.getRandomValues(stateBytes);
-    const state = Array.from(stateBytes, (b) =>
-      b.toString(16).padStart(2, "0"),
-    ).join("");
+    // State payload contains current frontend origin and a random nonce
+    const statePayload = {
+      origin: window.location.origin,
+      t: Date.now(),
+    };
+    const state = btoa(JSON.stringify(statePayload));
     sessionStorage.setItem("ados_google_auth_state", state);
 
-    // Full-browser redirect to Google OpenID Connect endpoint for user sign-in
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth`);
+    // In production, default to backend redirect URI which is pre-registered in Google Cloud Console
+    const isProduction = !window.location.origin.includes("localhost");
+    const backendRedirectUri = `${API_BASE_URL.replace(/\/api\/v1\/auth$/, "")}/auth`;
+    const frontendRedirectUri = `${window.location.origin}/auth`;
+
+    const redirectUri = preferredRedirectUri || (isProduction ? backendRedirectUri : frontendRedirectUri);
+
     const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
       GOOGLE_CLIENT_ID,
-    )}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
+    )}&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&response_type=code&scope=openid%20email%20profile&state=${encodeURIComponent(
       state,
-    )}&nonce=${Date.now()}`;
+    )}&access_type=offline&prompt=select_account`;
+
     window.location.assign(oauthUrl);
   };
 
@@ -366,8 +374,69 @@ export default function FullPageAuth({ onLoginSuccess }) {
       }
     }
 
-    // 2. Check for Google OAuth query parameters (e.g. error redirects)
+    // 2. Check for backend OAuth redirect login token (?loginToken=...&user=...)
     const params = new URLSearchParams(window.location.search);
+    const loginToken = params.get("loginToken");
+    const rawUser = params.get("user");
+    if (loginToken) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      localStorage.setItem("ados_token", loginToken);
+      let userData = { name: "Advertiser" };
+      if (rawUser) {
+        try {
+          userData = JSON.parse(decodeURIComponent(rawUser));
+          localStorage.setItem("ados_user", JSON.stringify(userData));
+        } catch (e) {}
+      }
+      triggerToast("success", `Signed in with Google as ${userData.name || "Advertiser"}!`);
+      setTimeout(() => {
+        if (onLoginSuccess) {
+          onLoginSuccess(userData);
+        }
+      }, 200);
+      return;
+    }
+
+    // 3. Check for authorization code returned directly to frontend (?code=...)
+    const authCode = params.get("code");
+    if (authCode) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setIsLoading(true);
+      fetch(`${API_BASE_URL}/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          code: authCode,
+          redirectUri: `${window.location.origin}/auth`,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data?.accessToken) {
+            localStorage.setItem("ados_token", data.data.accessToken);
+            if (data.data.user) {
+              localStorage.setItem("ados_user", JSON.stringify(data.data.user));
+            }
+            triggerToast(
+              "success",
+              `Signed in with Google as ${data.data.user?.name || "Advertiser"}!`
+            );
+            setTimeout(() => {
+              if (onLoginSuccess) onLoginSuccess(data.data.user);
+            }, 200);
+          } else {
+            throw new Error(data.message || "Failed to complete Google authentication.");
+          }
+        })
+        .catch((err) => {
+          triggerToast("error", err.message || "Google code authentication failed.");
+        })
+        .finally(() => setIsLoading(false));
+      return;
+    }
+
+    // 4. Check for Google OAuth query parameters (e.g. error redirects)
     const searchError = params.get("error");
     const searchErrorDesc = params.get("error_description");
     if (searchError) {
@@ -379,7 +448,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
       return;
     }
 
-    // 3. Check for email verification token in search query
+    // 5. Check for email verification token in search query
     const token = params.get("verifyToken") || params.get("token");
     if (token) {
       window.history.replaceState({}, document.title, window.location.pathname);

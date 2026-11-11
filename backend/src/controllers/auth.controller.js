@@ -96,6 +96,72 @@ export const AuthController = {
   }),
 
   /**
+   * GET /api/v1/auth/callback & /api/v1/auth & /auth (Browser OAuth redirect callback)
+   * Handles server-side OAuth redirect from Google sign-in
+   */
+  handleGoogleLoginCallback: asyncHandler(async (req, res) => {
+    const code = req.query.code;
+    const error = req.query.error;
+    const rawState = req.query.state;
+
+    // Decode state to get the origin of the frontend that started the login
+    let frontendOrigin = env.APP_URL;
+    if (rawState) {
+      try {
+        const decoded = Buffer.from(rawState, "base64").toString("utf8");
+        const parsed = JSON.parse(decoded);
+        if (parsed.origin) {
+          frontendOrigin = parsed.origin;
+        }
+      } catch (e) {
+        // Fallback to default APP_URL
+      }
+    }
+
+    const redirectBase = `${frontendOrigin}/auth`;
+
+    if (error) {
+      const errorMsg = req.query.error_description || error || "Google sign-in was denied.";
+      return res.redirect(`${redirectBase}?error=${encodeURIComponent(errorMsg)}`);
+    }
+
+    if (!code) {
+      return res.redirect(`${redirectBase}?error=Missing_authorization_code`);
+    }
+
+    try {
+      const host = req.get("host");
+      const redirectUri = host.includes("localhost")
+        ? `http://localhost:${env.PORT || 5000}/auth`
+        : `https://${host}/auth`;
+
+      const result = await AuthService.googleAuth(
+        { code, redirectUri },
+        { req }
+      );
+
+      res.cookie("accessToken", result.accessToken, getCookieOptions(ACCESS_COOKIE_MAX_AGE));
+      res.cookie("refreshToken", result.refreshToken, getCookieOptions(REFRESH_COOKIE_MAX_AGE));
+
+      const userParam = encodeURIComponent(
+        JSON.stringify({
+          id: result.user._id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
+          avatar: result.user.avatar,
+        })
+      );
+
+      return res.redirect(`${redirectBase}?loginToken=${result.accessToken}&user=${userParam}`);
+    } catch (err) {
+      return res.redirect(
+        `${redirectBase}?error=${encodeURIComponent(err.message || "Authentication_failed")}`
+      );
+    }
+  }),
+
+  /**
    * POST /api/v1/auth/refresh
    */
   refreshToken: asyncHandler(async (req, res) => {
