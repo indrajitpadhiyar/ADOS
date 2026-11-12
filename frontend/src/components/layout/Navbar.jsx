@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
@@ -88,12 +89,13 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
 
         {/* Right Actions: Dark pill Contact CTA + Language Switcher + Sign In / Dashboard */}
         <div className="flex items-center gap-3.5 sm:gap-5">
-          <button
+          <Link
+            to="/contact"
             onClick={onOpenContact}
             className="relative px-6 py-2.5 rounded-full bg-[#121214] text-white text-sm font-semibold tracking-wide shadow-sm hover:bg-black hover:shadow-md active:scale-95 transition-all duration-200"
           >
             Contact
-          </button>
+          </Link>
 
           {/* Language Switcher */}
           <div className="hidden sm:flex items-center text-xs font-semibold text-slate-500 tracking-wider">

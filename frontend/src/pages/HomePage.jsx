@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LocomotiveScroll from "locomotive-scroll";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -11,11 +11,10 @@ import DeviceShowcaseSection from "../components/sections/DeviceShowcaseSection"
 import MaximizeEfficiencySection from "../components/sections/MaximizeEfficiencySection";
 import AiAgentSection from "../components/sections/AiAgentSection";
 import AboutSection from "../components/sections/AboutSection";
-import ContactModal from "../components/common/ContactModal";
 
 export default function HomePage({ user }) {
   const navigate = useNavigate();
-  const [isContactOpen, setIsContactOpen] = useState(false);
+  const handleOpenContact = () => navigate("/contact");
 
   // Initialize smooth scrolling with Locomotive Scroll (Lenis v5)
   useEffect(() => {
@@ -53,13 +52,13 @@ export default function HomePage({ user }) {
       {/* Top Navbar */}
       <Navbar
         user={user}
-        onOpenContact={() => setIsContactOpen(true)}
+        onOpenContact={handleOpenContact}
         onOpenAuth={() => navigate("/auth")}
         onOpenDashboard={() => navigate("/dashboard")}
       />
 
       {/* Page 1: Hero Section */}
-      <HeroSection onOpenContact={() => setIsContactOpen(true)} />
+      <HeroSection onOpenContact={handleOpenContact} />
 
       {/* Page 2: Omnichannel Showcase */}
       <OmnichannelShowcaseSection />
@@ -68,34 +67,28 @@ export default function HomePage({ user }) {
       <StrategicBentoSection />
 
       {/* Page 4: Device Showcase & Giant ADOS */}
-      <DeviceShowcaseSection onOpenContact={() => setIsContactOpen(true)} />
+      <DeviceShowcaseSection onOpenContact={handleOpenContact} />
 
       {/* Page 5: Maximize Efficiency */}
       <MaximizeEfficiencySection
-        onOpenContact={() => setIsContactOpen(true)}
+        onOpenContact={handleOpenContact}
         onOpenAuth={() => navigate("/auth")}
       />
 
       {/* Page 6: Autonomous AI Agent Section */}
       <AiAgentSection
-        onOpenContact={() => setIsContactOpen(true)}
+        onOpenContact={handleOpenContact}
         onOpenAuth={() => navigate("/auth")}
       />
 
       {/* Pricing / Subscription Model Section (Commented Out) */}
       {/* <AboutSection
-        onOpenContact={() => setIsContactOpen(true)}
+        onOpenContact={handleOpenContact}
         onOpenAuth={() => navigate("/auth")}
       /> */}
 
       {/* Footer */}
-      <Footer onOpenContact={() => setIsContactOpen(true)} />
-
-      {/* Contact & Demo Modal */}
-      <ContactModal
-        isOpen={isContactOpen}
-        onClose={() => setIsContactOpen(false)}
-      />
+      <Footer onOpenContact={handleOpenContact} />
     </div>
   );
 }

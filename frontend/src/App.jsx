@@ -14,6 +14,7 @@ const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
 const AgentPage = lazy(() => import("./pages/AgentPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 function PageLoader() {
   return (
@@ -181,6 +182,10 @@ export default function App() {
         {/* AI Agent Coming Soon Page */}
         <Route path="/agent" element={<AgentPage />} />
         <Route path="/ai-agent" element={<Navigate to="/agent" replace />} />
+
+        {/* Dedicated Contact Us Page */}
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

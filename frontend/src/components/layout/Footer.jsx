@@ -138,12 +138,12 @@ export default function Footer({ onOpenContact }) {
             >
               Pricing
             </a> */}
-            <button
-              onClick={onOpenContact}
-              className="footer-nav-link hover:text-white transition-colors duration-200 cursor-pointer"
+            <Link
+              to="/contact"
+              className="footer-nav-link hover:text-white transition-colors duration-200"
             >
-              Contacts
-            </button>
+              Contact
+            </Link>
           </nav>
 
           {/* Right: Giant Email Link */}
