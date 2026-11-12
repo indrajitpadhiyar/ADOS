@@ -150,10 +150,10 @@ export default function Footer({ onOpenContact }) {
           <div ref={emailRef} className="overflow-hidden">
             <a
               href="mailto:adoshub.online@gmail.com"
-              className="group inline-flex items-center text-2xl sm:text-4xl md:text-5xl lg:text-[4.2rem] font-light text-white tracking-tight hover:text-[#ff5e3a] transition-colors duration-300"
+              className="group inline-flex items-center text-xl xs:text-2xl sm:text-4xl md:text-5xl lg:text-[4.2rem] font-light text-white tracking-tight hover:text-[#ff5e3a] transition-colors duration-300 break-all sm:break-normal"
             >
               <span>adoshub.online@gmail.com</span>
-              <ArrowUpRight className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 ml-2 opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300 text-[#ff5e3a]" />
+              <ArrowUpRight className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ml-1.5 sm:ml-2 opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300 text-[#ff5e3a] shrink-0" />
             </a>
           </div>
         </div>

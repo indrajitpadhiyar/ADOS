@@ -174,14 +174,14 @@ export default function ContactPage() {
                 For sales inquiries, partnership requests, or custom agency onboarding briefs:
               </p>
 
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-xs sm:text-sm font-semibold text-slate-900 select-all truncate mr-2">
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <span className="text-xs sm:text-sm font-semibold text-slate-900 select-all truncate">
                   adoshub.online@gmail.com
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyEmail}
-                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-black hover:border-slate-300 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-black hover:border-slate-300 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
                 >
                   {copiedEmail ? (
                     <>

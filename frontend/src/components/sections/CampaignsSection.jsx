@@ -128,9 +128,9 @@ export default function CampaignsSection({ dateRange = "LAST_30_DAYS", searchQue
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         {/* Platform tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 text-xs font-semibold">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 text-xs font-semibold overflow-x-auto no-scrollbar">
           {[
             { id: "all", label: "All Platforms" },
             { id: "google", label: "Google Ads" },
@@ -142,7 +142,7 @@ export default function CampaignsSection({ dateRange = "LAST_30_DAYS", searchQue
                 setPlatformFilter(tab.id);
                 setCurrentPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                 platformFilter === tab.id
                   ? "bg-white text-blue-600 font-bold shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -154,8 +154,8 @@ export default function CampaignsSection({ dateRange = "LAST_30_DAYS", searchQue
         </div>
 
         {/* Search & Status filter */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+          <div className="relative w-full sm:w-64">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -175,7 +175,7 @@ export default function CampaignsSection({ dateRange = "LAST_30_DAYS", searchQue
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
+            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active Only</option>

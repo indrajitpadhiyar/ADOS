@@ -82,7 +82,7 @@ export default function SettingsSection({ user }) {
       </div>
 
       {/* Sub Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3 overflow-x-auto no-scrollbar">
         {[
           { id: "profile", label: "User Profile" },
           { id: "connections", label: "Connected Ad Accounts" },
@@ -91,7 +91,7 @@ export default function SettingsSection({ user }) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === tab.id
                 ? "bg-[#2563eb] text-white shadow-xs"
                 : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50"

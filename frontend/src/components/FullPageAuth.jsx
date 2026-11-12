@@ -122,12 +122,13 @@ export default function FullPageAuth({ onLoginSuccess }) {
 
         if (googleBtnRef.current) {
           googleBtnRef.current.innerHTML = "";
+          const btnWidth = Math.min(320, Math.max(220, window.innerWidth - 60));
           window.google.accounts.id.renderButton(googleBtnRef.current, {
             theme: "outline",
             size: "large",
             type: "standard",
             shape: "pill",
-            width: 320,
+            width: btnWidth,
             text: mode === "signup" ? "signup_with" : "signin_with",
             logo_alignment: "left",
           });
@@ -817,7 +818,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
   };
 
   return (
-    <div className="w-screen h-screen min-h-screen overflow-hidden flex flex-col lg:flex-row bg-white font-['Outfit','Poppins','Plus_Jakarta_Sans',sans-serif] selection:bg-[#9ed84f] selection:text-[#18360d]">
+    <div className="w-full min-h-screen overflow-x-hidden flex flex-col lg:flex-row bg-white font-['Outfit','Poppins','Plus_Jakarta_Sans',sans-serif] selection:bg-[#9ed84f] selection:text-[#18360d]">
       {/* Toast Feedback */}
       <AnimatePresence>
         {toast && (
@@ -826,7 +827,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className={`fixed top-6 right-6 z-50 flex items-center gap-3.5 px-5 py-3.5 rounded-2xl shadow-2xl backdrop-blur-md border ${
+            className={`fixed top-4 sm:top-6 right-4 sm:right-6 z-50 flex items-center gap-3.5 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl shadow-2xl backdrop-blur-md border max-w-[calc(100vw-32px)] ${
               toast.type === "success"
                 ? "bg-slate-900/95 text-white border-[#9ed84f]/40"
                 : "bg-rose-950/95 text-white border-rose-500/40"
@@ -851,7 +852,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
       </AnimatePresence>
 
       {/* ================= LEFT SIDE: FULL SIZE 3D CHARACTER IMAGE ================= */}
-      <div className="relative w-full lg:w-[50%] xl:w-[48%] h-[340px] sm:h-[420px] lg:h-full overflow-hidden select-none shrink-0 flex flex-col justify-between p-6 sm:p-8 lg:p-10">
+      <div className="relative w-full lg:w-[48%] xl:w-[46%] h-48 xs:h-60 sm:h-72 lg:min-h-screen lg:h-auto overflow-hidden select-none shrink-0 flex flex-col justify-between p-4 sm:p-6 lg:p-10">
         {/* Full Size 3D Character Background Image (Full Bleed) */}
         <img
           src={characterImg}
@@ -864,19 +865,19 @@ export default function FullPageAuth({ onLoginSuccess }) {
 
         {/* Top Header Floating Controls */}
         <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-white/60 shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-white/60 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-[#1b3e21]" />
-            <span className="text-xs font-bold text-[#15341a] tracking-wide">
+            <span className="text-[11px] sm:text-xs font-bold text-[#15341a] tracking-wide">
               ADOS Workspace
             </span>
           </div>
 
           {/* Minimalist Analog Clock */}
-          <ClockWidget className="w-11 h-11 sm:w-13 sm:h-13 bg-white shadow-md border-2 border-white/80" />
+          <ClockWidget className="w-9 h-9 sm:w-11 sm:h-11 lg:w-13 lg:h-13 bg-white shadow-md border-2 border-white/80" />
         </div>
 
         {/* Bottom Tagline on Left Panel */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-white font-medium drop-shadow-md">
+        <div className="relative z-10 hidden sm:flex items-center justify-between text-xs text-white font-medium drop-shadow-md">
           <span className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             &copy; {new Date().getFullYear()} ADOS Platform
           </span>
@@ -887,7 +888,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
       </div>
 
       {/* ================= RIGHT SIDE: FULL HEIGHT WHITE AUTH CARD ================= */}
-      <div className="flex-1 h-full bg-white flex flex-col justify-between overflow-y-auto px-6 py-8 sm:px-12 md:px-16 lg:px-20 xl:px-24">
+      <div className="flex-1 w-full bg-white flex flex-col justify-between px-5 py-6 sm:px-10 md:px-14 lg:px-16 xl:px-20 overflow-y-auto">
         {/* Top Header: Quick Demo Fill Button */}
         {/* <div className="w-full max-w-[400px] mx-auto flex justify-end pb-2">
           <button
@@ -914,7 +915,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
               <img
                 src="/ados-logo.png"
                 alt="ADOS"
-                className="h-16 sm:h-20 w-auto max-w-[260px] object-contain select-none"
+                className="h-12 xs:h-14 sm:h-20 w-auto max-w-[220px] sm:max-w-[260px] object-contain select-none"
               />
             </motion.div>
           </div>
@@ -925,7 +926,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="text-3xl sm:text-4xl font-bold text-[#1a2b20] text-center tracking-normal mb-8 font-['Outfit','Poppins','Plus_Jakarta_Sans',sans-serif]"
+            className="text-2xl sm:text-4xl font-bold text-[#1a2b20] text-center tracking-normal mb-6 sm:mb-8 font-['Outfit','Poppins','Plus_Jakarta_Sans',sans-serif]"
           >
             {mode === "signup" ? "Create account" : "Welcome back"}
           </motion.h1>

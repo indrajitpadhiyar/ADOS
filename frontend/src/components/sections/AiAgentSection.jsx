@@ -227,18 +227,18 @@ export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
             </motion.div>
 
             {/* Orbiting Telemetry Badge 1: Top Right ROAS Shift */}
-            <div className="agent-float-badge absolute top-6 sm:top-10 right-0 sm:right-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-[0_15px_35px_rgba(0,0,0,0.08)] flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black shadow-xs">
-                <TrendingUp className="w-5 h-5" />
+            <div className="agent-float-badge absolute top-2 sm:top-10 right-1 sm:right-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-2.5 sm:p-4 shadow-[0_15px_35px_rgba(0,0,0,0.08)] flex items-center gap-2.5 sm:gap-3 max-w-[210px] sm:max-w-none">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black shadow-xs shrink-0">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div>
                 <div className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
                   +38.4% ROAS
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
                     Auto
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-600 flex items-center gap-1.5 mt-1">
+                <div className="text-[10px] sm:text-[11px] text-slate-600 flex items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
                   <span>Shifted</span>
                   <PlatformLogo platform="meta" size="xs" />
                   <span className="text-slate-400">➔</span>
@@ -249,21 +249,21 @@ export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
             </div>
 
             {/* Orbiting Telemetry Badge 2: Bottom Left Creative Fatigue */}
-            <div className="agent-float-badge absolute bottom-6 sm:bottom-10 left-0 sm:left-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-[0_15px_35px_rgba(0,0,0,0.08)] flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#ff4a22] flex items-center justify-center font-black shadow-xs">
-                <ShieldCheck className="w-5 h-5" />
+            <div className="agent-float-badge absolute bottom-2 sm:bottom-10 left-1 sm:left-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-2.5 sm:p-4 shadow-[0_15px_35px_rgba(0,0,0,0.08)] flex items-center gap-2.5 sm:gap-3 max-w-[210px] sm:max-w-none">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-orange-50 text-[#ff4a22] flex items-center justify-center font-black shadow-xs shrink-0">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div>
                 <div className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
                   Fatigue Guard
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 </div>
-                <div className="text-[11px] text-slate-500">Paused 4 Decayed Creatives</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-500">Paused 4 Decayed Creatives</div>
               </div>
             </div>
 
-            {/* Orbiting Telemetry Badge 3: Top Left Status Pulse */}
-            <div className="agent-float-badge absolute top-16 sm:top-20 left-0 sm:-left-4 z-20 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-3.5 py-1.5 shadow-sm flex items-center gap-2">
+            {/* Orbiting Telemetry Badge 3: Top Left Status Pulse (Hidden on tiny screens to avoid crowding) */}
+            <div className="agent-float-badge hidden md:flex absolute top-16 sm:top-20 left-0 sm:-left-4 z-20 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-3.5 py-1.5 shadow-sm items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-[11px] font-bold text-slate-700">14ms Inference Latency</span>
             </div>

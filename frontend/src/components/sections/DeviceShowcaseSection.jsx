@@ -145,11 +145,11 @@ export default function DeviceShowcaseSection() {
           </div>
 
           {/* ================= RIGHT COLUMN: STATIC PHONE & TABLET WITH ADOS BEHIND PHONE ================= */}
-          <div className="lg:col-span-7 xl:col-span-8 relative flex items-center justify-end min-h-[640px] sm:min-h-[720px] lg:min-h-[780px] xl:min-h-[820px] overflow-visible">
+          <div className="lg:col-span-7 xl:col-span-8 relative flex items-center justify-center lg:justify-end min-h-[500px] xs:min-h-[560px] sm:min-h-[660px] lg:min-h-[780px] xl:min-h-[820px] overflow-hidden lg:overflow-visible">
             {/* ================= GIANT 'ADOS' BEHIND THE PHONE (LIGHT COLOR, LETTER-BY-LETTER DOWN-TO-TOP) ================= */}
             <div
               ref={bigBrandRef}
-              className="absolute -bottom-4 sm:-bottom-8 lg:-bottom-10 left-[-4%] sm:left-[0%] lg:left-[-14%] xl:left-[-10%] z-10 select-none pointer-events-none"
+              className="absolute -bottom-2 sm:-bottom-8 lg:-bottom-10 left-0 sm:left-[0%] lg:left-[-14%] xl:left-[-10%] z-10 select-none pointer-events-none"
             >
               <div className="flex items-center gap-1 sm:gap-2.5 md:gap-4 tracking-tighter">
                 {["A", "D", "O", "S"].map((char, i) => (
@@ -158,7 +158,7 @@ export default function DeviceShowcaseSection() {
                     className="inline-block overflow-hidden py-1"
                     style={{ verticalAlign: "bottom" }}
                   >
-                    <span className="ados-letter inline-block text-[7.5rem] sm:text-[10rem] md:text-[12.5rem] lg:text-[14.5rem] xl:text-[17rem] font-black text-[#ff7043]/50 sm:text-[#ff7043]/55 lg:text-[#ff7043]/60 leading-none tracking-tighter will-change-transform">
+                    <span className="ados-letter inline-block text-[5rem] xs:text-[7.5rem] sm:text-[10rem] md:text-[12.5rem] lg:text-[14.5rem] xl:text-[17rem] font-black text-[#ff7043]/50 sm:text-[#ff7043]/55 lg:text-[#ff7043]/60 leading-none tracking-tighter will-change-transform">
                       {char}
                     </span>
                   </span>
@@ -169,7 +169,7 @@ export default function DeviceShowcaseSection() {
             {/* ================= TABLET MOCKUP (STATIC, 80% VISIBLE, SHIFTED RIGHT) ================= */}
             <div
               ref={tabletRef}
-              className="w-full max-w-[760px] lg:max-w-[840px] xl:max-w-[940px] 2xl:max-w-[1020px] bg-[#111113] rounded-[2.6rem] p-3 sm:p-4 shadow-[0_35px_90px_-20px_rgba(0,0,0,0.32)] border-[4.5px] border-[#18191d] relative z-10 -translate-y-6 sm:-translate-y-10 lg:-translate-y-12 translate-x-8 sm:translate-x-16 lg:translate-x-24 xl:translate-x-32"
+              className="w-full max-w-[620px] sm:max-w-[760px] lg:max-w-[840px] xl:max-w-[940px] 2xl:max-w-[1020px] bg-[#111113] rounded-[2rem] sm:rounded-[2.6rem] p-2.5 sm:p-4 shadow-[0_35px_90px_-20px_rgba(0,0,0,0.32)] border-[3px] sm:border-[4.5px] border-[#18191d] relative z-10 -translate-y-4 sm:-translate-y-10 lg:-translate-y-12 translate-x-0 sm:translate-x-6 lg:translate-x-24 xl:translate-x-32"
             >
               {/* Tablet Screen Surface */}
               <div className="bg-[#fcfdfd] rounded-[2.1rem] overflow-hidden text-slate-900 shadow-inner">
@@ -327,7 +327,7 @@ export default function DeviceShowcaseSection() {
             {/* ================= PHONE MOCKUP (STATIC, IN FRONT OF ADOS, SLIM BEZEL) ================= */}
             <div
               ref={phoneRef}
-              className="absolute left-2 sm:left-6 lg:-left-2 xl:left-4 top-1/2 -translate-y-[45%] w-[290px] sm:w-[325px] xl:w-[345px] h-[610px] sm:h-[660px] xl:h-[690px] bg-[#111113] rounded-[2.6rem] sm:rounded-[2.9rem] p-2 shadow-[0_45px_100px_-20px_rgba(0,0,0,0.45)] border-[2.5px] border-[#22242a] z-20 flex flex-col justify-between"
+              className="absolute left-1 xs:left-3 sm:left-6 lg:-left-2 xl:left-4 top-1/2 -translate-y-[45%] w-[250px] xs:w-[285px] sm:w-[325px] xl:w-[345px] h-[520px] xs:h-[590px] sm:h-[660px] xl:h-[690px] bg-[#111113] rounded-[2.2rem] xs:rounded-[2.6rem] sm:rounded-[2.9rem] p-1.5 sm:p-2 shadow-[0_45px_100px_-20px_rgba(0,0,0,0.45)] border-[2.5px] border-[#22242a] z-20 flex flex-col justify-between"
             >
               {/* Dynamic Island Notch (Ultra-Slim) */}
               <div className="w-22 h-3.5 bg-black rounded-full mx-auto mb-1 flex items-center justify-end pr-2.5 shrink-0">

@@ -121,4 +121,21 @@
 
 .ai-aura-glow {
   animation: aiAuraGlow 4s ease-in-out infinite;
-}
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Smooth momentum scrolling on mobile iOS/Android */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+

@@ -7,6 +7,7 @@ import {
   BarChart2,
   Settings,
   Sparkles,
+  X,
 } from "lucide-react";
 
 export default function DashboardSidebar({
@@ -72,7 +73,7 @@ export default function DashboardSidebar({
     <div className="flex flex-col h-full bg-white border-r border-slate-200/80 font-['Plus_Jakarta_Sans',sans-serif] select-none justify-between">
       <div>
         {/* BRAND HEADER */}
-        <div className="p-6 pb-6 flex items-center justify-between">
+        <div className="p-5 sm:p-6 pb-5 flex items-center justify-between">
           <div
             onClick={onBackToWebsite}
             className="flex items-center cursor-pointer group transition-all"
@@ -80,9 +81,18 @@ export default function DashboardSidebar({
             <img
               src="/ados-logo.png"
               alt="ADOS Logo"
-              className="h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 select-none"
+              className="h-8 sm:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 select-none"
             />
           </div>
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="lg:hidden p-1.5 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              aria-label="Close navigation"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* NAVIGATION LINKS */}

@@ -125,10 +125,10 @@ export default function AgentPage() {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3, ease: "backOut" }}
-            className="absolute -top-3 -right-4 sm:top-2 sm:-right-10 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl px-3.5 py-2.5 shadow-[0_12px_30px_rgba(0,0,0,0.06)] flex items-center gap-2.5"
+            className="absolute -top-2 right-0 sm:top-2 sm:-right-10 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl px-3 sm:px-3.5 py-2 sm:py-2.5 shadow-[0_12px_30px_rgba(0,0,0,0.06)] flex items-center gap-2 sm:gap-2.5 max-w-[190px] sm:max-w-none"
           >
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <TrendingUp className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div className="text-left">
               <div className="text-xs font-extrabold text-slate-900 leading-tight">+38.4% ROAS</div>
@@ -141,10 +141,10 @@ export default function AgentPage() {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.45, ease: "backOut" }}
-            className="absolute -bottom-3 -left-4 sm:bottom-4 sm:-left-10 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl px-3.5 py-2.5 shadow-[0_12px_30px_rgba(0,0,0,0.06)] flex items-center gap-2.5"
+            className="absolute -bottom-2 left-0 sm:bottom-4 sm:-left-10 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl px-3 sm:px-3.5 py-2 sm:py-2.5 shadow-[0_12px_30px_rgba(0,0,0,0.06)] flex items-center gap-2 sm:gap-2.5 max-w-[190px] sm:max-w-none"
           >
-            <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#ff4a22] flex items-center justify-center font-bold">
-              <ShieldCheck className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-50 text-[#ff4a22] flex items-center justify-center font-bold shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div className="text-left">
               <div className="text-xs font-extrabold text-slate-900 leading-tight">Fatigue Guard</div>

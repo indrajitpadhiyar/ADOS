@@ -127,14 +127,14 @@ export default function OmnichannelShowcaseSection() {
           className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto select-none"
         >
           {/* Line 1: [⚡] [📈] Advertising */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-5 text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] leading-[1.12]">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5 text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] leading-[1.12]">
             {/* Round Icon 1: Soft grey badge with lightning */}
             <div className="inline-block overflow-hidden align-middle">
               <span
                 ref={badge1Ref}
-                className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-slate-100 text-amber-500 shadow-sm border border-slate-200/80 transform hover:scale-110 transition-transform cursor-pointer will-change-transform"
+                className="inline-flex items-center justify-center w-9 h-9 xs:w-11 xs:h-11 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-slate-100 text-amber-500 shadow-sm border border-slate-200/80 transform hover:scale-110 transition-transform cursor-pointer will-change-transform"
               >
-                <Zap className="w-6 h-6 sm:w-9 sm:h-9 fill-amber-400" />
+                <Zap className="w-4.5 h-4.5 xs:w-6 xs:h-6 sm:w-9 sm:h-9 fill-amber-400" />
               </span>
             </div>
 
@@ -142,9 +142,9 @@ export default function OmnichannelShowcaseSection() {
             <div className="inline-block overflow-hidden align-middle">
               <span
                 ref={badge2Ref}
-                className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-[#ff4a22] text-white shadow-md transform hover:scale-110 transition-transform cursor-pointer will-change-transform"
+                className="inline-flex items-center justify-center w-9 h-9 xs:w-11 xs:h-11 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-[#ff4a22] text-white shadow-md transform hover:scale-110 transition-transform cursor-pointer will-change-transform"
               >
-                <TrendingUp className="w-6 h-6 sm:w-9 sm:h-9" />
+                <TrendingUp className="w-4.5 h-4.5 xs:w-6 xs:h-6 sm:w-9 sm:h-9" />
               </span>
             </div>
 
@@ -152,23 +152,23 @@ export default function OmnichannelShowcaseSection() {
           </div>
 
           {/* Line 2: that helps you */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] leading-[1.12] mt-2 sm:mt-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] leading-[1.12] mt-2 sm:mt-4">
             <AnimatedWord word="that" />
             <AnimatedWord word="helps" />
             <AnimatedWord word="you" />
           </div>
 
           {/* Line 3: shape [🟡] the future */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-5 text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] leading-[1.12] mt-2 sm:mt-4">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5 text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] leading-[1.12] mt-2 sm:mt-4">
             <AnimatedWord word="shape" />
 
             {/* Round Icon 3: Golden yellow badge with bar chart */}
             <div className="inline-block overflow-hidden align-middle">
               <span
                 ref={badge3Ref}
-                className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-[#ffca28] text-slate-900 shadow-md transform hover:scale-110 transition-transform cursor-pointer will-change-transform"
+                className="inline-flex items-center justify-center w-9 h-9 xs:w-11 xs:h-11 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-[#ffca28] text-slate-900 shadow-md transform hover:scale-110 transition-transform cursor-pointer will-change-transform"
               >
-                <BarChart2 className="w-6 h-6 sm:w-9 sm:h-9" />
+                <BarChart2 className="w-4.5 h-4.5 xs:w-6 xs:h-6 sm:w-9 sm:h-9" />
               </span>
             </div>
 

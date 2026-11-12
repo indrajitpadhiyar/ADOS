@@ -102,12 +102,12 @@ export default function HeroSection({ onOpenContact }) {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.85, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center w-full"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[7.25rem] font-bold text-[#111113] tracking-[-0.04em] leading-[1.02] sm:leading-[1] select-none">
+          <h1 className="text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-[7.25rem] font-bold text-[#111113] tracking-[-0.04em] leading-[1.05] sm:leading-[1] select-none break-words text-center">
             Advertising
           </h1>
-          <span className="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] mt-1 sm:mt-2">
+          <span className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-[#111113] tracking-[-0.035em] mt-1 sm:mt-2 text-center">
             with AI
           </span>
         </motion.div>
@@ -117,7 +117,7 @@ export default function HeroSection({ onOpenContact }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 sm:mt-8 max-w-xl sm:max-w-2xl text-sm sm:text-base md:text-[17px] text-slate-700 leading-relaxed font-normal"
+          className="mt-5 sm:mt-8 max-w-xl sm:max-w-2xl text-xs sm:text-base md:text-[17px] text-slate-700 leading-relaxed font-normal px-2 sm:px-0"
         >
           Tailored digital solutions for high-growth modern brands. Create one ad
           creative and seamlessly launch, optimize, and scale campaigns across Meta,
@@ -129,11 +129,11 @@ export default function HeroSection({ onOpenContact }) {
           initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-7 sm:mt-9 flex items-center gap-3.5"
+          className="mt-6 sm:mt-9 flex flex-col xs:flex-row items-center justify-center gap-3 sm:gap-3.5 w-full xs:w-auto"
         >
           <button
             onClick={onOpenContact}
-            className="group relative px-9 py-3 sm:py-3.5 rounded-full bg-[#111113] text-white text-sm sm:text-[15px] font-semibold tracking-wide shadow-md hover:bg-black hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-2 cursor-pointer"
+            className="w-full xs:w-auto justify-center group relative px-8 sm:px-9 py-3 sm:py-3.5 rounded-full bg-[#111113] text-white text-sm sm:text-[15px] font-semibold tracking-wide shadow-md hover:bg-black hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-2 cursor-pointer"
           >
             <span>Contact</span>
             <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
@@ -141,7 +141,7 @@ export default function HeroSection({ onOpenContact }) {
 
           <a
             href="#interactive-demo"
-            className="px-6 py-3 sm:py-3.5 rounded-full bg-white/80 hover:bg-white text-slate-800 text-sm sm:text-[15px] font-semibold border border-slate-200/90 shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2"
+            className="w-full xs:w-auto justify-center px-6 py-3 sm:py-3.5 rounded-full bg-white/80 hover:bg-white text-slate-800 text-sm sm:text-[15px] font-semibold border border-slate-200/90 shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2"
           >
             <span>Try Simulator</span>
           </a>
