@@ -10,6 +10,7 @@ import { mongoSanitize } from "./middlewares/mongoSanitize.middleware.js";
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import apiRouter from "./routes/index.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -156,8 +157,9 @@ app.use((req, res, next) => {
 });
 
 /**
- * 9. Mount Versioned Application Routes
+ * 9. Mount Versioned Application Routes & Direct Legacy Callbacks
  */
+app.use("/auth", authRoutes);
 app.use("/api/v1", apiRouter);
 
 /**

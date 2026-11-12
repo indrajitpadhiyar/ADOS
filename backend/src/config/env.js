@@ -28,11 +28,11 @@ const envSchema = z.object({
   GOOGLE_ADS_CLINT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_ID || ""),
   GOOGLE_ADS_CLINT_SCRIPT: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
   GOOGLE_ADS_REDIRECT_URI: z.string().default(
-    (process.env.NODE_ENV === "production" && process.env.GOOGLE_ADS_REDIRECT_URI?.includes("localhost"))
-      ? "https://adosbackend.onrender.com/api/v1/google-ads/callback"
+    (process.env.NODE_ENV === "production" && (process.env.GOOGLE_ADS_REDIRECT_URI?.includes("localhost") || !process.env.GOOGLE_ADS_REDIRECT_URI))
+      ? "https://adosbackend.onrender.com/auth"
       : (process.env.GOOGLE_ADS_REDIRECT_URI ||
         (process.env.NODE_ENV === "production"
-          ? "https://adosbackend.onrender.com/api/v1/google-ads/callback"
+          ? "https://adosbackend.onrender.com/auth"
           : "http://localhost:5000/api/v1/google-ads/callback"))
   ),
   GOOGLE_ADS_DEVELOPER_TOKEN: z.string().optional().default(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ""),

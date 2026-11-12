@@ -34,7 +34,7 @@ export class GoogleAdsService {
   static resolveRedirectUri(customUri = null) {
     let uri = customUri || env.GOOGLE_ADS_REDIRECT_URI;
     if (env.NODE_ENV === "production" && uri.includes("localhost")) {
-      uri = "https://adosbackend.onrender.com/api/v1/google-ads/callback";
+      uri = "https://adosbackend.onrender.com/auth";
     }
     return uri;
   }
