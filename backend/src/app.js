@@ -33,6 +33,7 @@ app.use(
         scriptSrc: ["'self'"],
       },
     },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     crossOriginEmbedderPolicy: false,
     frameguard: { action: "deny" },
     hsts:
@@ -62,6 +63,10 @@ const allowedOrigins = [
   ...configuredOrigins,
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "https://adoshub.online",
+  "https://www.adoshub.online",
+  "http://adoshub.online",
+  "http://www.adoshub.online",
   "https://ados-44jf.onrender.com",
   "https://ados-4hxi.onrender.com",
   "https://idrtech.in",
@@ -78,10 +83,18 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      // Allow any official Render deployment subdomains (e.g. ados-4hxi.onrender.com)
+      // Allow any official Render deployment subdomains (e.g. ados-4hxi.onrender.com) and custom domains
       try {
         const hostname = new URL(origin).hostname;
-        if (hostname.endsWith(".onrender.com") || hostname === "idrtech.in" || hostname === "www.idrtech.in") {
+        if (
+          hostname.endsWith(".onrender.com") ||
+          hostname === "adoshub.online" ||
+          hostname === "www.adoshub.online" ||
+          hostname.endsWith(".adoshub.online") ||
+          hostname === "idrtech.in" ||
+          hostname === "www.idrtech.in" ||
+          hostname.endsWith(".idrtech.in")
+        ) {
           return callback(null, true);
         }
       } catch {
