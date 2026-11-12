@@ -11,7 +11,7 @@ const oauthStateSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
     platform: {
@@ -19,6 +19,10 @@ const oauthStateSchema = new mongoose.Schema(
       required: true,
       default: "meta",
       index: true,
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
     expiresAt: {
       type: Date,

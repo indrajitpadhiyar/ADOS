@@ -27,6 +27,11 @@ const envSchema = z.object({
   EMAIL_VERIFICATION_EXPIRES_MINUTES: z.coerce.number().default(60),
   GOOGLE_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_ADS_CLIENT_ID || process.env.GOOGLE_ADS_CLINT_ID || "821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com"),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
+  GOOGLE_CALLBACK_URL: z.string().default(
+    (process.env.NODE_ENV === "production" && (!process.env.GOOGLE_CALLBACK_URL || process.env.GOOGLE_CALLBACK_URL.includes("localhost")))
+      ? "https://adosbackend.onrender.com/auth"
+      : (process.env.GOOGLE_CALLBACK_URL || (process.env.NODE_ENV === "production" ? "https://adosbackend.onrender.com/auth" : "http://localhost:5000/auth"))
+  ),
   GOOGLE_ADS_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLIENT_ID || process.env.GOOGLE_ADS_CLINT_ID || process.env.GOOGLE_CLIENT_ID || "821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com"),
   GOOGLE_ADS_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_ADS_CLINT_SCRIPT || process.env.GOOGLE_CLIENT_SECRET || ""),
   GOOGLE_ADS_CLINT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_ID || ""),
@@ -42,9 +47,19 @@ const envSchema = z.object({
   GOOGLE_ADS_DEVELOPER_TOKEN: z.string().optional().default(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ""),
   META_APP_ID: z.string().optional().default(process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || ""),
   META_APP_SECRET: z.string().optional().default(process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || ""),
-  META_GRAPH_VERSION: z.string().default(process.env.META_GRAPH_VERSION || "v19.0"),
+  META_GRAPH_VERSION: z.string().default(process.env.META_GRAPH_VERSION || process.env.META_API_VERSION || "v19.0"),
+  META_API_VERSION: z.string().default(process.env.META_API_VERSION || process.env.META_GRAPH_VERSION || "v19.0"),
   META_LOGIN_CONFIG_ID: z.string().optional().default(process.env.META_LOGIN_CONFIG_ID || ""),
-  META_REDIRECT_URI: z.string().default(process.env.META_REDIRECT_URI || "http://localhost:5000/api/v1/meta/callback"),
+  META_CALLBACK_URL: z.string().default(
+    (process.env.NODE_ENV === "production" && (!process.env.META_CALLBACK_URL || process.env.META_CALLBACK_URL.includes("localhost")))
+      ? "https://adosbackend.onrender.com/api/v1/meta/callback"
+      : (process.env.META_CALLBACK_URL || process.env.META_REDIRECT_URI || (process.env.NODE_ENV === "production" ? "https://adosbackend.onrender.com/api/v1/meta/callback" : "http://localhost:5000/api/v1/meta/callback"))
+  ),
+  META_REDIRECT_URI: z.string().default(
+    (process.env.NODE_ENV === "production" && (!process.env.META_REDIRECT_URI || process.env.META_REDIRECT_URI.includes("localhost")))
+      ? "https://adosbackend.onrender.com/api/v1/meta/callback"
+      : (process.env.META_REDIRECT_URI || process.env.META_CALLBACK_URL || (process.env.NODE_ENV === "production" ? "https://adosbackend.onrender.com/api/v1/meta/callback" : "http://localhost:5000/api/v1/meta/callback"))
+  ),
   ENCRYPTION_KEY: z.string().optional().default(process.env.ENCRYPTION_KEY || ""),
   HF_TOKEN: z.string().optional().default(process.env.HF_TOKEN || ""),
   AI_IMAGE_PROVIDER: z.enum(["huggingface", "pollinations"]).default((process.env.AI_IMAGE_PROVIDER === "huggingface" || process.env.HF_TOKEN) ? "huggingface" : "pollinations"),

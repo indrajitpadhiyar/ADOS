@@ -659,7 +659,7 @@ export const AuthService = {
       const client = new OAuth2Client(
         env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID,
         env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT,
-        redirectUri || "postmessage"
+        redirectUri || env.GOOGLE_CALLBACK_URL || "postmessage"
       );
       try {
         const { tokens } = await client.getToken(code);

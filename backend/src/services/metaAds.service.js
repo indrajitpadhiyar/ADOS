@@ -54,8 +54,9 @@ export class MetaAdsService {
     });
 
     const authUrl = new URL(`https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`);
+    const callbackUri = env.META_CALLBACK_URL || env.META_REDIRECT_URI;
     authUrl.searchParams.set("client_id", env.META_APP_ID);
-    authUrl.searchParams.set("redirect_uri", env.META_REDIRECT_URI);
+    authUrl.searchParams.set("redirect_uri", callbackUri);
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("response_type", "code");
 
@@ -63,8 +64,8 @@ export class MetaAdsService {
       // Official Meta Login for Business configuration
       authUrl.searchParams.set("config_id", env.META_LOGIN_CONFIG_ID);
     } else {
-      // Direct scope: ads_read for pure analytics (no ads_management)
-      authUrl.searchParams.set("scope", "ads_read");
+      // Direct scopes for full read & campaign management insights
+      authUrl.searchParams.set("scope", "ads_read,read_insights,ads_management");
     }
 
     return {
@@ -107,10 +108,11 @@ export class MetaAdsService {
     }
 
     // 1. Exchange authorization code for user access token
+    const callbackUri = env.META_CALLBACK_URL || env.META_REDIRECT_URI;
     const tokenUrl = new URL(`${GRAPH_API_BASE}/oauth/access_token`);
     tokenUrl.searchParams.set("client_id", env.META_APP_ID);
     tokenUrl.searchParams.set("client_secret", env.META_APP_SECRET);
-    tokenUrl.searchParams.set("redirect_uri", env.META_REDIRECT_URI);
+    tokenUrl.searchParams.set("redirect_uri", callbackUri);
     tokenUrl.searchParams.set("code", code);
 
     const tokenRes = await fetch(tokenUrl.toString());
@@ -158,21 +160,32 @@ export class MetaAdsService {
       metaUser = {};
     }
 
-    // 2. Discover all accessible ad accounts
-    const accountsUrl = `${GRAPH_API_BASE}/me/adaccounts?fields=id,account_id,name,currency,account_status,timezone_name&access_token=${accessToken}&limit=100`;
-    const accountsRes = await fetch(accountsUrl);
-    const accountsData = await accountsRes.json();
+    // 2. Discover all accessible ad accounts (with pagination support)
+    const accessible = [];
+    let nextUrl = `${GRAPH_API_BASE}/me/adaccounts?fields=id,account_id,name,currency,account_status,timezone_name&access_token=${accessToken}&limit=100`;
 
-    const accessible = Array.isArray(accountsData.data)
-      ? accountsData.data.map((acc) => ({
-          id: acc.id,
-          accountId: acc.account_id || acc.id.replace("act_", ""),
-          name: acc.name || `Meta Ad Account ${acc.account_id || acc.id}`,
-          currency: acc.currency || "USD",
-          accountStatus: acc.account_status === 1 ? "ACTIVE" : acc.account_status === 2 ? "DISABLED" : "UNCONFIRMED",
-          timezoneName: acc.timezone_name || "UTC",
-        }))
-      : [];
+    while (nextUrl) {
+      try {
+        const accountsRes = await fetch(nextUrl);
+        const accountsData = await accountsRes.json();
+        if (Array.isArray(accountsData.data)) {
+          for (const acc of accountsData.data) {
+            accessible.push({
+              id: acc.id,
+              accountId: acc.account_id || acc.id.replace("act_", ""),
+              name: acc.name || `Meta Ad Account ${acc.account_id || acc.id}`,
+              currency: acc.currency || "USD",
+              accountStatus: acc.account_status === 1 ? "ACTIVE" : acc.account_status === 2 ? "DISABLED" : "UNCONFIRMED",
+              timezoneName: acc.timezone_name || "UTC",
+            });
+          }
+        }
+        nextUrl = accountsData.paging?.next || null;
+      } catch (err) {
+        console.warn("[Meta Ads] Error discovering ad accounts pagination:", err.message);
+        break;
+      }
+    }
 
     const tokenExpiry = new Date(Date.now() + expiresInSeconds * 1000);
     const encryptedToken = CryptoUtil.encrypt(accessToken);
@@ -409,6 +422,14 @@ export class MetaAdsService {
       throw ApiError.notFound("No Meta advertising accounts found for this user.");
     }
 
+    // Strict multi-tenant authorization check: reject any accounts not owned by this user
+    const userAccountIds = new Set(userConnections.map((c) => c.externalAccountId));
+    for (const targetId of normalizedTargetIds) {
+      if (!userAccountIds.has(targetId)) {
+        throw ApiError.forbidden(`Unauthorized or invalid Meta ad account ID: ${targetId}`);
+      }
+    }
+
     // Update selections in AdConnection
     const updatePromises = userConnections.map((conn) => {
       const isSelected = normalizedTargetIds.has(conn.externalAccountId);
@@ -545,6 +566,14 @@ export class MetaAdsService {
       if (!res.ok || data.error) {
         console.warn(`Meta API error for account ${actId}:`, data.error?.message);
         credential.lastError = data.error?.message || "Failed to fetch campaigns";
+
+        // Code 190 represents invalid/expired/revoked OAuth token
+        if (data.error?.code === 190) {
+          credential.status = "Expired";
+          await credential.save();
+          throw ApiError.unauthorized("Meta access token has expired or was revoked. Please reconnect your Meta account.");
+        }
+
         await credential.save();
         continue;
       }

@@ -1,29 +1,43 @@
+import crypto from "node:crypto";
 import { AuthService } from "../services/auth.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ResponseMessages } from "../constants/responseMessages.js";
+import { OAuthState } from "../models/OAuthState.model.js";
 import { env } from "../config/env.js";
 
 /**
  * Cookie security options conforming to OWASP specifications
+ * In production with separate domains (e.g. frontend on adoshub.online and backend on onrender.com),
+ * sameSite MUST be "none" with secure: true to enable legitimate cross-origin API credentials.
  */
+const isProd = env.NODE_ENV === "production";
+
 const getCookieOptions = (maxAgeMs) => ({
   httpOnly: true, // Prevents client-side JavaScript access (mitigates XSS token theft)
-  secure: env.NODE_ENV === "production", // Transmit only over HTTPS in production
-  sameSite: env.NODE_ENV === "production" ? "strict" : "lax", // Protects against CSRF
+  secure: isProd, // Transmit only over HTTPS in production
+  sameSite: isProd ? "none" : "lax", // "none" required for cross-domain API cookies in production
   path: "/",
   maxAge: maxAgeMs,
 });
 
 const getClearCookieOptions = () => ({
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: env.NODE_ENV === "production" ? "strict" : "lax",
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
   path: "/",
 });
 
-const ACCESS_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days (sliding session)
+const ACCESS_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const ALLOWED_REDIRECT_ORIGINS = [
+  "https://adoshub.online",
+  "https://www.adoshub.online",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
 
 export const AuthController = {
   /**
@@ -97,24 +111,25 @@ export const AuthController = {
 
   /**
    * GET /api/v1/auth/callback & /api/v1/auth & /auth (Browser OAuth redirect callback)
-   * Handles server-side OAuth redirect from Google sign-in
+   * Handles server-side OAuth redirect from Google sign-in securely.
+   * Never exposes raw access tokens or PII in URL query parameters.
    */
   handleGoogleLoginCallback: asyncHandler(async (req, res) => {
     const code = req.query.code;
     const error = req.query.error;
     const rawState = req.query.state;
 
-    // Decode state to get the origin of the frontend that started the login
+    // Validate origin against explicit allowlist to prevent Open Redirect attacks
     let frontendOrigin = env.APP_URL;
     if (rawState) {
       try {
         const decoded = Buffer.from(rawState, "base64").toString("utf8");
         const parsed = JSON.parse(decoded);
-        if (parsed.origin) {
+        if (parsed.origin && ALLOWED_REDIRECT_ORIGINS.includes(parsed.origin)) {
           frontendOrigin = parsed.origin;
         }
       } catch (e) {
-        // Fallback to default APP_URL
+        // Fallback to default configured APP_URL
       }
     }
 
@@ -130,35 +145,81 @@ export const AuthController = {
     }
 
     try {
-      const host = req.get("host");
-      const redirectUri = host.includes("localhost")
-        ? `http://localhost:${env.PORT || 5000}/auth`
-        : `https://${host}/auth`;
+      // Use configured, predictable redirect URI matching Google Cloud Console
+      const redirectUri = env.GOOGLE_CALLBACK_URL;
 
       const result = await AuthService.googleAuth(
         { code, redirectUri },
         { req }
       );
 
+      // Set secure HTTP-only cookies
       res.cookie("accessToken", result.accessToken, getCookieOptions(ACCESS_COOKIE_MAX_AGE));
       res.cookie("refreshToken", result.refreshToken, getCookieOptions(REFRESH_COOKIE_MAX_AGE));
 
-      const userParam = encodeURIComponent(
-        JSON.stringify({
-          id: result.user._id,
-          name: result.user.name,
-          email: result.user.email,
-          role: result.user.role,
-          avatar: result.user.avatar,
-        })
-      );
+      // Ephemeral single-use 60-second exchange code to deliver tokens securely to cross-domain frontends
+      const exchangeCode = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 60 * 1000); // 60 seconds TTL
 
-      return res.redirect(`${redirectBase}?loginToken=${result.accessToken}&user=${userParam}`);
+      await OAuthState.create({
+        state: exchangeCode,
+        platform: "google_login_exchange",
+        userId: result.user._id,
+        metadata: {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          user: result.user,
+        },
+        expiresAt,
+        used: false,
+      });
+
+      // Redirect cleanly without exposing tokens or user PII in URL
+      return res.redirect(`${redirectBase}?auth_callback=success&code=${exchangeCode}`);
     } catch (err) {
       return res.redirect(
         `${redirectBase}?error=${encodeURIComponent(err.message || "Authentication_failed")}`
       );
     }
+  }),
+
+  /**
+   * POST /api/v1/auth/exchange-token
+   * Consumes an ephemeral single-use 60-second exchange ticket from OAuth redirect.
+   * Returns tokens in JSON body and marks code as immediately used.
+   */
+  exchangeToken: asyncHandler(async (req, res) => {
+    const { code } = req.body;
+    if (!code) {
+      throw ApiError.badRequest("Exchange code is required.");
+    }
+
+    const stateRecord = await OAuthState.findOne({
+      state: code,
+      platform: "google_login_exchange",
+    });
+
+    if (!stateRecord || stateRecord.used || stateRecord.expiresAt < new Date()) {
+      throw ApiError.unauthorized("Authentication exchange code is invalid, expired, or already used.");
+    }
+
+    // Immediately mark as used to prevent replay attacks
+    stateRecord.used = true;
+    await stateRecord.save();
+
+    const { accessToken, refreshToken, user } = stateRecord.metadata || {};
+    if (!accessToken || !user) {
+      throw ApiError.internal("Failed to retrieve session from exchange code.");
+    }
+
+    res.cookie("accessToken", accessToken, getCookieOptions(ACCESS_COOKIE_MAX_AGE));
+    res.cookie("refreshToken", refreshToken, getCookieOptions(REFRESH_COOKIE_MAX_AGE));
+
+    return ApiResponse.success(res, "Authentication exchange completed successfully.", {
+      user,
+      accessToken,
+      refreshToken,
+    });
   }),
 
   /**

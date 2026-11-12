@@ -230,7 +230,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
     const frontendRedirectUri =
       typeof window !== "undefined"
         ? `${window.location.origin}/auth`
-        : "https://ados-4hxi.onrender.com/auth";
+        : "https://adoshub.online/auth";
 
     const redirectUri =
       typeof preferredRedirectUri === "string" && preferredRedirectUri
@@ -245,7 +245,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
         origin:
           typeof window !== "undefined"
             ? window.location.origin
-            : "https://ados-4hxi.onrender.com",
+            : "https://adoshub.online",
         t: Date.now(),
       };
       state = btoa(JSON.stringify(statePayload));
@@ -253,7 +253,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
         sessionStorage.setItem("ados_google_auth_state", state);
       }
     } catch {
-      state = "eyJvcmlnaW4iOiJodHRwczovL2Fkb3MtNGh4aS5vbnJlbmRlci5jb20ifQ==";
+      state = "eyJvcmlnaW4iOiJodHRwczovL2Fkb3NodWIub25saW5lIn0=";
     }
 
     return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
@@ -362,31 +362,64 @@ export default function FullPageAuth({ onLoginSuccess }) {
       }
     }
 
-    // 2. Check for backend OAuth redirect login token (?loginToken=...&user=...)
+    // 2. Check for backend OAuth redirect exchange ticket (?code=... with ?auth_callback=success)
     const params = new URLSearchParams(window.location.search);
-    const loginToken = params.get("loginToken");
-    const rawUser = params.get("user");
-    if (loginToken) {
+    const authCode = params.get("code");
+    const isAuthCallback = params.get("auth_callback") === "success";
+
+    if (authCode && isAuthCallback) {
       window.history.replaceState({}, document.title, window.location.pathname);
-      localStorage.setItem("ados_token", loginToken);
-      let userData = { name: "Advertiser" };
-      if (rawUser) {
-        try {
-          userData = JSON.parse(decodeURIComponent(rawUser));
-          localStorage.setItem("ados_user", JSON.stringify(userData));
-        } catch (e) {}
-      }
-      triggerToast("success", `Signed in with Google as ${userData.name || "Advertiser"}!`);
-      setTimeout(() => {
-        if (onLoginSuccess) {
-          onLoginSuccess(userData);
-        }
-      }, 200);
+      setIsLoading(true);
+      fetch(`${API_BASE_URL}/exchange-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ code: authCode }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.data?.accessToken && data?.data?.user) {
+            localStorage.setItem("ados_token", data.data.accessToken);
+            localStorage.setItem("ados_user", JSON.stringify(data.data.user));
+            triggerToast("success", `Signed in with Google as ${data.data.user.name || "Advertiser"}!`);
+            onLoginSuccess?.(data.data.user);
+          } else {
+            throw new Error(data?.message || "Exchange failed");
+          }
+        })
+        .catch((err) => {
+          triggerToast("error", err.message || "Failed to complete Google authentication.");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+      return;
+    }
+
+    if (isAuthCallback && !authCode) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setIsLoading(true);
+      fetch(`${API_BASE_URL}/me`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.data?.user) {
+            localStorage.setItem("ados_user", JSON.stringify(data.data.user));
+            triggerToast("success", `Signed in as ${data.data.user.name || "Advertiser"}!`);
+            onLoginSuccess?.(data.data.user);
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          setIsLoading(false);
+        });
       return;
     }
 
     // 3. Check for authorization code returned directly to frontend (?code=...)
-    const authCode = params.get("code");
     if (authCode) {
       window.history.replaceState({}, document.title, window.location.pathname);
       setIsLoading(true);

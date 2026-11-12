@@ -55,6 +55,16 @@ export const api = {
     return handleResponse(res);
   },
 
+  async exchangeToken(code) {
+    const res = await fetch(`${API_BASE}/auth/exchange-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ code }),
+    });
+    return handleResponse(res);
+  },
+
   async refreshToken() {
     const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
