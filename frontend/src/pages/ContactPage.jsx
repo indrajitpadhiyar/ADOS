@@ -25,8 +25,8 @@ export default function ContactPage() {
     email: "",
     phone: "",
     company: "",
-    monthlyAdSpend: "₹10k - ₹50k",
-    channels: ["Meta", "Google"],
+    problemType: "High CPA / Low ROAS",
+    affectedPlatform: "",
     message: "",
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -44,16 +44,15 @@ export default function ContactPage() {
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
-  const toggleChannel = (channel) => {
-    setForm((prev) => {
-      const exists = prev.channels.includes(channel);
-      return {
-        ...prev,
-        channels: exists
-          ? prev.channels.filter((c) => c !== channel)
-          : [...prev.channels, channel],
-      };
-    });
+  const handleProblemSelect = (type) => {
+    setForm((prev) => ({ ...prev, problemType: type }));
+  };
+
+  const handlePlatformSelect = (platform) => {
+    setForm((prev) => ({
+      ...prev,
+      affectedPlatform: prev.affectedPlatform === platform ? "" : platform,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -283,10 +282,10 @@ export default function ContactPage() {
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-[#111113]">
-                  Campaign Brief Received!
+                  Problem Report Received!
                 </h3>
                 <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Thank you, <span className="font-bold text-black">{form.name}</span>. An ADOS omnichannel strategist will review your brand details and contact you at <span className="font-semibold text-black">{form.email}</span> within 2 hours.
+                  Thank you, <span className="font-bold text-black">{form.name}</span>. Our support team has logged your issue (<span className="font-semibold text-black">{form.problemType}</span>) and will review your details and contact you at <span className="font-semibold text-black">{form.email}</span> within 2 hours.
                 </p>
                 <div className="pt-4">
                   <button
@@ -298,14 +297,14 @@ export default function ContactPage() {
                         email: "",
                         phone: "",
                         company: "",
-                        monthlyAdSpend: "₹10k - ₹50k",
-                        channels: ["Meta", "Google"],
+                        problemType: "High CPA / Low ROAS",
+                        affectedPlatform: "",
                         message: "",
                       });
                     }}
                     className="px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
                   >
-                    Send Another Message
+                    Submit Another Report
                   </button>
                 </div>
               </motion.div>
@@ -313,10 +312,10 @@ export default function ContactPage() {
               <>
                 <div className="mb-6 sm:mb-8">
                   <h2 className="text-xl sm:text-2xl font-extrabold text-[#111113] tracking-tight">
-                    Request a Dedicated Demo & Strategy Call
+                    Contact Support & Report an Issue
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Fill out the brief below and our team will prepare customized multi-network recommendations.
+                    Select your problem category and describe what you need assistance with. Our team will get back to you promptly.
                   </p>
                 </div>
 
@@ -380,46 +379,79 @@ export default function ContactPage() {
                     </div>
                   </div>
 
-                  {/* Monthly Ad Spend Selector */}
+                  {/* Problem Selection Section */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                      Estimated Monthly Ad Spend
-                    </label>
-                    <select
-                      value={form.monthlyAdSpend}
-                      onChange={(e) => setForm({ ...form, monthlyAdSpend: e.target.value })}
-                      className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22] focus:outline-none transition-all"
-                    >
-                      <option>₹5k - ₹10k</option>
-                      <option>₹10k - ₹50k</option>
-                      <option>₹50k - ₹250k</option>
-                      <option>₹250k - ₹1M</option>
-                      <option>₹1M+</option>
-                    </select>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Select Your Problem / Issue Type *
+                      </label>
+                      <span className="text-[11px] font-semibold text-[#ff4a22]">Required</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {[
+                        { id: "cpa_roas", label: "High CPA / Low ROAS", desc: "Ad cost spikes or poor campaign performance" },
+                        { id: "scaling", label: "Scaling & Budget Bottlenecks", desc: "Spend caps, scaling issues, or diminishing returns" },
+                        { id: "oauth_connect", label: "Ad Account Connection / OAuth", desc: "Trouble connecting Meta, Google, or other ad accounts" },
+                        { id: "tracking", label: "Pixel & Conversion Tracking", desc: "CAPI setup, attribution loss, or missing conversion signals" },
+                        { id: "automation", label: "Ad Automation & AI Routing", desc: "Automated budget allocation, rules, or agent triggers" },
+                        { id: "tech_bug", label: "Technical Bug / Platform Error", desc: "Dashboard error, sync failure, or system glitch" },
+                        { id: "billing", label: "Billing & Subscriptions", desc: "Invoicing, payment failures, or plan changes" },
+                        { id: "other", label: "Other Problem / Custom Request", desc: "General inquiry or bespoke setup assistance" },
+                      ].map((item) => {
+                        const isSelected = form.problemType === item.label;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleProblemSelect(item.label)}
+                            className={`p-3 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                              isSelected
+                                ? "bg-[#111113] text-white border-black shadow-sm ring-2 ring-[#ff4a22]/30"
+                                : "bg-white hover:bg-slate-50 text-slate-800 border-slate-200"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-xs font-bold">{item.label}</span>
+                              {isSelected ? (
+                                <span className="w-4 h-4 rounded-full bg-[#ff4a22] text-white flex items-center justify-center text-[10px] font-bold">
+                                  ✓
+                                </span>
+                              ) : (
+                                <span className="w-3.5 h-3.5 rounded-full border border-slate-300" />
+                              )}
+                            </div>
+                            <span className={`text-[10px] mt-1 line-clamp-1 ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
+                              {item.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  {/* Active Ad Channels Pill Selector */}
+                  {/* Affected Advertising Platform (Optional) */}
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                      Primary Channels You Run / Target
+                      Affected Advertising Platform (Optional)
                     </label>
                     <div className="flex flex-wrap items-center gap-2">
-                      {["Meta", "Google", "Amazon", "YouTube", "LinkedIn", "TikTok", "Pinterest"].map(
-                        (channel) => {
-                          const active = form.channels.includes(channel);
+                      {["Meta Ads", "Google Ads", "Amazon Ads", "YouTube", "TikTok Ads", "LinkedIn Ads", "All Platforms"].map(
+                        (platform) => {
+                          const active = form.affectedPlatform === platform;
                           return (
                             <button
-                              key={channel}
+                              key={platform}
                               type="button"
-                              onClick={() => toggleChannel(channel)}
+                              onClick={() => handlePlatformSelect(platform)}
                               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                                 active
-                                  ? "bg-[#111113] text-white shadow-xs"
+                                  ? "bg-[#111113] text-white shadow-xs ring-1 ring-[#ff4a22]"
                                   : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                               }`}
                             >
-                              {active && <span className="mr-1.5">✓</span>}
-                              {channel}
+                              {active && <span className="mr-1.5 text-[#ff4a22]">✓</span>}
+                              {platform}
                             </button>
                           );
                         }
@@ -427,14 +459,18 @@ export default function ContactPage() {
                     </div>
                   </div>
 
-                  {/* Message / Goals */}
+                  {/* Detailed Problem Description */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                      Campaign Goals & Specific Requirements
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                        Describe Your Problem in Detail *
+                      </label>
+                      <span className="text-[11px] text-slate-400">Be as specific as possible</span>
+                    </div>
                     <textarea
-                      rows={3}
-                      placeholder="Tell us about your current CPA targets, scaling bottlenecks, or what you'd like to achieve with ADOS..."
+                      required
+                      rows={4}
+                      placeholder="Please explain the exact problem you're encountering, relevant campaign or ad account names, error messages received, or what you need our team to resolve..."
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
                       className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ff4a22]/30 focus:border-[#ff4a22] focus:outline-none transition-all resize-none"
@@ -448,7 +484,7 @@ export default function ContactPage() {
                     className="w-full py-4 rounded-full bg-[#111113] hover:bg-black text-white font-bold text-sm tracking-wide shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60"
                   >
                     <Send className="w-4 h-4 text-[#ff4a22]" />
-                    <span>{loading ? "Sending Brief..." : "Submit Campaign Brief"}</span>
+                    <span>{loading ? "Submitting Report..." : "Submit Problem Report"}</span>
                   </button>
 
                   <p className="text-[11px] text-slate-400 text-center pt-1 font-light">
