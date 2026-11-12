@@ -209,15 +209,8 @@ export default function MaximizeEfficiencySection({ onOpenContact, onOpenAuth })
             </p>
           </div>
 
-          {/* Action Buttons (Matching Frame 4: "Request a demo" & "Start for free") */}
+          {/* Action Button: Start for free */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={onOpenContact}
-              className="px-6 sm:px-8 py-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs sm:text-sm font-bold tracking-wide transition-all cursor-pointer"
-            >
-              Request a demo
-            </button>
-
             <button
               onClick={onOpenContact}
               className="px-6 sm:px-8 py-3.5 rounded-full bg-[#ff4a22] hover:bg-[#e03a14] text-white text-xs sm:text-sm font-bold tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"

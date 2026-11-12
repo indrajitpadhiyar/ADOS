@@ -889,18 +889,6 @@ export default function FullPageAuth({ onLoginSuccess }) {
 
       {/* ================= RIGHT SIDE: FULL HEIGHT WHITE AUTH CARD ================= */}
       <div className="flex-1 w-full bg-white flex flex-col justify-between px-5 py-6 sm:px-10 md:px-14 lg:px-16 xl:px-20 overflow-y-auto">
-        {/* Top Header: Quick Demo Fill Button */}
-        {/* <div className="w-full max-w-[400px] mx-auto flex justify-end pb-2">
-          <button
-            type="button"
-            onClick={handleQuickFill}
-            className="text-[11px] font-semibold text-[#548421] hover:text-[#416817] flex items-center gap-1.5 transition-colors cursor-pointer px-3 py-1 rounded-full bg-[#f1f9e6] hover:bg-[#e6f4d3] border border-[#d6ecb7]"
-            title="Auto-fill sample credentials"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#7dbb34]" />
-            <span>Demo Fill</span>
-          </button>
-        </div> */}
 
         {/* Centered Form Area */}
         <div className="my-auto py-4 max-w-[390px] w-full mx-auto">

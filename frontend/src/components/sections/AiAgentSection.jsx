@@ -185,13 +185,6 @@ export default function AiAgentSection({ onOpenContact, onOpenAuth }) {
                 <span>See more about the agent</span>
                 <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-white transition-all" />
               </button>
-
-              <button
-                onClick={onOpenContact}
-                className="px-6 py-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm sm:text-base tracking-wide transition-all cursor-pointer"
-              >
-                Book 1-on-1 Demo
-              </button>
             </div>
           </div>
 

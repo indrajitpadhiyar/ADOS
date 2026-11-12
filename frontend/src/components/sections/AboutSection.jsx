@@ -363,15 +363,9 @@ export default function AboutSection({ onOpenContact, onOpenAuth }) {
           <div className="flex items-center gap-3">
             <button
               onClick={onOpenContact}
-              className="px-6 py-2.5 rounded-full bg-white hover:bg-slate-100 text-slate-900 border border-slate-200 text-xs sm:text-sm font-bold transition-colors cursor-pointer"
-            >
-              Have custom questions?
-            </button>
-            <button
-              onClick={onOpenContact}
               className="px-6 py-2.5 rounded-full bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-bold transition-colors cursor-pointer"
             >
-              Book 1-on-1 Demo
+              Have custom questions?
             </button>
           </div>
         </div>
