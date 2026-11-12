@@ -75,23 +75,13 @@ export default function DashboardSidebar({
         <div className="p-6 pb-6 flex items-center justify-between">
           <div
             onClick={onBackToWebsite}
-            className="flex items-center gap-3 cursor-pointer group transition-all"
+            className="flex items-center cursor-pointer group transition-all"
           >
-            <div className="relative flex items-center justify-center">
-              <img
-                src="/ados3.png"
-                alt="ADOS Logo"
-                className="h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight text-[#0f172a] leading-none">
-                ADOS
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 mt-1 tracking-wide">
-                AI Ad Platform
-              </span>
-            </div>
+            <img
+              src="/ados-logo.png"
+              alt="ADOS Logo"
+              className="h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 select-none"
+            />
           </div>
         </div>
 

@@ -113,15 +113,12 @@ export default function ContactPage() {
         </Link>
 
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
+        <Link to="/" className="flex items-center group">
           <img
-            src="/ados3.png"
+            src="/ados-logo.png"
             alt="ADOS"
-            className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105 select-none"
           />
-          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[#111113]">
-            ADOS
-          </span>
         </Link>
 
         {/* Support Online Pill */}

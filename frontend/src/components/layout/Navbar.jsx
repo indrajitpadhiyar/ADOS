@@ -13,22 +13,15 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
         {/* Brand Logo with actual user asset */}
-        <div className="flex items-center gap-3.5 group cursor-pointer">
-          <div className="relative flex items-center justify-center">
-            <img
-              src="/ados3.png"
-              alt="ADOS Logo"
-              className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-[#111113] leading-none">
-              ADOS
-            </span>
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 mt-1">
-              Ad Operating System
-            </span>
-          </div>
+        <div
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="flex items-center group cursor-pointer"
+        >
+          <img
+            src="/ados-logo.png"
+            alt="ADOS"
+            className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105 select-none"
+          />
         </div>
 
         {/* Navigation Items */}

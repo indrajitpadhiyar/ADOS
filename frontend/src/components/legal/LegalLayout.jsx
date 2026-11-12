@@ -116,7 +116,7 @@ export default function LegalLayout({
             >
               <div className="flex items-center justify-center p-1.5 rounded-lg bg-slate-50 border border-slate-200">
                 <img
-                  src="/ados3.png"
+                  src="/ados-icon.png"
                   alt="ADOS Logo"
                   className="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
                 />
@@ -431,14 +431,11 @@ export default function LegalLayout({
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-100">
             <div className="flex items-center gap-3">
               <img
-                src="/ados3.png"
+                src="/ados-logo.png"
                 alt="ADOS Logo"
                 className="h-7 w-auto object-contain"
               />
               <div className="flex flex-col">
-                <span className="font-extrabold text-sm tracking-tight text-slate-950">
-                  ADOS
-                </span>
                 <span className="text-[11px] text-slate-400">
                   IDR Tech Legal & Trust Center
                 </span>

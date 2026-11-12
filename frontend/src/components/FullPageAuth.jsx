@@ -870,7 +870,7 @@ export default function FullPageAuth({ onLoginSuccess }) {
 
         {/* Centered Form Area */}
         <div className="my-auto py-4 max-w-[390px] w-full mx-auto">
-          {/* USER ADDED ADOS LOGO FROM public/ados.png */}
+          {/* USER ADDED ADOS LOGO */}
           <div className="flex flex-col items-center mb-5">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -879,9 +879,9 @@ export default function FullPageAuth({ onLoginSuccess }) {
               className="flex justify-center"
             >
               <img
-                src="/ados3.png"
-                alt="ADOS - Built For A Better Tomorrow"
-                className="h-40 sm:h-48 w-auto max-w-[280px] object-contain select-none"
+                src="/ados-logo.png"
+                alt="ADOS"
+                className="h-16 sm:h-20 w-auto max-w-[260px] object-contain select-none"
               />
             </motion.div>
           </div>
