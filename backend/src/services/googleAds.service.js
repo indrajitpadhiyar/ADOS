@@ -34,7 +34,7 @@ export class GoogleAdsService {
   static resolveRedirectUri(customUri = null) {
     let uri = customUri || env.GOOGLE_ADS_REDIRECT_URI;
     if (env.NODE_ENV === "production" && uri.includes("localhost")) {
-      uri = "https://adosbackend.onrender.com/auth";
+      uri = "https://adosbackend.onrender.com/api/v1/google-ads/callback";
     }
     return uri;
   }
@@ -58,20 +58,22 @@ export class GoogleAdsService {
    * Generates secure OAuth authorization URL with anti-CSRF state token
    * @param {string} userId - Authenticated ADOS user ID
    * @param {string} [customRedirectUri] - Optional custom redirect URI override
+   * @param {string} [returnUrl] - Optional frontend page to redirect back to after OAuth
    * @returns {{ authUrl: string, state: string, redirectUri: string }}
    */
-  static generateAuthUrl(userId, customRedirectUri = null) {
+  static generateAuthUrl(userId, customRedirectUri = null, returnUrl = null) {
     const redirectUri = this.resolveRedirectUri(customRedirectUri);
     const oauth2Client = this.getOAuth2Client(redirectUri);
 
     console.log(`[Google Ads OAuth] Generating authorization URL with redirect_uri: "${redirectUri}"`);
 
-    // Cryptographic anti-CSRF state token tied specifically to the user ID, redirectUri, and unique nonce (expires in 15m)
+    // Cryptographic anti-CSRF state token tied specifically to the user ID, redirectUri, returnUrl, and unique nonce (expires in 15m)
     const state = jwt.sign(
       {
         userId: userId.toString(),
         purpose: "google_ads_oauth",
         redirectUri,
+        returnUrl: returnUrl || null,
         jti: crypto.randomBytes(16).toString("hex"),
         issuedAt: Date.now(),
       },

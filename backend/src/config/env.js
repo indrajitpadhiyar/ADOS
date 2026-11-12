@@ -19,7 +19,11 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().default("ADOS <onboarding@resend.dev>"),
   EMAIL_USER: z.string().optional(),
   EMAIL_PASS: z.string().optional(),
-  APP_URL: z.string().url("APP_URL must be a valid URL").default(process.env.APP_URL || (process.env.NODE_ENV === "production" ? "https://adoshub.online" : "http://localhost:5173")),
+  APP_URL: z.string().url("APP_URL must be a valid URL").default(
+    (process.env.NODE_ENV === "production" && (!process.env.APP_URL || process.env.APP_URL.includes("ados-44jf.onrender.com")))
+      ? "https://adoshub.online"
+      : (process.env.APP_URL || (process.env.NODE_ENV === "production" ? "https://adoshub.online" : "http://localhost:5173"))
+  ),
   EMAIL_VERIFICATION_EXPIRES_MINUTES: z.coerce.number().default(60),
   GOOGLE_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_ADS_CLIENT_ID || process.env.GOOGLE_ADS_CLINT_ID || "821131046800-porffpf9he7l4b7v61gfo0gs6bg7fjmu.apps.googleusercontent.com"),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
@@ -29,10 +33,10 @@ const envSchema = z.object({
   GOOGLE_ADS_CLINT_SCRIPT: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
   GOOGLE_ADS_REDIRECT_URI: z.string().default(
     (process.env.NODE_ENV === "production" && (process.env.GOOGLE_ADS_REDIRECT_URI?.includes("localhost") || !process.env.GOOGLE_ADS_REDIRECT_URI))
-      ? "https://adosbackend.onrender.com/auth"
+      ? "https://adosbackend.onrender.com/api/v1/google-ads/callback"
       : (process.env.GOOGLE_ADS_REDIRECT_URI ||
         (process.env.NODE_ENV === "production"
-          ? "https://adosbackend.onrender.com/auth"
+          ? "https://adosbackend.onrender.com/api/v1/google-ads/callback"
           : "http://localhost:5000/api/v1/google-ads/callback"))
   ),
   GOOGLE_ADS_DEVELOPER_TOKEN: z.string().optional().default(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ""),

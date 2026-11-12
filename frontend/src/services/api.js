@@ -264,8 +264,12 @@ export const api = {
     return handleResponse(res);
   },
 
-  async getGoogleAdsAuthUrl() {
-    const res = await fetch(`${API_BASE}/google-ads/auth-url`, {
+  async getGoogleAdsAuthUrl(params = {}) {
+    const query = new URLSearchParams();
+    if (params.redirectUri) query.append("redirect_uri", params.redirectUri);
+    if (params.returnUrl) query.append("return_url", params.returnUrl);
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await fetch(`${API_BASE}/google-ads/auth-url${qs}`, {
       method: "GET",
       headers: getHeaders(),
       credentials: "include",

@@ -95,7 +95,8 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   const handleConnectGoogleAds = async () => {
     try {
       setIsConnecting(true);
-      const res = await api.getGoogleAdsAuthUrl();
+      const returnUrl = typeof window !== "undefined" ? `${window.location.origin}/ad-accounts` : undefined;
+      const res = await api.getGoogleAdsAuthUrl({ returnUrl });
       if (res?.authUrl) {
         // Redirect browser to Google's consent screen
         window.location.href = res.authUrl;
