@@ -13,7 +13,8 @@ export const GoogleAdsController = {
    */
   connect: asyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const { authUrl, state } = GoogleAdsService.generateAuthUrl(userId);
+    const requestedRedirectUri = req.query.redirect_uri;
+    const { authUrl, state, redirectUri } = GoogleAdsService.generateAuthUrl(userId, requestedRedirectUri);
 
     const acceptsHtml = req.headers.accept?.includes("text/html");
     const wantsRedirect = req.query.redirect === "true" || acceptsHtml;
@@ -25,6 +26,7 @@ export const GoogleAdsController = {
     return ApiResponse.success(res, "Google Ads authorization URL generated successfully", {
       authUrl,
       state,
+      redirectUri,
     });
   }),
 
@@ -34,11 +36,13 @@ export const GoogleAdsController = {
    */
   getAuthUrl: asyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const { authUrl, state } = GoogleAdsService.generateAuthUrl(userId);
+    const requestedRedirectUri = req.query.redirect_uri;
+    const { authUrl, state, redirectUri } = GoogleAdsService.generateAuthUrl(userId, requestedRedirectUri);
 
     return ApiResponse.success(res, "Google Ads authorization URL generated successfully", {
       authUrl,
       state,
+      redirectUri,
     });
   }),
 

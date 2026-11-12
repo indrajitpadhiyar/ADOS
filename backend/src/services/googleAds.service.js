@@ -29,12 +29,23 @@ const VALID_DATE_RANGES = [
 
 export class GoogleAdsService {
   /**
+   * Helper to resolve the correct redirect URI with production localhost guards
+   */
+  static resolveRedirectUri(customUri = null) {
+    let uri = customUri || env.GOOGLE_ADS_REDIRECT_URI;
+    if (env.NODE_ENV === "production" && uri.includes("localhost")) {
+      uri = "https://adosbackend.onrender.com/api/v1/google-ads/callback";
+    }
+    return uri;
+  }
+
+  /**
    * Initialize a configured OAuth2 client
    */
-  static getOAuth2Client() {
+  static getOAuth2Client(customRedirectUri = null) {
     const clientId = env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID;
     const clientSecret = env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT;
-    const redirectUri = env.GOOGLE_ADS_REDIRECT_URI;
+    const redirectUri = this.resolveRedirectUri(customRedirectUri);
 
     if (!clientId || !clientSecret) {
       throw ApiError.internal("Google OAuth client credentials are not configured in environment.");
@@ -46,11 +57,14 @@ export class GoogleAdsService {
   /**
    * Generates secure OAuth authorization URL with anti-CSRF state token
    * @param {string} userId - Authenticated ADOS user ID
-   * @returns {{ authUrl: string, state: string }}
+   * @param {string} [customRedirectUri] - Optional custom redirect URI override
+   * @returns {{ authUrl: string, state: string, redirectUri: string }}
    */
-  static generateAuthUrl(userId) {
-    const redirectUri = env.GOOGLE_ADS_REDIRECT_URI;
-    const oauth2Client = this.getOAuth2Client();
+  static generateAuthUrl(userId, customRedirectUri = null) {
+    const redirectUri = this.resolveRedirectUri(customRedirectUri);
+    const oauth2Client = this.getOAuth2Client(redirectUri);
+
+    console.log(`[Google Ads OAuth] Generating authorization URL with redirect_uri: "${redirectUri}"`);
 
     // Cryptographic anti-CSRF state token tied specifically to the user ID, redirectUri, and unique nonce (expires in 15m)
     const state = jwt.sign(
@@ -71,9 +85,10 @@ export class GoogleAdsService {
       scope: OAUTH_SCOPES,
       state,
       include_granted_scopes: true,
+      redirect_uri: redirectUri,
     });
 
-    return { authUrl, state };
+    return { authUrl, state, redirectUri };
   }
 
   /**
@@ -106,10 +121,8 @@ export class GoogleAdsService {
     }
 
     const userId = decodedState.userId;
-    const redirectUri = decodedState.redirectUri || env.GOOGLE_ADS_REDIRECT_URI;
-    const clientId = env.GOOGLE_CLIENT_ID || env.GOOGLE_ADS_CLIENT_ID || env.GOOGLE_ADS_CLINT_ID;
-    const clientSecret = env.GOOGLE_CLIENT_SECRET || env.GOOGLE_ADS_CLIENT_SECRET || env.GOOGLE_ADS_CLINT_SCRIPT;
-    const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
+    const redirectUri = this.resolveRedirectUri(decodedState.redirectUri);
+    const oauth2Client = this.getOAuth2Client(redirectUri);
 
     // 2. Exchange authorization code for tokens
     let tokens;

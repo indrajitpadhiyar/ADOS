@@ -27,7 +27,14 @@ const envSchema = z.object({
   GOOGLE_ADS_CLIENT_SECRET: z.string().optional().default(process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_ADS_CLINT_SCRIPT || process.env.GOOGLE_CLIENT_SECRET || ""),
   GOOGLE_ADS_CLINT_ID: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_ID || ""),
   GOOGLE_ADS_CLINT_SCRIPT: z.string().optional().default(process.env.GOOGLE_ADS_CLINT_SCRIPT || ""),
-  GOOGLE_ADS_REDIRECT_URI: z.string().default(process.env.GOOGLE_ADS_REDIRECT_URI || (process.env.NODE_ENV === "production" ? "https://adosbackend.onrender.com/api/v1/google-ads/callback" : "http://localhost:5000/api/v1/google-ads/callback")),
+  GOOGLE_ADS_REDIRECT_URI: z.string().default(
+    (process.env.NODE_ENV === "production" && process.env.GOOGLE_ADS_REDIRECT_URI?.includes("localhost"))
+      ? "https://adosbackend.onrender.com/api/v1/google-ads/callback"
+      : (process.env.GOOGLE_ADS_REDIRECT_URI ||
+        (process.env.NODE_ENV === "production"
+          ? "https://adosbackend.onrender.com/api/v1/google-ads/callback"
+          : "http://localhost:5000/api/v1/google-ads/callback"))
+  ),
   GOOGLE_ADS_DEVELOPER_TOKEN: z.string().optional().default(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ""),
   META_APP_ID: z.string().optional().default(process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || ""),
   META_APP_SECRET: z.string().optional().default(process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || ""),
