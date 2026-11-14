@@ -63,9 +63,10 @@ export class MetaAdsService {
     if (env.META_LOGIN_CONFIG_ID) {
       // Official Meta Login for Business configuration
       authUrl.searchParams.set("config_id", env.META_LOGIN_CONFIG_ID);
+      authUrl.searchParams.set("override_default_response_type", "true");
     } else {
-      // Direct scopes for full read & campaign management insights
-      authUrl.searchParams.set("scope", "ads_read,read_insights,ads_management");
+      // Direct scopes for full read & campaign management insights (including public_profile for user identity)
+      authUrl.searchParams.set("scope", "public_profile,ads_read,read_insights,ads_management");
     }
 
     return {

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import LegalLayout from "../components/legal/LegalLayout";
 import { ExternalLink, ArrowRight } from "lucide-react";
 
-export default function TermsPage() {
+export default function TermsPage({ user }) {
   const tocItems = [
     { id: "acceptance-of-terms", label: "1. Acceptance of Terms" },
     { id: "about-ados", label: "2. About ADOS" },
@@ -23,6 +23,7 @@ export default function TermsPage() {
 
   return (
     <LegalLayout
+      user={user}
       title="ADOS Terms of Service"
       subtitle="These Terms of Service govern your access to and use of ADOS, an advertising management platform designed to help businesses connect, monitor and manage supported digital advertising accounts."
       category="TERMS OF SERVICE & USER AGREEMENT"

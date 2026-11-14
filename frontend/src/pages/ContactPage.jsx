@@ -19,7 +19,15 @@ import {
 } from "lucide-react";
 import PlatformLogo from "../components/common/PlatformLogo";
 
-export default function ContactPage() {
+export default function ContactPage({ user }) {
+  const currentUser = user || (() => {
+    try {
+      const stored = localStorage.getItem("ados_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  })();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -93,11 +101,11 @@ export default function ContactPage() {
       {/* ================= HEADER ================= */}
       <header className="relative z-30 max-w-7xl mx-auto w-full px-6 sm:px-10 py-6 sm:py-8 flex items-center justify-between">
         <Link
-          to="/"
+          to={currentUser ? "/dashboard" : "/"}
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-black bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs px-4 py-2 rounded-full transition-all duration-200 group"
         >
           <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 group-hover:text-black transition-all" />
-          <span>Back to Home</span>
+          <span>{currentUser ? "Back to Dashboard" : "Back to Home"}</span>
         </Link>
 
         {/* Brand Logo */}

@@ -9,7 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export default function DataDeletionPage() {
+export default function DataDeletionPage({ user }) {
   const [copiedTemplate, setCopiedTemplate] = useState(false);
   const [searchParams] = useSearchParams();
   const confirmationCode =
@@ -53,6 +53,7 @@ Thank you,
 
   return (
     <LegalLayout
+      user={user}
       title="ADOS User Data Deletion Instructions"
       subtitle="ADOS respects users' privacy and provides a process for requesting deletion of personal information and connected advertising account data."
       category="DATA REMOVAL & ACCOUNT DELETION"

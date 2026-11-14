@@ -53,11 +53,7 @@ export const MetaAdsController = {
     return ApiResponse.success(res, "Meta Ads connected successfully with access token", status);
   }),
 
-  /**
-   * GET & POST /api/v1/meta/callback & /api/v1/meta-ads/callback
-   * Handles Meta OAuth callback, validates state, exchanges authorization code,
-   * securely stores credentials, and discovers advertising accounts.
-   */
+  
   handleCallback: asyncHandler(async (req, res) => {
     const code = req.query.code || req.body?.code;
     const state = req.query.state || req.body?.state;

@@ -172,19 +172,19 @@ export default function App() {
         <Route path="/dashboard/upgrade-plan" element={<Navigate to="/dashboard" replace />} />
 
         {/* Legal & Compliance Pages */}
-        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage user={user} />} />
         <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
-        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/terms" element={<TermsPage user={user} />} />
         <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
-        <Route path="/data-deletion" element={<DataDeletionPage />} />
+        <Route path="/data-deletion" element={<DataDeletionPage user={user} />} />
         <Route path="/data-deletion-instructions" element={<Navigate to="/data-deletion" replace />} />
 
         {/* AI Agent Coming Soon Page */}
-        <Route path="/agent" element={<AgentPage />} />
+        <Route path="/agent" element={<AgentPage user={user} />} />
         <Route path="/ai-agent" element={<Navigate to="/agent" replace />} />
 
         {/* Dedicated Contact Us Page */}
-        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact" element={<ContactPage user={user} />} />
         <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
 
         {/* Catch-all redirect */}

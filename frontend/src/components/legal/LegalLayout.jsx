@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Clock,
   ArrowUp,
+  ArrowRight,
   Copy,
 } from "lucide-react";
 
@@ -23,6 +24,7 @@ export default function LegalLayout({
   effectiveDate = "November 7, 2026",
   tocItems = [],
   children,
+  user,
 }) {
   const location = useLocation();
   const [activeSection, setActiveSection] = useState("");
@@ -30,6 +32,29 @@ export default function LegalLayout({
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (user) return user;
+    try {
+      const stored = localStorage.getItem("ados_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setCurrentUser(user);
+    } else {
+      try {
+        const stored = localStorage.getItem("ados_user");
+        setCurrentUser(stored ? JSON.parse(stored) : null);
+      } catch {
+        setCurrentUser(null);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -139,11 +164,11 @@ export default function LegalLayout({
             <div className="hidden lg:block h-5 w-px bg-slate-200" />
 
             <Link
-              to="/"
+              to={currentUser ? "/dashboard" : "/"}
               className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Overview</span>
+              <span>{currentUser ? "Back to Dashboard" : "Back to Overview"}</span>
             </Link>
           </div>
 
@@ -198,12 +223,31 @@ export default function LegalLayout({
               )}
             </button>
 
-            <Link
-              to="/auth"
-              className="px-3.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors"
-            >
-              Sign In
-            </Link>
+            {currentUser ? (
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors"
+              >
+                {currentUser.avatar ? (
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.name || "User"}
+                    className="w-4 h-4 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                )}
+                <span>Dashboard</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-300" />
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                className="px-3.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
 

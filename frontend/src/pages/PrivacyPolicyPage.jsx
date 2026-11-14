@@ -10,7 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPolicyPage({ user }) {
   const tocItems = [
     { id: "introduction", label: "1. Introduction" },
     { id: "information-we-collect", label: "2. Information We Collect" },
@@ -28,6 +28,7 @@ export default function PrivacyPolicyPage() {
 
   return (
     <LegalLayout
+      user={user}
       title="ADOS Privacy Policy"
       subtitle="This Privacy Policy explains how ADOS collects, uses, stores, and protects personal information when you use our advertising management services and centralized dashboard."
       category="PRIVACY POLICY & DATA GOVERNANCE"
