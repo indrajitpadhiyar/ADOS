@@ -129,7 +129,7 @@ export default function HeroSection({ onOpenContact }) {
           initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 sm:mt-9 flex flex-col xs:flex-row items-center justify-center gap-3 sm:gap-3.5 w-full xs:w-auto"
+          className="mt-6 sm:mt-9 flex items-center justify-center w-full xs:w-auto"
         >
           <button
             onClick={onOpenContact}
@@ -138,13 +138,6 @@ export default function HeroSection({ onOpenContact }) {
             <span>Contact</span>
             <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
           </button>
-
-          <a
-            href="#interactive-demo"
-            className="w-full xs:w-auto justify-center px-6 py-3 sm:py-3.5 rounded-full bg-white/80 hover:bg-white text-slate-800 text-sm sm:text-[15px] font-semibold border border-slate-200/90 shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2"
-          >
-            <span>Try Simulator</span>
-          </a>
         </motion.div>
       </div>
 

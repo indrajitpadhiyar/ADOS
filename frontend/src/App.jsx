@@ -7,13 +7,14 @@ import PlatformsPage from "./pages/PlatformsPage";
 import ResultsPage from "./pages/ResultsPage";
 import AboutPage from "./pages/AboutPage";
 
+import DashboardPage from "./pages/DashboardPage";
+import AdAccountsPage from "./pages/AdAccountsPage";
+import CampaignsPage from "./pages/CampaignsPage";
+import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
+
 // Lazy-loaded route components for high-speed initial page loads & code splitting
 const AuthPage = lazy(() => import("./pages/AuthPage"));
-const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-const AdAccountsPage = lazy(() => import("./pages/AdAccountsPage"));
-const CampaignsPage = lazy(() => import("./pages/CampaignsPage"));
-const ReportsPage = lazy(() => import("./pages/ReportsPage"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
@@ -181,7 +182,7 @@ export default function App() {
           path="/settings"
           element={
             user ? (
-              <SettingsPage user={user} onLogout={handleLogout} />
+              <SettingsPage user={user} onUpdateUser={setUser} onLogout={handleLogout} />
             ) : (
               <Navigate to="/auth" replace />
             )

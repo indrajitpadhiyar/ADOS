@@ -9,7 +9,6 @@ import StrategicBentoSection from "../components/sections/StrategicBentoSection"
 import DeviceShowcaseSection from "../components/sections/DeviceShowcaseSection";
 import MaximizeEfficiencySection from "../components/sections/MaximizeEfficiencySection";
 import AiAgentSection from "../components/sections/AiAgentSection";
-import AboutSection from "../components/sections/AboutSection";
 
 export default function HomePage({ user }) {
   const navigate = useNavigate();
@@ -71,12 +70,6 @@ export default function HomePage({ user }) {
         onOpenContact={handleOpenContact}
         onOpenAuth={() => navigate("/auth")}
       />
-
-      {/* Pricing / Subscription Model Section (Commented Out) */}
-      {/* <AboutSection
-        onOpenContact={handleOpenContact}
-        onOpenAuth={() => navigate("/auth")}
-      /> */}
 
       {/* Footer */}
       <Footer onOpenContact={handleOpenContact} />

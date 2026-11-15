@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import agentImg from "../../assets/agent.png";
 import {
   Home,
@@ -105,18 +106,29 @@ export default function DashboardSidebar({
               <button
                 key={item.id}
                 onClick={() => handleItemClick(item.targetTab)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer group text-left ${
+                className={`relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer group text-left ${
                   isActive
-                    ? "bg-[#eff6ff] text-[#2563eb]"
+                    ? "text-[#2563eb] font-bold"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-active-tab-indicator"
+                    className="absolute inset-0 bg-[#eff6ff] rounded-xl -z-10"
+                    transition={{
+                      type: "spring",
+                      stiffness: 450,
+                      damping: 32,
+                    }}
+                  />
+                )}
                 <Icon
-                  className={`w-4 h-4 transition-colors shrink-0 ${
+                  className={`w-4 h-4 transition-colors shrink-0 relative z-10 ${
                     isActive ? "text-[#2563eb]" : "text-slate-400 group-hover:text-slate-600"
                   }`}
                 />
-                <span className="truncate">{item.label}</span>
+                <span className="truncate relative z-10">{item.label}</span>
               </button>
             );
           })}
@@ -152,10 +164,15 @@ export default function DashboardSidebar({
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:block w-60 shrink-0 h-screen sticky top-0 z-40">
+      {/* Desktop Persistent Sidebar with Smooth Sliding Entrance */}
+      <motion.aside
+        initial={{ x: -40, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        className="hidden lg:block w-60 shrink-0 h-screen sticky top-0 z-40"
+      >
         {sidebarContent}
-      </aside>
+      </motion.aside>
 
       {/* Mobile Drawer Overlay */}
       {isOpenMobile && (
