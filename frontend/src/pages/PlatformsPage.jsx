@@ -17,7 +17,6 @@ import {
   Globe,
   Check,
 } from "lucide-react";
-import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import PlatformLogo from "../components/common/PlatformLogo";
 
@@ -99,23 +98,23 @@ export default function PlatformsPage({ user }) {
     {
       id: "youtube",
       name: "YouTube Ads",
-      sub: "TrueView, Shorts & Video Action",
+      sub: "Shorts, In-Stream & Connected TV",
       logoKey: "youtube",
-      category: "High-Impact Video",
-      latency: "44ms",
+      category: "Video & High-Recall Streaming",
+      latency: "46ms",
       status: "Operational",
       description:
-        "Harness the world's largest video engine. Automatically test video hooks, end-screens, and vertical Shorts variants to drive conversions at scale.",
+        "Optimize video storytelling across Shorts and long-form. Automatically swap intro video hooks when drop-off rates surpass 60% in the first 3 seconds.",
       features: [
-        "Video Action Campaign (VAC) target CPA auto-optimization",
-        "YouTube Shorts vertical creative permutation testing",
-        "Placement exclusion lists to block low-retention channels",
-        "Cross-device attribution with Google Search and Meta",
+        "Dynamic Shorts vertical creative split-testing",
+        "Connected TV (CTV) bid capping for household reach",
+        "Audience exclusion sync from closed CRM conversions",
+        "Target CPA automated pacing for video action campaigns",
       ],
       metrics: {
         avgCpaDrop: "-29%",
-        roasGain: "+3.1x",
-        supportedPlacements: "YouTube Shorts, In-Stream, Masthead, Search",
+        roasGain: "+3.2x",
+        supportedPlacements: "YouTube Shorts, In-Stream skip/non-skip, CTV",
       },
     },
     {
@@ -123,30 +122,30 @@ export default function PlatformsPage({ user }) {
       name: "LinkedIn Ads",
       sub: "B2B Lead Gen & Account-Based Marketing",
       logoKey: "linkedin",
-      category: "B2B & High-Value Enterprise",
-      latency: "63ms",
+      category: "Enterprise & Professional B2B",
+      latency: "64ms",
       status: "Operational",
       description:
         "Direct LinkedIn Marketing Solutions API sync. Reach decision-makers by job function, seniority, and verified company lists with instant CRM lead-routing.",
       features: [
-        "Native Lead Gen Form submission auto-sync to your CRM",
-        "Account-Based Marketing (ABM) matched company list refreshes",
-        "Sponsored Content carousel and single-image testing",
-        "Cost-per-qualified-lead (CPQL) real-time bidding",
+        "Company match automated list uploads & ABM tiers",
+        "Lead Gen Form instant webhook sync to HubSpot/Salesforce",
+        "Document Ads and Thought Leader promo automated boosting",
+        "Cost-per-qualified-lead bidding algorithms",
       ],
       metrics: {
-        avgCpaDrop: "-47%",
-        roasGain: "+2.7x",
-        supportedPlacements: "LinkedIn Feed, Sponsored Messaging, Right Rail",
+        avgCpaDrop: "-48%",
+        roasGain: "+4.5x",
+        supportedPlacements: "LinkedIn Feed, Sponsored InMail, Video Ads",
       },
     },
     {
       id: "tiktok",
-      name: "TikTok & Snap Ads",
-      sub: "Short-Form Video & Gen-Z Direct Response",
-      logoKey: "snap",
-      category: "Social Video & Commerce",
-      latency: "48ms",
+      name: "TikTok & Snap",
+      sub: "Vertical Video & Gen-Z Discovery",
+      logoKey: "tiktok",
+      category: "Viral Social & Short-Form",
+      latency: "49ms",
       status: "Operational",
       description:
         "Deploy high-converting 9:16 vertical short-form creatives. Auto-detect video hook fatigue and automatically rotate in fresh hooks before CPA spikes.",
@@ -167,26 +166,18 @@ export default function PlatformsPage({ user }) {
   const current = platforms.find((p) => p.id === selectedPlatform) || platforms[0];
 
   return (
-    <div className="relative min-h-screen w-full bg-[#0d0e12] text-white font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ff4a22] selection:text-white overflow-x-hidden">
-      {/* Top Navbar */}
-      <Navbar
-        user={user}
-        onOpenContact={() => navigate("/contact")}
-        onOpenAuth={() => navigate("/auth")}
-        onOpenDashboard={() => navigate("/dashboard")}
-      />
+    <div className="relative min-h-screen w-full bg-[#fbfbfd] text-[#111113] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ff4a22] selection:text-white overflow-x-hidden">
+      {/* Ambient Lighting Accents (Light Pastel Theme) */}
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-gradient-to-b from-blue-100/60 via-indigo-100/30 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute top-[40%] -right-32 w-[550px] h-[550px] bg-emerald-100/40 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-[75%] -left-32 w-[550px] h-[550px] bg-cyan-100/40 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Ambient Lighting Accents */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-purple-600/20 via-blue-600/10 to-transparent blur-[140px] pointer-events-none" />
-      <div className="absolute top-[45%] -right-32 w-[550px] h-[550px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute top-[75%] -left-32 w-[550px] h-[550px] bg-orange-500/10 rounded-full blur-[160px] pointer-events-none" />
-
-      {/* Grid Pattern */}
+      {/* Subtle Micro-Grid */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none opacity-[0.025]"
         style={{
           backgroundImage:
-            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+            "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
           backgroundSize: "48px 48px",
         }}
       />
@@ -198,12 +189,12 @@ export default function PlatformsPage({ user }) {
           <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-xs sm:text-[13px] font-semibold text-slate-300 backdrop-blur-md shadow-inner"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200/90 text-xs sm:text-[13px] font-semibold text-slate-700 shadow-xs"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="tracking-wide uppercase text-emerald-300">5+ Supported Ad Networks</span>
-            <span className="text-white/30">•</span>
-            <span className="text-slate-400">Enterprise Native Connectors</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="tracking-wide uppercase text-emerald-700 font-bold">5+ Supported Ad Networks</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-500">Enterprise Native Connectors</span>
           </motion.div>
 
           {/* Heading */}
@@ -211,10 +202,10 @@ export default function PlatformsPage({ user }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white"
+            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-slate-900"
           >
             One Unified Cockpit for{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 bg-clip-text text-transparent">
               Every Major Ad Platform
             </span>
           </motion.h1>
@@ -224,7 +215,7 @@ export default function PlatformsPage({ user }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-base sm:text-lg lg:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed"
           >
             Break free from platform silos. Connect Meta, Google Ads, Amazon, YouTube, LinkedIn,
             and TikTok in 60 seconds. Manage multi-channel budgets with algorithmic cross-network liquidity.
@@ -239,14 +230,14 @@ export default function PlatformsPage({ user }) {
           >
             <Link
               to="/auth"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white text-[#0d0e12] font-bold text-sm tracking-wide shadow-xl hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-slate-900 text-white font-bold text-sm tracking-wide shadow-md hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer"
             >
               <span>Connect All Platforms Now</span>
-              <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to="/contact"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/[0.08] hover:bg-white/[0.12] border border-white/15 text-white font-semibold text-sm tracking-wide backdrop-blur-md transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 font-semibold text-sm tracking-wide shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Request Custom Network Connector</span>
             </Link>
@@ -265,14 +256,14 @@ export default function PlatformsPage({ user }) {
                 onClick={() => setSelectedPlatform(p.id)}
                 className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-200 cursor-pointer text-center ${
                   isSelected
-                    ? "bg-white/[0.12] border-2 border-emerald-400 shadow-lg shadow-emerald-500/10 scale-105"
-                    : "bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08]"
+                    ? "bg-white border-2 border-emerald-500 shadow-lg shadow-emerald-500/15 scale-105 ring-4 ring-emerald-500/10"
+                    : "bg-white hover:bg-slate-50 border border-slate-200/80 shadow-xs"
                 }`}
               >
                 <PlatformLogo platform={p.logoKey} size="sm" />
                 <div>
-                  <div className="text-xs sm:text-sm font-bold text-white">{p.name}</div>
-                  <div className="text-[10px] text-emerald-400 font-mono mt-0.5">● {p.latency}</div>
+                  <div className="text-xs sm:text-sm font-bold text-slate-900">{p.name}</div>
+                  <div className="text-[10px] text-emerald-600 font-mono font-semibold mt-0.5">● {p.latency}</div>
                 </div>
               </button>
             );
@@ -282,7 +273,7 @@ export default function PlatformsPage({ user }) {
 
       {/* ================= DETAILED PLATFORM DEEP-DIVE CARD ================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
-        <div className="bg-[#14161f] border border-white/10 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-2xl backdrop-blur-xl">
+        <div className="bg-white border border-slate-200/90 rounded-[2.5rem] p-6 sm:p-10 lg:p-12 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.07)]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
@@ -290,16 +281,16 @@ export default function PlatformsPage({ user }) {
                 <PlatformLogo platform={current.logoKey} size="md" />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-white">{current.name}</h3>
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{current.name}</h3>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {current.status}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">{current.sub}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{current.sub}</p>
                 </div>
               </div>
 
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
                 {current.description}
               </p>
 
@@ -310,8 +301,8 @@ export default function PlatformsPage({ user }) {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {current.features.map((f, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
-                      <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <span>{f}</span>
                     </div>
                   ))}
@@ -322,50 +313,50 @@ export default function PlatformsPage({ user }) {
               <div className="pt-4 flex items-center gap-4">
                 <Link
                   to="/auth"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/30"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/25 cursor-pointer"
                 >
                   <span>Connect {current.name}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                <span className="text-xs text-slate-400">Takes &lt; 60 seconds with OAuth</span>
+                <span className="text-xs text-slate-500">Takes &lt; 60 seconds with OAuth</span>
               </div>
             </div>
 
             {/* Right Telemetry & Benchmark Box */}
-            <div className="lg:col-span-5 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-                <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+            <div className="lg:col-span-5 bg-slate-50/90 border border-slate-200/80 rounded-2xl p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+                <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
                   Performance Impact
                 </span>
-                <span className="text-xs font-mono text-emerald-400 font-bold">
+                <span className="text-xs font-mono text-emerald-700 font-bold">
                   Latency: {current.latency}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-black/30 border border-white/[0.05]">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">
+                <div className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600">
                     {current.metrics.avgCpaDrop}
                   </div>
-                  <div className="text-xs text-slate-400 mt-1">Average CPA Drop</div>
+                  <div className="text-xs text-slate-500 mt-1 font-medium">Average CPA Drop</div>
                 </div>
-                <div className="p-4 rounded-xl bg-black/30 border border-white/[0.05]">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                <div className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">
                     {current.metrics.roasGain}
                   </div>
-                  <div className="text-xs text-slate-400 mt-1">Blended ROAS Gain</div>
+                  <div className="text-xs text-slate-500 mt-1 font-medium">Blended ROAS Gain</div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-400">Supported Placements:</div>
-                <div className="text-xs text-slate-200 font-semibold bg-white/[0.04] p-3 rounded-lg border border-white/[0.06]">
+                <div className="text-xs font-medium text-slate-500">Supported Placements:</div>
+                <div className="text-xs text-slate-800 font-semibold bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs">
                   {current.metrics.supportedPlacements}
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 flex items-center gap-3 text-xs text-emerald-300">
-                <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-3 text-xs text-emerald-800">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                 <span>Zero token storage risk. ADOS connects via standard enterprise scopes.</span>
               </div>
             </div>
@@ -374,15 +365,15 @@ export default function PlatformsPage({ user }) {
       </section>
 
       {/* ================= HOW CONNECTION WORKS (3 STEPS) ================= */}
-      <section className="relative z-10 py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/[0.08]">
+      <section className="relative z-10 py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-200/80">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <span className="text-xs uppercase tracking-widest font-bold text-blue-400">
+          <span className="text-xs uppercase tracking-widest font-bold text-blue-600">
             Frictionless Integration
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
             Connect in 3 Simple Steps
           </h2>
-          <p className="text-sm sm:text-base text-slate-400">
+          <p className="text-sm sm:text-base text-slate-600">
             No complex SDK installs, no engineering tickets, and no tracking pixel headaches.
           </p>
         </div>
@@ -410,15 +401,15 @@ export default function PlatformsPage({ user }) {
           ].map((step, idx) => (
             <div
               key={idx}
-              className="p-8 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex flex-col justify-between"
+              className="p-8 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-mono font-bold text-slate-500">{step.num}</span>
-                  <step.icon className="w-5 h-5 text-emerald-400" />
+                  <span className="text-xs font-mono font-bold text-slate-400">{step.num}</span>
+                  <step.icon className="w-5 h-5 text-emerald-600" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{step.desc}</p>
               </div>
             </div>
           ))}
@@ -427,17 +418,17 @@ export default function PlatformsPage({ user }) {
 
       {/* ================= BOTTOM CTA ================= */}
       <section className="relative z-10 py-20 max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="p-8 sm:p-14 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/15 text-center space-y-6 backdrop-blur-2xl shadow-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-            <Globe className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="p-8 sm:p-14 rounded-3xl bg-white border border-slate-200/90 text-center space-y-6 shadow-xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold uppercase tracking-wider">
+            <Globe className="w-3.5 h-3.5 text-emerald-600" />
             <span>Ready to unite your advertising channels?</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
             Stop Hopping Between 5 Different Dashboards
           </h2>
 
-          <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
             Unify your multi-channel media buying inside ADOS. Scale faster, spend smarter,
             and monitor performance in real time.
           </p>
@@ -445,13 +436,13 @@ export default function PlatformsPage({ user }) {
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/auth"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-[#0d0e12] font-bold text-sm tracking-wide shadow-xl hover:bg-slate-100 hover:scale-105 transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-900 text-white font-bold text-sm tracking-wide shadow-md hover:bg-slate-800 hover:scale-105 transition-all cursor-pointer"
             >
               Connect My Ad Accounts
             </Link>
             <Link
               to="/contact"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-sm transition-all cursor-pointer shadow-xs"
             >
               Talk to Integrations Team
             </Link>

@@ -115,22 +115,10 @@ export default function Footer({ onOpenContact }) {
           {/* Left: Nav Links */}
           <nav className="flex flex-wrap items-center gap-6 sm:gap-8 md:gap-10 text-sm sm:text-base text-slate-300 font-medium">
             <Link
-              to="/product"
-              className="footer-nav-link hover:text-white transition-colors duration-200"
-            >
-              Product
-            </Link>
-            <Link
               to="/platforms"
               className="footer-nav-link hover:text-white transition-colors duration-200"
             >
               Platforms
-            </Link>
-            <Link
-              to="/solutions"
-              className="footer-nav-link hover:text-white transition-colors duration-200"
-            >
-              Solutions
             </Link>
             <Link
               to="/results"

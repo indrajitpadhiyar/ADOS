@@ -1,9 +1,13 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 import { api } from "./services/api";
+import Navbar from "./components/layout/Navbar";
+import HomePage from "./pages/HomePage";
+import PlatformsPage from "./pages/PlatformsPage";
+import ResultsPage from "./pages/ResultsPage";
+import AboutPage from "./pages/AboutPage";
 
 // Lazy-loaded route components for high-speed initial page loads & code splitting
-const HomePage = lazy(() => import("./pages/HomePage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const AdAccountsPage = lazy(() => import("./pages/AdAccountsPage"));
@@ -16,11 +20,26 @@ const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
 const AgentPage = lazy(() => import("./pages/AgentPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
-const ProductPage = lazy(() => import("./pages/ProductPage"));
-const PlatformsPage = lazy(() => import("./pages/PlatformsPage"));
-const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
-const ResultsPage = lazy(() => import("./pages/ResultsPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
+
+// Instant scroll to top on client-side route change without reloading
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
+
+// Persistent Public Layout to preserve continuous Navbar & smooth layoutId transitions
+function PublicLayout({ user }) {
+  return (
+    <div className="w-full min-h-screen">
+      <ScrollToTop />
+      <Navbar user={user} />
+      <Outlet />
+    </div>
+  );
+}
 
 function PageLoader() {
   return (
@@ -76,8 +95,19 @@ export default function App() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-        {/* Landing Page */}
-        <Route path="/" element={<HomePage user={user} />} />
+        {/* Main Website Pages with Continuous Persistent Navbar */}
+        <Route element={<PublicLayout user={user} />}>
+          <Route path="/" element={<HomePage user={user} />} />
+          <Route path="/platforms" element={<PlatformsPage user={user} />} />
+          <Route path="/platform" element={<Navigate to="/platforms" replace />} />
+          <Route path="/results" element={<ResultsPage user={user} />} />
+          <Route path="/result" element={<Navigate to="/results" replace />} />
+          <Route path="/about" element={<AboutPage user={user} />} />
+          <Route path="/about-us" element={<Navigate to="/about" replace />} />
+          <Route path="/product" element={<Navigate to="/" replace />} />
+          <Route path="/solutions" element={<Navigate to="/" replace />} />
+          <Route path="/solution" element={<Navigate to="/" replace />} />
+        </Route>
 
         {/* Authentication Page */}
         <Route
@@ -199,17 +229,6 @@ export default function App() {
         <Route path="/support" element={<SupportPage user={user} />} />
         <Route path="/help" element={<Navigate to="/support" replace />} />
         <Route path="/support-center" element={<Navigate to="/support" replace />} />
-
-        {/* Dedicated Navbar Section Pages */}
-        <Route path="/product" element={<ProductPage user={user} />} />
-        <Route path="/platforms" element={<PlatformsPage user={user} />} />
-        <Route path="/platform" element={<Navigate to="/platforms" replace />} />
-        <Route path="/solutions" element={<SolutionsPage user={user} />} />
-        <Route path="/solution" element={<Navigate to="/solutions" replace />} />
-        <Route path="/results" element={<ResultsPage user={user} />} />
-        <Route path="/result" element={<Navigate to="/results" replace />} />
-        <Route path="/about" element={<AboutPage user={user} />} />
-        <Route path="/about-us" element={<Navigate to="/about" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

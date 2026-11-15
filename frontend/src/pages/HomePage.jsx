@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LocomotiveScroll from "locomotive-scroll";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import HeroSection from "../components/sections/HeroSection";
 import OmnichannelShowcaseSection from "../components/sections/OmnichannelShowcaseSection";
@@ -49,14 +48,6 @@ export default function HomePage({ user }) {
 
   return (
     <div className="relative w-full min-h-screen bg-[#fafbfc] text-[#121214] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-slate-900 selection:text-white overflow-hidden">
-      {/* Top Navbar */}
-      <Navbar
-        user={user}
-        onOpenContact={handleOpenContact}
-        onOpenAuth={() => navigate("/auth")}
-        onOpenDashboard={() => navigate("/dashboard")}
-      />
-
       {/* Page 1: Hero Section */}
       <HeroSection onOpenContact={handleOpenContact} />
 

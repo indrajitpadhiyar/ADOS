@@ -17,7 +17,6 @@ import {
   Award,
   Layers,
 } from "lucide-react";
-import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
 export default function AboutPage({ user }) {
@@ -32,25 +31,25 @@ export default function AboutPage({ user }) {
       title: "Algorithmic Parity",
       desc: "Every independent brand deserves the same high-frequency automated bidding and creative testing infrastructure once reserved for $100M media conglomerates.",
       icon: Cpu,
-      color: "text-blue-400",
+      color: "text-blue-600",
     },
     {
       title: "Absolute Data Sovereignty",
       desc: "Your tokens, your ad accounts, your customer relationships. ADOS acts as an intelligence layer on top of your accounts — we never lock you in or sell your data.",
       icon: ShieldCheck,
-      color: "text-emerald-400",
+      color: "text-emerald-600",
     },
     {
       title: "Sub-Second Telemetry",
       desc: "Waiting 24 hours for a human to notice creative fatigue or a sudden CPM surge is obsolete. ADOS evaluates performance curves in sub-second intervals.",
       icon: Zap,
-      color: "text-amber-400",
+      color: "text-amber-600",
     },
     {
       title: "Radical Transparency",
       desc: "Zero black-box mystery. Every autonomous budget reallocation, creative swap, and stop-loss trigger is documented in an audit log with an explainable reason.",
       icon: Target,
-      color: "text-purple-400",
+      color: "text-purple-600",
     },
   ];
 
@@ -73,26 +72,18 @@ export default function AboutPage({ user }) {
   ];
 
   return (
-    <div className="relative min-h-screen w-full bg-[#0d0e12] text-white font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ff4a22] selection:text-white overflow-x-hidden">
-      {/* Top Navbar */}
-      <Navbar
-        user={user}
-        onOpenContact={() => navigate("/contact")}
-        onOpenAuth={() => navigate("/auth")}
-        onOpenDashboard={() => navigate("/dashboard")}
-      />
+    <div className="relative min-h-screen w-full bg-[#fbfbfd] text-[#111113] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ff4a22] selection:text-white overflow-x-hidden">
+      {/* Ambient Lighting Accents (Light Pastel Theme) */}
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-gradient-to-b from-purple-100/60 via-pink-100/30 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute top-[40%] -left-32 w-[550px] h-[550px] bg-blue-100/40 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-[70%] -right-32 w-[550px] h-[550px] bg-emerald-100/40 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Ambient Lighting Accents */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-purple-600/20 via-pink-600/10 to-transparent blur-[140px] pointer-events-none" />
-      <div className="absolute top-[40%] -left-32 w-[550px] h-[550px] bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute top-[70%] -right-32 w-[550px] h-[550px] bg-emerald-500/10 rounded-full blur-[160px] pointer-events-none" />
-
-      {/* Grid Pattern */}
+      {/* Subtle Micro-Grid */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none opacity-[0.025]"
         style={{
           backgroundImage:
-            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+            "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
           backgroundSize: "48px 48px",
         }}
       />
@@ -103,22 +94,22 @@ export default function AboutPage({ user }) {
           <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-xs sm:text-[13px] font-semibold text-slate-300 backdrop-blur-md shadow-inner"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200/90 text-xs sm:text-[13px] font-semibold text-slate-700 shadow-xs"
           >
-            <span className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
-            <span className="tracking-wide uppercase text-pink-300">About Ad Operating System</span>
-            <span className="text-white/30">•</span>
-            <span className="text-slate-400">Our Story & Mission</span>
+            <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+            <span className="tracking-wide uppercase text-pink-700 font-bold">About Ad Operating System</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-500">Our Story & Mission</span>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white"
+            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-slate-900"
           >
             Building the Operating System for{" "}
-            <span className="bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
               Autonomous Advertising
             </span>
           </motion.h1>
@@ -127,7 +118,7 @@ export default function AboutPage({ user }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-base sm:text-lg lg:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed"
           >
             We are on a mission to eliminate manual dashboard hopping, guesswork bidding, and wasted ad spend.
             ADOS gives every brand the power of high-frequency algorithmic media buying.
@@ -149,12 +140,12 @@ export default function AboutPage({ user }) {
           ].map((item, idx) => (
             <div
               key={idx}
-              className="p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md text-center"
+              className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-center"
             >
-              <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 {item.stat}
               </div>
-              <div className="text-xs text-slate-400 mt-1">{item.label}</div>
+              <div className="text-xs text-slate-500 mt-1 font-medium">{item.label}</div>
             </div>
           ))}
         </motion.div>
@@ -162,17 +153,17 @@ export default function AboutPage({ user }) {
 
       {/* ================= OUR ORIGIN STORY ================= */}
       <section className="relative z-10 py-16 max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="p-8 sm:p-12 lg:p-14 rounded-3xl bg-white/[0.03] border border-white/10 shadow-2xl backdrop-blur-xl space-y-6">
-          <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-purple-400 font-bold">
-            <Sparkles className="w-4 h-4" />
+        <div className="p-8 sm:p-12 lg:p-14 rounded-[2.5rem] bg-white border border-slate-200/90 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.07)] space-y-6">
+          <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-purple-700 font-bold">
+            <Sparkles className="w-4 h-4 text-purple-600" />
             <span>Why We Built ADOS</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Born From The Frustration of 7 Open Browser Tabs
           </h2>
 
-          <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+          <div className="space-y-4 text-slate-600 text-sm sm:text-base leading-relaxed">
             <p>
               In 2024, our founders were running multi-million rupee ad budgets across Meta, Google Ads,
               Amazon, and TikTok. The workflow was broken: logging into five different dashboards,
@@ -181,31 +172,31 @@ export default function AboutPage({ user }) {
             </p>
             <p>
               We realized that advertising wasn't suffering from a lack of creativity—it was suffering
-              from a lack of <strong>infrastructure</strong>. When a creative fatigues or a competitor
+              from a lack of <strong className="text-slate-900 font-semibold">infrastructure</strong>. When a creative fatigues or a competitor
               bids up keyword CPMs, waiting 24 hours for a human media buyer to notice is simply too late.
             </p>
-            <p className="text-white font-medium">
+            <p className="text-slate-900 font-semibold">
               We asked a simple question: What if advertising behaved like modern financial markets?
               What if budgets flowed autonomously to where marginal returns were highest, with built-in
               stop-loss protections that prevent burning money?
             </p>
             <p>
-              That became the blueprint for <strong>ADOS (Ad Operating System)</strong>.
+              That became the blueprint for <strong className="text-slate-900 font-semibold">ADOS (Ad Operating System)</strong>.
             </p>
           </div>
         </div>
       </section>
 
       {/* ================= CORE ENGINEERING VALUES ================= */}
-      <section className="relative z-10 py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/[0.08]">
+      <section className="relative z-10 py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-200/80">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <span className="text-xs uppercase tracking-widest font-bold text-pink-400">
+          <span className="text-xs uppercase tracking-widest font-bold text-pink-700">
             Our Foundation
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
             Four Non-Negotiable Engineering Principles
           </h2>
-          <p className="text-sm sm:text-base text-slate-400">
+          <p className="text-sm sm:text-base text-slate-600">
             How we design every algorithm, API integration, and telemetry model inside ADOS.
           </p>
         </div>
@@ -214,12 +205,12 @@ export default function AboutPage({ user }) {
           {coreValues.map((val, idx) => (
             <div
               key={idx}
-              className="p-8 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between"
+              className="p-8 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <val.icon className={`w-8 h-8 ${val.color}`} />
-                <h3 className="text-xl font-bold text-white">{val.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{val.desc}</p>
+                <h3 className="text-xl font-bold text-slate-900">{val.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{val.desc}</p>
               </div>
             </div>
           ))}
@@ -227,12 +218,12 @@ export default function AboutPage({ user }) {
       </section>
 
       {/* ================= TIMELINE & MILESTONES ================= */}
-      <section className="relative z-10 py-20 max-w-5xl mx-auto px-4 sm:px-6 border-t border-white/[0.08]">
+      <section className="relative z-10 py-20 max-w-5xl mx-auto px-4 sm:px-6 border-t border-slate-200/80">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <span className="text-xs uppercase tracking-widest font-bold text-indigo-400">
+          <span className="text-xs uppercase tracking-widest font-bold text-indigo-700">
             The Journey
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
             Milestones of Continuous Innovation
           </h2>
         </div>
@@ -241,14 +232,14 @@ export default function AboutPage({ user }) {
           {milestones.map((m, idx) => (
             <div
               key={idx}
-              className="p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center gap-6"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-6"
             >
-              <div className="px-4 py-2 rounded-xl bg-white/10 text-xl font-mono font-black text-pink-400 shrink-0">
+              <div className="px-4 py-2 rounded-xl bg-pink-50 border border-pink-200/80 text-xl font-mono font-black text-pink-600 shrink-0">
                 {m.year}
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold text-white">{m.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">{m.desc}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">{m.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">{m.desc}</p>
               </div>
             </div>
           ))}
@@ -257,17 +248,17 @@ export default function AboutPage({ user }) {
 
       {/* ================= BOTTOM CTA ================= */}
       <section className="relative z-10 py-20 max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="p-8 sm:p-14 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/15 text-center space-y-6 backdrop-blur-2xl shadow-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-bold uppercase tracking-wider">
-            <Heart className="w-3.5 h-3.5 text-pink-400" />
+        <div className="p-8 sm:p-14 rounded-3xl bg-white border border-slate-200/90 text-center space-y-6 shadow-xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200 text-xs font-bold uppercase tracking-wider">
+            <Heart className="w-3.5 h-3.5 text-pink-600" />
             <span>Join the autonomous revolution</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
             Ready to Experience the ADOS Advantage?
           </h2>
 
-          <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
             Connect your advertising accounts in 60 seconds with enterprise OAuth.
             Try all autonomous features free for 14 days.
           </p>
@@ -275,13 +266,13 @@ export default function AboutPage({ user }) {
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/auth"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-[#0d0e12] font-bold text-sm tracking-wide shadow-xl hover:bg-slate-100 hover:scale-105 transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-900 text-white font-bold text-sm tracking-wide shadow-md hover:bg-slate-800 hover:scale-105 transition-all cursor-pointer"
             >
               Start 14-Day Free Trial
             </Link>
             <Link
               to="/contact"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-sm transition-all cursor-pointer shadow-xs"
             >
               Contact Our Founders
             </Link>

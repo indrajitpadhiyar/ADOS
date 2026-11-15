@@ -70,15 +70,10 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
   };
 
   const navLinks = [
-    { label: "Product", to: "/product" },
     {
       label: "Platforms",
       to: "/platforms",
       badge: "5+",
-    },
-    {
-      label: "Solutions",
-      to: "/solutions",
     },
     {
       label: "Results",
@@ -130,15 +125,28 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
             <button
               type="button"
               onClick={handleDashboard}
-              className={`transition-all duration-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer font-bold ${
+              className={`relative transition-colors duration-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer font-bold ${
                 isActive("/dashboard")
-                  ? "text-white bg-white/15 border border-white/20 shadow-inner"
-                  : "text-white hover:bg-white/10"
+                  ? "text-white"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
-              <span>Dashboard</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Live
+              {isActive("/dashboard") && (
+                <motion.div
+                  layoutId="navbar-active-pill"
+                  className="absolute inset-0 bg-white/15 border border-white/20 rounded-full shadow-inner"
+                  transition={{
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 30,
+                  }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                <span>Dashboard</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Live
+                </span>
               </span>
             </button>
           )}
@@ -149,16 +157,27 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
               <Link
                 key={item.to}
                 to={item.to}
-                className={`transition-all duration-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer ${
+                className={`relative px-3.5 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer transition-colors duration-200 ${
                   active
-                    ? "text-white bg-white/15 border border-white/20 shadow-inner font-semibold"
-                    : "text-slate-300 hover:text-white hover:bg-white/[0.08] hover:-translate-y-0.5"
+                    ? "text-white font-semibold"
+                    : "text-slate-300 hover:text-white hover:bg-white/[0.08]"
                 }`}
               >
-                <span>{item.label}</span>
+                {active && (
+                  <motion.div
+                    layoutId="navbar-active-pill"
+                    className="absolute inset-0 bg-white/15 border border-white/20 rounded-full shadow-inner"
+                    transition={{
+                      type: "spring",
+                      stiffness: 420,
+                      damping: 30,
+                    }}
+                  />
+                )}
+                <span className="relative z-10">{item.label}</span>
                 {item.badge && (
                   <span
-                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border ${
+                    className={`relative z-10 text-[10px] font-bold px-1.5 py-0.2 rounded-full border transition-colors ${
                       active
                         ? "bg-white/20 text-white border-white/30"
                         : "bg-white/10 text-slate-300 border-white/10"
@@ -176,7 +195,6 @@ export default function Navbar({ onOpenContact, onOpenAuth, onOpenDashboard, use
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
             to="/contact"
-            onClick={handleContact}
             className={`hidden xs:inline-flex relative px-4 sm:px-5.5 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-semibold tracking-wide shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ${
               isActive("/contact")
                 ? "bg-amber-400 text-black font-bold ring-2 ring-white/30"
