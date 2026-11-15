@@ -113,31 +113,37 @@ export default function Footer({ onOpenContact }) {
         {/* ================= ROW 1: TOP NAV LINKS & GIANT EMAIL ================= */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-10 sm:pb-14">
           {/* Left: Nav Links */}
-          <nav className="flex flex-wrap items-center gap-6 sm:gap-10 md:gap-12 text-sm sm:text-base md:text-[1.05rem] text-slate-300 font-medium">
-            <a
-              href="#about"
+          <nav className="flex flex-wrap items-center gap-6 sm:gap-8 md:gap-10 text-sm sm:text-base text-slate-300 font-medium">
+            <Link
+              to="/product"
+              className="footer-nav-link hover:text-white transition-colors duration-200"
+            >
+              Product
+            </Link>
+            <Link
+              to="/platforms"
+              className="footer-nav-link hover:text-white transition-colors duration-200"
+            >
+              Platforms
+            </Link>
+            <Link
+              to="/solutions"
+              className="footer-nav-link hover:text-white transition-colors duration-200"
+            >
+              Solutions
+            </Link>
+            <Link
+              to="/results"
+              className="footer-nav-link hover:text-white transition-colors duration-200"
+            >
+              Results
+            </Link>
+            <Link
+              to="/about"
               className="footer-nav-link hover:text-white transition-colors duration-200"
             >
               About
-            </a>
-            <a
-              href="#why-us"
-              className="footer-nav-link hover:text-white transition-colors duration-200"
-            >
-              Why Us
-            </a>
-            <a
-              href="#platform"
-              className="footer-nav-link hover:text-white transition-colors duration-200"
-            >
-              Platform
-            </a>
-            {/* <a
-              href="#pricing"
-              className="footer-nav-link hover:text-white transition-colors duration-200"
-            >
-              Pricing
-            </a> */}
+            </Link>
             <Link
               to="/support"
               className="footer-nav-link hover:text-white transition-colors duration-200"

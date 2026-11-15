@@ -16,6 +16,11 @@ const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
 const AgentPage = lazy(() => import("./pages/AgentPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
+const ProductPage = lazy(() => import("./pages/ProductPage"));
+const PlatformsPage = lazy(() => import("./pages/PlatformsPage"));
+const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
+const ResultsPage = lazy(() => import("./pages/ResultsPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 
 function PageLoader() {
   return (
@@ -194,6 +199,17 @@ export default function App() {
         <Route path="/support" element={<SupportPage user={user} />} />
         <Route path="/help" element={<Navigate to="/support" replace />} />
         <Route path="/support-center" element={<Navigate to="/support" replace />} />
+
+        {/* Dedicated Navbar Section Pages */}
+        <Route path="/product" element={<ProductPage user={user} />} />
+        <Route path="/platforms" element={<PlatformsPage user={user} />} />
+        <Route path="/platform" element={<Navigate to="/platforms" replace />} />
+        <Route path="/solutions" element={<SolutionsPage user={user} />} />
+        <Route path="/solution" element={<Navigate to="/solutions" replace />} />
+        <Route path="/results" element={<ResultsPage user={user} />} />
+        <Route path="/result" element={<Navigate to="/results" replace />} />
+        <Route path="/about" element={<AboutPage user={user} />} />
+        <Route path="/about-us" element={<Navigate to="/about" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
