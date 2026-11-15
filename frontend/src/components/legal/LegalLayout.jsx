@@ -487,6 +487,14 @@ export default function LegalLayout({
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-xs text-slate-600 font-medium">
+              <Link to="/support" className="hover:text-slate-950 transition-colors">
+                Support
+              </Link>
+              <span className="text-slate-300">/</span>
+              <Link to="/contact" className="hover:text-slate-950 transition-colors">
+                Contact
+              </Link>
+              <span className="text-slate-300">/</span>
               <Link to="/privacy-policy" className="hover:text-slate-950 transition-colors">
                 Privacy Policy
               </Link>

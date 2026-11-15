@@ -12,10 +12,7 @@ import {
   X,
   Layers,
   ChevronRight,
-  ChevronDown,
   ExternalLink,
-  Copy,
-  Info,
 } from "lucide-react";
 
 export default function AdAccountsSection() {
@@ -29,16 +26,16 @@ export default function AdAccountsSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [disconnectModal, setDisconnectModal] = useState({ open: false, platform: null });
-  const [tokenModal, setTokenModal] = useState({ open: false, token: "", isSubmitting: false, error: null });
-  const [showGoogleOAuthGuide, setShowGoogleOAuthGuide] = useState(false);
-  const [copiedUriKey, setCopiedUriKey] = useState(null);
-
-  const copyToClipboard = (text, key) => {
-    navigator.clipboard?.writeText(text);
-    setCopiedUriKey(key);
-    setTimeout(() => setCopiedUriKey(null), 2500);
-  };
+  const [disconnectModal, setDisconnectModal] = useState({
+    open: false,
+    platform: null,
+  });
+  const [tokenModal, setTokenModal] = useState({
+    open: false,
+    token: "",
+    isSubmitting: false,
+    error: null,
+  });
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -54,13 +51,17 @@ export default function AdAccountsSection() {
       showToast("Google Ads account authorized and connected successfully!");
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get("google_ads_error")) {
-      showToast(`Google Ads error: ${decodeURIComponent(params.get("google_ads_error"))}`);
+      showToast(
+        `Google Ads error: ${decodeURIComponent(params.get("google_ads_error"))}`,
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get("meta_ads_success") === "true") {
       showToast("Meta Ads account authorized and connected successfully!");
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get("meta_ads_error")) {
-      showToast(`Meta Ads error: ${decodeURIComponent(params.get("meta_ads_error"))}`);
+      showToast(
+        `Meta Ads error: ${decodeURIComponent(params.get("meta_ads_error"))}`,
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -69,8 +70,12 @@ export default function AdAccountsSection() {
     try {
       setIsLoading(true);
       const [gRes, mRes] = await Promise.all([
-        api.getGoogleAdsStatus().catch((err) => ({ isConnected: false, error: err.message })),
-        api.getMetaAdsStatus().catch((err) => ({ isConnected: false, error: err.message })),
+        api
+          .getGoogleAdsStatus()
+          .catch((err) => ({ isConnected: false, error: err.message })),
+        api
+          .getMetaAdsStatus()
+          .catch((err) => ({ isConnected: false, error: err.message })),
       ]);
       setGoogleStatus(gRes);
       setMetaStatus(mRes);
@@ -91,12 +96,16 @@ export default function AdAccountsSection() {
       if (Array.isArray(accounts)) {
         setMetaAccounts(accounts);
         const selected = new Set(
-          accounts.filter((a) => a.selected).map((a) => a.externalAccountId || a.id)
+          accounts
+            .filter((a) => a.selected)
+            .map((a) => a.externalAccountId || a.id),
         );
         setSelectedMetaIds(selected);
       }
     } catch (err) {
-      setAccountsError(err.message || "Failed to load accessible Meta ad accounts.");
+      setAccountsError(
+        err.message || "Failed to load accessible Meta ad accounts.",
+      );
     } finally {
       setIsAccountsLoading(false);
     }
@@ -105,7 +114,10 @@ export default function AdAccountsSection() {
   // Google OAuth Initiation
   const handleConnectGoogle = async (customRedirectUri) => {
     try {
-      const returnUrl = typeof window !== "undefined" ? `${window.location.origin}/ad-accounts` : undefined;
+      const returnUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/ad-accounts`
+          : undefined;
       const params = { returnUrl };
       if (typeof customRedirectUri === "string" && customRedirectUri) {
         params.redirectUri = customRedirectUri;
@@ -140,7 +152,12 @@ export default function AdAccountsSection() {
     setTokenModal((prev) => ({ ...prev, isSubmitting: true, error: null }));
     try {
       await api.connectMetaAdsToken(token);
-      setTokenModal({ open: false, token: "", isSubmitting: false, error: null });
+      setTokenModal({
+        open: false,
+        token: "",
+        isSubmitting: false,
+        error: null,
+      });
       showToast("Meta Ads connected successfully with access token!");
       await loadStatuses();
     } catch (err) {
@@ -167,7 +184,9 @@ export default function AdAccountsSection() {
 
   // Select all accounts
   const handleSelectAll = () => {
-    const allIds = new Set(metaAccounts.map((a) => a.externalAccountId || a.id));
+    const allIds = new Set(
+      metaAccounts.map((a) => a.externalAccountId || a.id),
+    );
     setSelectedMetaIds(allIds);
   };
 
@@ -238,15 +257,22 @@ export default function AdAccountsSection() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-bold text-[#0f172a]">
-              Disconnect {disconnectModal.platform === "google" ? "Google Ads" : "Meta Ads"}?
+              Disconnect{" "}
+              {disconnectModal.platform === "google"
+                ? "Google Ads"
+                : "Meta Ads"}
+              ?
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              This will remove authorized tokens and stop synchronizing advertising analytics from this platform.
+              This will remove authorized tokens and stop synchronizing
+              advertising analytics from this platform.
             </p>
             <div className="flex items-center justify-end gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={() => setDisconnectModal({ open: false, platform: null })}
+                onClick={() =>
+                  setDisconnectModal({ open: false, platform: null })
+                }
                 className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 Cancel
@@ -269,13 +295,22 @@ export default function AdAccountsSection() {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-bold text-[#0f172a]">Connect with Access Token</h3>
+                <h3 className="text-sm font-bold text-[#0f172a]">
+                  Connect with Access Token
+                </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Paste your Meta Developer or Sandbox Access Token
                 </p>
               </div>
               <button
-                onClick={() => setTokenModal({ open: false, token: "", isSubmitting: false, error: null })}
+                onClick={() =>
+                  setTokenModal({
+                    open: false,
+                    token: "",
+                    isSubmitting: false,
+                    error: null,
+                  })
+                }
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
@@ -290,7 +325,12 @@ export default function AdAccountsSection() {
                 <textarea
                   rows={4}
                   value={tokenModal.token}
-                  onChange={(e) => setTokenModal((prev) => ({ ...prev, token: e.target.value }))}
+                  onChange={(e) =>
+                    setTokenModal((prev) => ({
+                      ...prev,
+                      token: e.target.value,
+                    }))
+                  }
                   placeholder="EAAUuResl..."
                   required
                   className="w-full mt-1.5 p-3 rounded-xl border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500 resize-none"
@@ -305,13 +345,24 @@ export default function AdAccountsSection() {
               )}
 
               <p className="text-[11px] text-slate-400">
-                Note: Ensure the token has the <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">ads_read</code> permission in the Meta Developer Console.
+                Note: Ensure the token has the{" "}
+                <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">
+                  ads_read
+                </code>{" "}
+                permission in the Meta Developer Console.
               </p>
 
               <div className="flex items-center justify-end gap-2.5 pt-2">
                 <button
                   type="button"
-                  onClick={() => setTokenModal({ open: false, token: "", isSubmitting: false, error: null })}
+                  onClick={() =>
+                    setTokenModal({
+                      open: false,
+                      token: "",
+                      isSubmitting: false,
+                      error: null,
+                    })
+                  }
                   className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
                 >
                   Cancel
@@ -336,7 +387,8 @@ export default function AdAccountsSection() {
             Ad Accounts
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Authorize official OAuth 2.0 connections for Meta Ads and Google Ads to power unified analytics.
+            Authorize official OAuth 2.0 connections for Meta Ads and Google Ads
+            to power unified analytics.
           </p>
         </div>
 
@@ -345,7 +397,9 @@ export default function AdAccountsSection() {
           disabled={isSyncing}
           className="px-4 py-2 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer shadow-2xs self-start sm:self-auto"
         >
-          <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${isSyncing ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`w-3.5 h-3.5 text-slate-500 ${isSyncing ? "animate-spin" : ""}`}
+          />
           <span>Sync Connections</span>
         </button>
       </div>
@@ -359,8 +413,12 @@ export default function AdAccountsSection() {
               <div className="flex items-center gap-3">
                 <PlatformLogo platform="meta" size="md" />
                 <div>
-                  <h3 className="text-base font-extrabold text-[#0f172a]">Meta Ads</h3>
-                  <p className="text-xs text-slate-400">Facebook + Instagram Advertising</p>
+                  <h3 className="text-base font-extrabold text-[#0f172a]">
+                    Meta Ads
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Facebook + Instagram Advertising
+                  </p>
                 </div>
               </div>
 
@@ -376,7 +434,9 @@ export default function AdAccountsSection() {
                     metaStatus?.isConnected ? "bg-emerald-500" : "bg-slate-400"
                   }`}
                 />
-                <span>{metaStatus?.isConnected ? "Connected" : "Not Connected"}</span>
+                <span>
+                  {metaStatus?.isConnected ? "Connected" : "Not Connected"}
+                </span>
               </span>
             </div>
 
@@ -387,19 +447,24 @@ export default function AdAccountsSection() {
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Authenticated User:</span>
                     <span className="font-bold text-slate-800">
-                      {metaStatus.metaUserName || metaStatus.connectedName || "Meta Business User"}
+                      {metaStatus.metaUserName ||
+                        metaStatus.connectedName ||
+                        "Meta Business User"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Selected Accounts:</span>
                     <span className="font-semibold text-blue-600">
-                      {metaStatus.selectedAccountsCount ?? selectedMetaIds.size} account(s) active
+                      {metaStatus.selectedAccountsCount ?? selectedMetaIds.size}{" "}
+                      account(s) active
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Last Synchronized:</span>
                     <span className="font-semibold text-slate-700">
-                      {metaStatus.lastSyncAt ? new Date(metaStatus.lastSyncAt).toLocaleTimeString() : "Just now"}
+                      {metaStatus.lastSyncAt
+                        ? new Date(metaStatus.lastSyncAt).toLocaleTimeString()
+                        : "Just now"}
                     </span>
                   </div>
                   {metaStatus.lastError && (
@@ -412,10 +477,16 @@ export default function AdAccountsSection() {
               ) : (
                 <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-150 text-xs text-slate-500 space-y-2 leading-relaxed">
                   <p>
-                    Connect your Facebook & Instagram ad accounts via official Meta Login using the Marketing API (<code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">ads_read</code>).
+                    Connect your Facebook & Instagram ad accounts via official
+                    Meta Login using the Marketing API (
+                    <code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">
+                      ads_read
+                    </code>
+                    ).
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    Provides read-only campaign telemetry, spend pacing, and ROAS attribution.
+                    Provides read-only campaign telemetry, spend pacing, and
+                    ROAS attribution.
                   </p>
                 </div>
               )}
@@ -437,7 +508,14 @@ export default function AdAccountsSection() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setTokenModal({ open: true, token: "", isSubmitting: false, error: null })}
+                    onClick={() =>
+                      setTokenModal({
+                        open: true,
+                        token: "",
+                        isSubmitting: false,
+                        error: null,
+                      })
+                    }
                     className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
                     title="Update Developer Access Token"
                   >
@@ -446,7 +524,9 @@ export default function AdAccountsSection() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setDisconnectModal({ open: true, platform: "meta" })}
+                    onClick={() =>
+                      setDisconnectModal({ open: true, platform: "meta" })
+                    }
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-1.5 cursor-pointer transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -466,7 +546,14 @@ export default function AdAccountsSection() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTokenModal({ open: true, token: "", isSubmitting: false, error: null })}
+                  onClick={() =>
+                    setTokenModal({
+                      open: true,
+                      token: "",
+                      isSubmitting: false,
+                      error: null,
+                    })
+                  }
                   className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                   title="Developer / Sandbox Token"
                 >
@@ -485,8 +572,12 @@ export default function AdAccountsSection() {
               <div className="flex items-center gap-3">
                 <PlatformLogo platform="google" size="md" />
                 <div>
-                  <h3 className="text-base font-extrabold text-[#0f172a]">Google Ads</h3>
-                  <p className="text-xs text-slate-400">Search, Display, Performance Max & YouTube</p>
+                  <h3 className="text-base font-extrabold text-[#0f172a]">
+                    Google Ads
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Search, Display, Performance Max & YouTube
+                  </p>
                 </div>
               </div>
 
@@ -499,10 +590,14 @@ export default function AdAccountsSection() {
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    googleStatus?.isConnected ? "bg-emerald-500" : "bg-slate-400"
+                    googleStatus?.isConnected
+                      ? "bg-emerald-500"
+                      : "bg-slate-400"
                   }`}
                 />
-                <span>{googleStatus?.isConnected ? "Connected" : "Not Connected"}</span>
+                <span>
+                  {googleStatus?.isConnected ? "Connected" : "Not Connected"}
+                </span>
               </span>
             </div>
 
@@ -513,7 +608,8 @@ export default function AdAccountsSection() {
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Account Name:</span>
                     <span className="font-bold text-slate-800">
-                      {googleStatus.selectedCustomerName || "Active Google Ads Account"}
+                      {googleStatus.selectedCustomerName ||
+                        "Active Google Ads Account"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
@@ -525,23 +621,32 @@ export default function AdAccountsSection() {
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Currency & Timezone:</span>
                     <span className="font-semibold text-slate-700">
-                      {googleStatus.selectedCustomerCurrency} • {googleStatus.selectedCustomerTimeZone}
+                      {googleStatus.selectedCustomerCurrency} •{" "}
+                      {googleStatus.selectedCustomerTimeZone}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Last Synchronized:</span>
                     <span className="font-semibold text-slate-700">
-                      {googleStatus.lastSyncAt ? new Date(googleStatus.lastSyncAt).toLocaleTimeString() : "Just now"}
+                      {googleStatus.lastSyncAt
+                        ? new Date(googleStatus.lastSyncAt).toLocaleTimeString()
+                        : "Just now"}
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-150 text-xs text-slate-500 space-y-2 leading-relaxed">
                   <p>
-                    Authorize ADOS via Google Identity with the official Google Ads API scope (<code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">https://www.googleapis.com/auth/adwords</code>).
+                    Authorize ADOS via Google Identity with the official Google
+                    Ads API scope (
+                    <code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">
+                      https://www.googleapis.com/auth/adwords
+                    </code>
+                    ).
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    Supports Manager Accounts (MCC), client accounts, and multi-currency reporting.
+                    Supports Manager Accounts (MCC), client accounts, and
+                    multi-currency reporting.
                   </p>
                 </div>
               )}
@@ -562,7 +667,9 @@ export default function AdAccountsSection() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDisconnectModal({ open: true, platform: "google" })}
+                  onClick={() =>
+                    setDisconnectModal({ open: true, platform: "google" })
+                  }
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -580,94 +687,6 @@ export default function AdAccountsSection() {
               </button>
             )}
           </div>
-
-          {/* Google Cloud Console Setup Helper */}
-          <div className="pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowGoogleOAuthGuide(!showGoogleOAuthGuide)}
-              className="w-full flex items-center justify-between text-[11px] font-medium text-slate-500 hover:text-slate-800 transition-colors py-1 cursor-pointer"
-            >
-              <span className="flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-blue-500" />
-                <span>Google Cloud Console Setup &amp; Redirect URIs</span>
-              </span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  showGoogleOAuthGuide ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {showGoogleOAuthGuide && (
-              <div className="mt-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-3">
-                <div>
-                  <div className="text-[11px] font-semibold text-slate-700 mb-1">
-                    Authorized redirect URIs (add both in Google Cloud Console):
-                  </div>
-                  <div className="space-y-1.5 font-mono text-[10px]">
-                    {[
-                      "https://adosbackend.onrender.com/api/v1/google-ads/callback",
-                      "https://adosbackend.onrender.com/auth",
-                    ].map((uri, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-lg"
-                      >
-                        <span className="truncate text-slate-700 select-all">{uri}</span>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(uri, `uri_${idx}`)}
-                          className="shrink-0 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
-                          title="Copy URI"
-                        >
-                          {copiedUriKey === `uri_${idx}` ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-[11px] font-semibold text-slate-700 mb-1">
-                    Authorized JavaScript origins:
-                  </div>
-                  <div className="space-y-1.5 font-mono text-[10px]">
-                    {["https://adoshub.online", "https://www.adoshub.online"].map(
-                      (origin, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-lg"
-                        >
-                          <span className="truncate text-slate-700 select-all">{origin}</span>
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(origin, `origin_${idx}`)}
-                            className="shrink-0 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
-                            title="Copy Origin"
-                          >
-                            {copiedUriKey === `origin_${idx}` ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200/70 text-[11px] text-amber-800 leading-relaxed">
-                  <span className="font-semibold">Important:</span> If your Google Cloud OAuth Consent Screen Publishing Status is <strong>Testing</strong>, ensure your Google email (e.g. <code className="bg-amber-100/80 px-1 py-0.5 rounded text-[10px]">indrajitpadhiyar107@gmail.com</code>) is added under <strong>Audience &gt; Test users</strong>.
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -683,7 +702,8 @@ export default function AdAccountsSection() {
                 </h3>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Select one or more advertising accounts to synchronize with your ADOS analytics engine.
+                Select one or more advertising accounts to synchronize with your
+                ADOS analytics engine.
               </p>
             </div>
 
@@ -739,7 +759,9 @@ export default function AdAccountsSection() {
                 disabled={isAccountsLoading}
                 className="text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
               >
-                <RefreshCw className={`w-3 h-3 ${isAccountsLoading ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`w-3 h-3 ${isAccountsLoading ? "animate-spin" : ""}`}
+                />
                 <span>Refresh Accounts</span>
               </button>
             </div>
@@ -757,7 +779,10 @@ export default function AdAccountsSection() {
           {isAccountsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse space-y-3">
+                <div
+                  key={i}
+                  className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse space-y-3"
+                >
                   <div className="h-4 bg-slate-200 rounded w-2/3" />
                   <div className="h-3 bg-slate-200 rounded w-1/2" />
                   <div className="h-3 bg-slate-200 rounded w-3/4" />
@@ -768,9 +793,13 @@ export default function AdAccountsSection() {
             /* Empty State */
             <div className="p-8 text-center rounded-xl bg-slate-50/60 border border-slate-200/80 space-y-2">
               <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
-              <h4 className="text-xs font-bold text-slate-700">No Meta Advertising Accounts Discovered</h4>
+              <h4 className="text-xs font-bold text-slate-700">
+                No Meta Advertising Accounts Discovered
+              </h4>
               <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-                No accessible ad accounts were returned for this user. Ensure your Facebook account has admin or advertiser role on the Business Manager.
+                No accessible ad accounts were returned for this user. Ensure
+                your Facebook account has admin or advertiser role on the
+                Business Manager.
               </p>
             </div>
           ) : (
@@ -779,7 +808,8 @@ export default function AdAccountsSection() {
               {metaAccounts.map((account) => {
                 const actId = account.externalAccountId || account.id;
                 const isSelected = selectedMetaIds.has(actId);
-                const isActive = account.status === "ACTIVE" || account.status === 1;
+                const isActive =
+                  account.status === "ACTIVE" || account.status === 1;
 
                 return (
                   <div

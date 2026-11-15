@@ -15,6 +15,7 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const DataDeletionPage = lazy(() => import("./pages/DataDeletionPage"));
 const AgentPage = lazy(() => import("./pages/AgentPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
 
 function PageLoader() {
   return (
@@ -186,6 +187,13 @@ export default function App() {
         {/* Dedicated Contact Us Page */}
         <Route path="/contact" element={<ContactPage user={user} />} />
         <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
+        <Route path="/contect" element={<ContactPage user={user} />} />
+        <Route path="/contect-us" element={<Navigate to="/contact" replace />} />
+
+        {/* Support & Help Center Page */}
+        <Route path="/support" element={<SupportPage user={user} />} />
+        <Route path="/help" element={<Navigate to="/support" replace />} />
+        <Route path="/support-center" element={<Navigate to="/support" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

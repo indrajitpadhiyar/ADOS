@@ -269,7 +269,13 @@ export default function AgentPage({ user }) {
           <span>© {new Date().getFullYear()} ADOS · Powered by IDR TECH.</span>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+          <Link to="/support" className="hover:text-black transition-colors font-medium">
+            Support
+          </Link>
+          <Link to="/contact" className="hover:text-black transition-colors font-medium">
+            Contact
+          </Link>
           <Link to="/privacy-policy" className="hover:text-black transition-colors">
             Privacy Policy
           </Link>

@@ -139,6 +139,12 @@ export default function Footer({ onOpenContact }) {
               Pricing
             </a> */}
             <Link
+              to="/support"
+              className="footer-nav-link hover:text-white transition-colors duration-200"
+            >
+              Support
+            </Link>
+            <Link
               to="/contact"
               className="footer-nav-link hover:text-white transition-colors duration-200"
             >
@@ -253,13 +259,19 @@ export default function Footer({ onOpenContact }) {
               </Link>
             </div>
 
-            {/* Row 2: [User Data Deletion] */}
+            {/* Row 2: [User Data Deletion] [Support Center] */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <Link
                 to="/data-deletion"
                 className="footer-legal-link px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
               >
                 User Data Deletion
+              </Link>
+              <Link
+                to="/support"
+                className="footer-legal-link px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/25 transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Support Center
               </Link>
             </div>
 
