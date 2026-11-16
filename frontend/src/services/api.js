@@ -296,8 +296,36 @@ export const api = {
     return handleResponse(res);
   },
 
-  async selectGoogleAdsAccount(customerId, managerId = null) {
+  async selectGoogleAdsAccount(customerIdOrOptions, managerId = null) {
+    const payload =
+      typeof customerIdOrOptions === "object" && customerIdOrOptions !== null
+        ? customerIdOrOptions
+        : { customerId: customerIdOrOptions, managerId };
+
     const res = await fetch(`${API_BASE}/google-ads/select-account`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return handleResponse(res);
+  },
+
+  async selectGoogleAdsAccounts(customerIds, primaryId = null) {
+    const res = await fetch(`${API_BASE}/google-ads/select-account`, {
+      method: "POST",
+      headers: getHeaders(),
+      credentials: "include",
+      body: JSON.stringify({
+        customerIds,
+        customerId: primaryId || (Array.isArray(customerIds) ? customerIds[0] : null),
+      }),
+    });
+    return handleResponse(res);
+  },
+
+  async linkGoogleAdsTestAccount(customerId, managerId = null) {
+    const res = await fetch(`${API_BASE}/google-ads/link-test-account`, {
       method: "POST",
       headers: getHeaders(),
       credentials: "include",
@@ -309,6 +337,8 @@ export const api = {
   async getGoogleAdsCampaigns(params = {}) {
     const query = new URLSearchParams();
     if (params.dateRange) query.append("dateRange", params.dateRange);
+    if (params.startDate) query.append("startDate", params.startDate);
+    if (params.endDate) query.append("endDate", params.endDate);
     if (params.limit) query.append("limit", params.limit);
 
     const qs = query.toString() ? `?${query.toString()}` : "";

@@ -141,19 +141,40 @@ export const GoogleAdsController = {
 
   /**
    * POST /api/v1/google-ads/select-account
-   * Selects an active Google Ads account for reporting
+   * Selects an active Google Ads account (or multiple accounts) for reporting
    */
   selectAccount: asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const { customerId, customerIds, managerId } = req.body;
+
+    if (!customerId && (!Array.isArray(customerIds) || customerIds.length === 0)) {
+      throw ApiError.badRequest("At least one Customer account ID is required.");
+    }
+
+    const updatedStatus = await GoogleAdsService.selectCustomerAccount(userId, {
+      customerId,
+      customerIds,
+      managerId,
+    });
+
+    return ApiResponse.success(res, "Google Ads active account updated successfully", updatedStatus);
+  }),
+
+  /**
+   * POST /api/v1/google-ads/link-test-account
+   * Links and verifies an eligible Google Ads Test Account or Test MCC directly
+   */
+  linkTestAccount: asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const { customerId, managerId } = req.body;
 
     if (!customerId) {
-      throw ApiError.badRequest("Customer account ID is required.");
+      throw ApiError.badRequest("Google Ads Test Customer ID is required.");
     }
 
-    const updatedStatus = await GoogleAdsService.selectCustomerAccount(userId, customerId, managerId);
+    const updatedStatus = await GoogleAdsService.linkTestCustomerAccount(userId, customerId, managerId);
 
-    return ApiResponse.success(res, "Google Ads active account updated successfully", updatedStatus);
+    return ApiResponse.success(res, "Google Ads Test Account linked and verified successfully!", updatedStatus);
   }),
 
   /**
@@ -162,9 +183,14 @@ export const GoogleAdsController = {
    */
   getCampaigns: asyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const { dateRange = "LAST_30_DAYS", limit = 50 } = req.query;
+    const { dateRange = "LAST_30_DAYS", startDate, endDate, limit = 50 } = req.query;
 
-    const data = await GoogleAdsService.getCampaigns(userId, { dateRange, limit });
+    const data = await GoogleAdsService.getCampaigns(userId, {
+      dateRange,
+      startDate,
+      endDate,
+      limit,
+    });
 
     return ApiResponse.success(res, "Google Ads campaigns retrieved successfully", data);
   }),

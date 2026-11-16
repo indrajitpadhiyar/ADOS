@@ -22,12 +22,73 @@ const VALID_DATE_RANGES = [
   "LAST_7_DAYS",
   "LAST_14_DAYS",
   "LAST_30_DAYS",
+  "LAST_90_DAYS",
   "THIS_MONTH",
   "LAST_MONTH",
   "ALL_TIME",
+  "CUSTOM",
 ];
 
 export class GoogleAdsService {
+  /**
+   * Helper to construct GAQL date filter clauses supporting standard keywords, 90 days, and custom ranges
+   */
+  static buildDateClause(dateRange = "LAST_30_DAYS", customStartDate = null, customEndDate = null) {
+    const normalized = (dateRange || "LAST_30_DAYS").toUpperCase();
+
+    // Custom start and end dates (YYYY-MM-DD)
+    if (customStartDate && customEndDate) {
+      const cleanStart = customStartDate.toString().trim().slice(0, 10);
+      const cleanEnd = customEndDate.toString().trim().slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStart) && /^\d{4}-\d{2}-\d{2}$/.test(cleanEnd)) {
+        return {
+          clause: `segments.date BETWEEN '${cleanStart}' AND '${cleanEnd}'`,
+          label: `${cleanStart} to ${cleanEnd}`,
+          startDate: cleanStart,
+          endDate: cleanEnd,
+        };
+      }
+    }
+
+    // Google Ads GAQL doesn't have a "DURING LAST_90_DAYS" enum; calculate ISO dates
+    if (normalized === "LAST_90_DAYS") {
+      const now = new Date();
+      const end = new Date(now);
+      end.setDate(end.getDate() - 1);
+      const start = new Date(now);
+      start.setDate(start.getDate() - 90);
+
+      const formatYmd = (d) => d.toISOString().split("T")[0];
+      const startDate = formatYmd(start);
+      const endDate = formatYmd(end);
+
+      return {
+        clause: `segments.date BETWEEN '${startDate}' AND '${endDate}'`,
+        label: "LAST_90_DAYS",
+        startDate,
+        endDate,
+      };
+    }
+
+    const standardRanges = [
+      "TODAY",
+      "YESTERDAY",
+      "LAST_7_DAYS",
+      "LAST_14_DAYS",
+      "LAST_30_DAYS",
+      "THIS_MONTH",
+      "LAST_MONTH",
+      "ALL_TIME",
+    ];
+
+    const target = standardRanges.includes(normalized) ? normalized : "LAST_30_DAYS";
+    return {
+      clause: `segments.date DURING ${target}`,
+      label: target,
+      startDate: null,
+      endDate: null,
+    };
+  }
   /**
    * Helper to resolve the correct redirect URI with production localhost guards
    */
@@ -432,6 +493,9 @@ export class GoogleAdsService {
         timeZone: "UTC",
         manager: false,
         testAccount: false,
+        managerId: null,
+        isProductionRestricted: false,
+        restrictionReason: null,
       };
 
       // Attempt to query customer details via GoogleAdsService:search
@@ -461,14 +525,82 @@ export class GoogleAdsService {
           const queryData = await queryRes.json();
           const row = queryData.results?.[0]?.customer;
           if (row) {
+            const isTest = Boolean(row.testAccount);
             customerMeta = {
               id: rawId,
               descriptiveName: row.descriptiveName || `Account ${this.formatCustomerId(rawId)}`,
               currencyCode: row.currencyCode || "USD",
               timeZone: row.timeZone || "UTC",
               manager: Boolean(row.manager),
-              testAccount: Boolean(row.testAccount),
+              testAccount: isTest,
+              managerId: null,
+              isProductionRestricted: !isTest,
+              restrictionReason: !isTest
+                ? "Production Account (Requires Explorer or Basic Access)"
+                : null,
             };
+
+            // If this is a Manager Account (e.g. Test MCC), discover child client accounts!
+            if (row.manager) {
+              try {
+                const clientRes = await fetch(`${GOOGLE_ADS_BASE_URL}/customers/${rawId}/googleAds:search`, {
+                  method: "POST",
+                  headers: {
+                    ...headers,
+                    "login-customer-id": rawId,
+                  },
+                  body: JSON.stringify({
+                    query: `
+                      SELECT 
+                        customer_client.id, 
+                        customer_client.descriptive_name, 
+                        customer_client.currency_code, 
+                        customer_client.time_zone, 
+                        customer_client.manager, 
+                        customer_client.test_account, 
+                        customer_client.status 
+                      FROM customer_client 
+                      WHERE customer_client.status = 'ENABLED' 
+                      LIMIT 50
+                    `,
+                  }),
+                });
+
+                if (clientRes.ok) {
+                  const clientData = await clientRes.json();
+                  const clientRows = clientData.results || [];
+                  for (const cRow of clientRows) {
+                    const client = cRow.customerClient;
+                    if (client && client.id && client.id.toString() !== rawId) {
+                      const childIsTest = Boolean(client.testAccount);
+                      discovered.push({
+                        id: client.id.toString(),
+                        descriptiveName: client.descriptiveName || `Test Account (${this.formatCustomerId(client.id)})`,
+                        currencyCode: client.currencyCode || "USD",
+                        timeZone: client.timeZone || "UTC",
+                        manager: Boolean(client.manager),
+                        testAccount: childIsTest,
+                        managerId: rawId, // Store parent MCC ID as login-customer-id!
+                        isProductionRestricted: !childIsTest,
+                        restrictionReason: !childIsTest
+                          ? "Production Account (Requires Explorer or Basic Access)"
+                          : null,
+                      });
+                    }
+                  }
+                }
+              } catch (clientErr) {
+                // Non-blocking child account discovery
+              }
+            }
+          }
+        } else {
+          // If query failed, check if it's because this account is production-restricted under Test Access
+          const err = await this.parseGoogleAdsError(queryRes);
+          if (this.isTestAccountRestrictedError(queryRes.status, err)) {
+            customerMeta.isProductionRestricted = true;
+            customerMeta.testAccount = false;
+            customerMeta.restrictionReason = "Production Account (Restricted under Google Test Access)";
           }
         }
       } catch (err) {
@@ -487,50 +619,117 @@ export class GoogleAdsService {
   }
 
   /**
-   * Selects an active customer account for campaigns reporting
+   * Directly links and verifies an eligible Google Ads Test Account by ID
+   * Allows adding test client accounts and test MCCs directly
    * @param {string} userId
    * @param {string} customerId
    * @param {string} [managerId]
    */
-  static async selectCustomerAccount(userId, customerId, managerId = null) {
+  static async linkTestCustomerAccount(userId, customerId, managerId = null) {
     const cleanId = this.cleanCustomerId(customerId);
     if (!cleanId) {
-      throw ApiError.badRequest("Valid Google Ads Customer ID is required.");
+      throw ApiError.badRequest("Valid 10-digit Google Ads Customer ID is required.");
     }
 
-    const account = await GoogleAdsAccount.findOne({ userId });
+    if (!env.GOOGLE_ADS_DEVELOPER_TOKEN) {
+      throw ApiError.badRequest("Google Ads Developer Token is not configured on the server.");
+    }
+
+    const account = await GoogleAdsAccount.findOne({ userId }).select("+encryptedRefreshToken +encryptedAccessToken");
     if (!account) {
-      throw ApiError.notFound("No Google Ads connection found.");
+      throw ApiError.notFound("No Google Ads connection found. Please connect first.");
     }
 
-    // Find account in discovered list or default
-    const matched = account.accessibleCustomers.find((c) => c.id === cleanId);
+    const accessToken = await this.getValidAccessToken(account);
+    const cleanManagerId = managerId ? this.cleanCustomerId(managerId) : null;
 
-    const customerName = matched?.descriptiveName || `Google Ads (${this.formatCustomerId(cleanId)})`;
-    const currency = matched?.currencyCode || "USD";
-    const timeZone = matched?.timeZone || "UTC";
-    const isManager = Boolean(matched?.manager);
-    const isTest = Boolean(matched?.testAccount);
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      "developer-token": env.GOOGLE_ADS_DEVELOPER_TOKEN,
+      "Content-Type": "application/json",
+      ...(cleanManagerId ? { "login-customer-id": cleanManagerId } : { "login-customer-id": cleanId }),
+    };
 
+    // Query customer metadata
+    const queryRes = await fetch(`${GOOGLE_ADS_BASE_URL}/customers/${cleanId}/googleAds:search`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query: `
+          SELECT 
+            customer.id, 
+            customer.descriptive_name, 
+            customer.currency_code, 
+            customer.time_zone, 
+            customer.manager, 
+            customer.test_account 
+          FROM customer 
+          LIMIT 1
+        `,
+      }),
+    });
+
+    if (!queryRes.ok) {
+      const err = await this.parseGoogleAdsError(queryRes);
+      if (this.isTestAccountRestrictedError(queryRes.status, err)) {
+        throw ApiError.forbidden(
+          `Account ${this.formatCustomerId(cleanId)} is a Production Account. Your Google Ads API access is currently restricted to Test Accounts. Please enter an eligible Google Ads Test Account ID.`
+        );
+      }
+      throw ApiError.badRequest(`Failed to verify Google Ads account: ${err.message}`);
+    }
+
+    const queryData = await queryRes.json();
+    const row = queryData.results?.[0]?.customer;
+    if (!row) {
+      throw ApiError.notFound(`Account ${this.formatCustomerId(cleanId)} could not be found.`);
+    }
+
+    const testMeta = {
+      id: cleanId,
+      descriptiveName: row.descriptiveName || `Test Account (${this.formatCustomerId(cleanId)})`,
+      currencyCode: row.currencyCode || "USD",
+      timeZone: row.timeZone || "UTC",
+      manager: Boolean(row.manager),
+      testAccount: Boolean(row.testAccount),
+      managerId: cleanManagerId,
+      isProductionRestricted: !Boolean(row.testAccount),
+      restrictionReason: !Boolean(row.testAccount)
+        ? "Production Account (Requires Explorer or Basic Access)"
+        : null,
+    };
+
+    // Add or update in accessibleCustomers
+    const existingIndex = (account.accessibleCustomers || []).findIndex((c) => c.id === cleanId);
+    if (existingIndex >= 0) {
+      account.accessibleCustomers[existingIndex] = testMeta;
+    } else {
+      account.accessibleCustomers.push(testMeta);
+    }
+
+    // Set as active selected account
     account.selectedCustomerId = cleanId;
-    account.selectedCustomerName = customerName;
-    account.selectedCustomerCurrency = currency;
-    account.selectedCustomerTimeZone = timeZone;
-    account.isManagerAccount = isManager;
-    account.isTestAccount = isTest;
-    account.loginCustomerId = managerId ? this.cleanCustomerId(managerId) : (isManager ? cleanId : null);
+    account.selectedCustomerName = testMeta.descriptiveName;
+    account.selectedCustomerCurrency = testMeta.currencyCode;
+    account.selectedCustomerTimeZone = testMeta.timeZone;
+    account.isManagerAccount = testMeta.manager;
+    account.isTestAccount = testMeta.testAccount;
+    account.isProductionRestricted = testMeta.isProductionRestricted;
+    account.loginCustomerId = cleanManagerId || (testMeta.manager ? cleanId : null);
+    if (!account.selectedCustomerIds.includes(cleanId)) {
+      account.selectedCustomerIds.push(cleanId);
+    }
     await account.save();
 
-    // Sync with ADOS ConnectedAccount model so it surfaces consistently in ADOS multi-platform UI
     await ConnectedAccount.findOneAndUpdate(
-      { userId, platform: "google" },
+      { userId, platform: "google", accountId: this.formatCustomerId(cleanId) },
       {
         userId,
-        name: customerName,
+        name: testMeta.descriptiveName,
         accountId: this.formatCustomerId(cleanId),
         platform: "google",
-        currency: currency === "INR" ? "INR (₹)" : `${currency} ($)`,
-        status: "Healthy",
+        currency: testMeta.currencyCode === "INR" ? "INR (₹)" : `${testMeta.currencyCode} ($)`,
+        status: testMeta.isProductionRestricted ? "Warning" : "Healthy",
         lastSync: "Just now",
         iconBg: "bg-emerald-600",
       },
@@ -541,12 +740,99 @@ export class GoogleAdsService {
   }
 
   /**
-   * Fetches real-time campaigns and performance metrics for the active selected account using GAQL
+   * Selects active customer account(s) for campaigns reporting
+   * Supports both single account selection and multiple accounts selection per user
+   * @param {string} userId
+   * @param {string|Object} optionsOrCustomerId
+   * @param {string} [managerId]
+   */
+  static async selectCustomerAccount(userId, optionsOrCustomerId, managerId = null) {
+    let targetCustomerId = null;
+    let targetCustomerIds = [];
+    let targetManagerId = managerId;
+
+    if (typeof optionsOrCustomerId === "object" && optionsOrCustomerId !== null) {
+      targetCustomerId = optionsOrCustomerId.customerId || null;
+      targetCustomerIds = Array.isArray(optionsOrCustomerId.customerIds) ? optionsOrCustomerId.customerIds : [];
+      if (optionsOrCustomerId.managerId) {
+        targetManagerId = optionsOrCustomerId.managerId;
+      }
+    } else {
+      targetCustomerId = optionsOrCustomerId;
+    }
+
+    // Clean all IDs
+    const cleanIds = [
+      ...(targetCustomerId ? [this.cleanCustomerId(targetCustomerId)] : []),
+      ...targetCustomerIds.map((id) => this.cleanCustomerId(id)),
+    ].filter(Boolean);
+
+    const uniqueCleanIds = Array.from(new Set(cleanIds));
+
+    if (uniqueCleanIds.length === 0) {
+      throw ApiError.badRequest("At least one valid Google Ads Customer ID is required.");
+    }
+
+    const primaryId = targetCustomerId ? this.cleanCustomerId(targetCustomerId) : uniqueCleanIds[0];
+
+    const account = await GoogleAdsAccount.findOne({ userId });
+    if (!account) {
+      throw ApiError.notFound("No Google Ads connection found.");
+    }
+
+    // Find primary account metadata
+    const matched = account.accessibleCustomers.find((c) => c.id === primaryId);
+    const customerName = matched?.descriptiveName || `Google Ads (${this.formatCustomerId(primaryId)})`;
+    const currency = matched?.currencyCode || "USD";
+    const timeZone = matched?.timeZone || "UTC";
+    const isManager = Boolean(matched?.manager);
+    const isTest = Boolean(matched?.testAccount);
+    const isRestricted = Boolean(matched?.isProductionRestricted);
+
+    account.selectedCustomerId = primaryId;
+    account.selectedCustomerIds = uniqueCleanIds;
+    account.selectedCustomerName = customerName;
+    account.selectedCustomerCurrency = currency;
+    account.selectedCustomerTimeZone = timeZone;
+    account.isManagerAccount = isManager;
+    account.isTestAccount = isTest;
+    account.isProductionRestricted = isRestricted;
+    account.loginCustomerId = matched?.managerId || targetManagerId || (isManager ? primaryId : null);
+    await account.save();
+
+    // Sync all selected accounts into ADOS ConnectedAccount model for multi-account consistency
+    for (const accId of uniqueCleanIds) {
+      const accMatch = account.accessibleCustomers.find((c) => c.id === accId);
+      const accName = accMatch?.descriptiveName || `Google Ads (${this.formatCustomerId(accId)})`;
+      const accCurr = accMatch?.currencyCode || "USD";
+      const accRestricted = Boolean(accMatch?.isProductionRestricted);
+
+      await ConnectedAccount.findOneAndUpdate(
+        { userId, platform: "google", accountId: this.formatCustomerId(accId) },
+        {
+          userId,
+          name: accName,
+          accountId: this.formatCustomerId(accId),
+          platform: "google",
+          currency: accCurr === "INR" ? "INR (₹)" : `${accCurr} ($)`,
+          status: accRestricted ? "Warning" : "Healthy",
+          lastSync: "Just now",
+          iconBg: "bg-emerald-600",
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    return await this.getStatus(userId);
+  }
+
+  /**
+   * Fetches real-time campaigns, date-wise performance, and metrics for the active account using GAQL
    * @param {string} userId
    * @param {Object} options
    * @returns {Promise<Object>}
    */
-  static async getCampaigns(userId, { dateRange = "LAST_30_DAYS", limit = 50 } = {}) {
+  static async getCampaigns(userId, { dateRange = "LAST_30_DAYS", startDate = null, endDate = null, limit = 50 } = {}) {
     const account = await GoogleAdsAccount.findOne({ userId }).select("+encryptedRefreshToken +encryptedAccessToken");
     if (!account) {
       throw ApiError.notFound("No Google Ads integration found. Please connect your account first.");
@@ -562,7 +848,13 @@ export class GoogleAdsService {
       );
     }
 
-    const targetRange = VALID_DATE_RANGES.includes(dateRange.toUpperCase()) ? dateRange.toUpperCase() : "LAST_30_DAYS";
+    if (account.isProductionRestricted) {
+      throw ApiError.forbidden(
+        `Account ${this.formatCustomerId(account.selectedCustomerId)} is a Production Google Ads account. Google Ads API restricts Test Access tokens to Google Ads Test Accounts only. To view live analytics for this production account, submit an application for Basic or Standard Access in Google Ads API Center. For immediate testing, please switch to an eligible Google Ads Test Account.`
+      );
+    }
+
+    const dateInfo = this.buildDateClause(dateRange, startDate, endDate);
     const customerId = account.selectedCustomerId;
     const accessToken = await this.getValidAccessToken(account);
 
@@ -576,7 +868,7 @@ export class GoogleAdsService {
       headers["login-customer-id"] = account.loginCustomerId;
     }
 
-    // Google Ads Query Language (GAQL) query for Campaign reporting
+    // 1. Google Ads Query Language (GAQL) query for Campaign performance reporting
     const gaqlQuery = `
       SELECT 
         campaign.id, 
@@ -593,18 +885,41 @@ export class GoogleAdsService {
         metrics.conversions, 
         metrics.conversions_value 
       FROM campaign 
-      WHERE segments.date DURING ${targetRange} 
+      WHERE ${dateInfo.clause} 
       ORDER BY metrics.impressions DESC 
       LIMIT ${Math.min(Number(limit) || 50, 100)}
     `;
 
+    // 2. GAQL query for date-wise daily aggregate performance (for line/area charts)
+    const dailyGaqlQuery = `
+      SELECT 
+        segments.date, 
+        metrics.impressions, 
+        metrics.clicks, 
+        metrics.cost_micros, 
+        metrics.conversions, 
+        metrics.conversions_value 
+      FROM customer 
+      WHERE ${dateInfo.clause} 
+      ORDER BY segments.date ASC
+    `;
+
     let searchResponse;
+    let dailySearchResponse;
+
     try {
-      searchResponse = await fetch(`${GOOGLE_ADS_BASE_URL}/customers/${customerId}/googleAds:search`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ query: gaqlQuery }),
-      });
+      [searchResponse, dailySearchResponse] = await Promise.all([
+        fetch(`${GOOGLE_ADS_BASE_URL}/customers/${customerId}/googleAds:search`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ query: gaqlQuery }),
+        }),
+        fetch(`${GOOGLE_ADS_BASE_URL}/customers/${customerId}/googleAds:search`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ query: dailyGaqlQuery }),
+        }).catch(() => null),
+      ]);
     } catch (netErr) {
       throw ApiError.internal(`Network failure fetching Google Ads campaigns: ${netErr.message}`);
     }
@@ -613,8 +928,12 @@ export class GoogleAdsService {
       const err = await this.parseGoogleAdsError(searchResponse);
 
       if (this.isTestAccountRestrictedError(searchResponse.status, err)) {
+        await GoogleAdsAccount.updateOne(
+          { _id: account._id },
+          { isProductionRestricted: true }
+        );
         throw ApiError.forbidden(
-          "Your Google Cloud project currently has Test access and can only query Google Ads Test Accounts. Querying live production accounts requires Explorer access (currently under review) or higher in Google Cloud Console. Please select a Test Account to continue testing."
+          `Account ${this.formatCustomerId(customerId)} is a Production Google Ads account. Google Ads API restricts Test Access to Google Ads Test Accounts only. To view live analytics for this production account, submit an application for Basic or Standard Access in Google Ads API Center. For immediate testing, please switch to an eligible Google Ads Test Account.`
         );
       }
 
@@ -630,11 +949,45 @@ export class GoogleAdsService {
     const data = await searchResponse.json();
     const rows = data.results || [];
 
+    // Parse date-wise performance
+    let dateWisePerformance = [];
+    if (dailySearchResponse && dailySearchResponse.ok) {
+      try {
+        const dailyData = await dailySearchResponse.json();
+        const dailyRows = dailyData.results || [];
+        dateWisePerformance = dailyRows.map((row) => {
+          const m = row.metrics || {};
+          const cMicros = Number(m.costMicros || 0);
+          const imps = Number(m.impressions || 0);
+          const clks = Number(m.clicks || 0);
+          const convs = Number(m.conversions || 0);
+          const convVal = m.conversionsValue ? Number(m.conversionsValue) : 0;
+          const cost = +(cMicros / 1000000).toFixed(2);
+          const ctr = imps > 0 ? +((clks / imps) * 100).toFixed(2) : 0;
+          const cpc = clks > 0 ? +(cost / clks).toFixed(2) : 0;
+
+          return {
+            date: row.segments?.date || "",
+            spend: cost,
+            impressions: imps,
+            clicks: clks,
+            ctr,
+            averageCpc: cpc,
+            conversions: convs,
+            conversionsValue: +convVal.toFixed(2),
+          };
+        });
+      } catch (e) {
+        dateWisePerformance = [];
+      }
+    }
+
     // Aggregate summary counters
     let totalSpendMicros = 0;
     let totalImpressions = 0;
     let totalClicks = 0;
     let totalConversions = 0;
+    let totalConversionsValue = 0;
 
     const campaigns = rows.map((row) => {
       const c = row.campaign || {};
@@ -644,6 +997,7 @@ export class GoogleAdsService {
       const impressions = Number(m.impressions || 0);
       const clicks = Number(m.clicks || 0);
       const conversions = Number(m.conversions || 0);
+      const convValue = m.conversionsValue ? Number(m.conversionsValue) : 0;
       const rawCtr = m.ctr !== undefined ? Number(m.ctr) : null;
       const avgCpcMicros = Number(m.averageCpc || 0);
 
@@ -651,6 +1005,10 @@ export class GoogleAdsService {
       totalImpressions += impressions;
       totalClicks += clicks;
       totalConversions += conversions;
+      totalConversionsValue += convValue;
+
+      const cost = +(costMicros / 1000000).toFixed(2);
+      const roas = cost > 0 && convValue > 0 ? +(convValue / cost).toFixed(2) : null;
 
       return {
         id: c.id,
@@ -662,18 +1020,20 @@ export class GoogleAdsService {
         impressions,
         clicks,
         // Convert micros to standard currency units (1,000,000 micros = 1 currency unit)
-        cost: +(costMicros / 1000000).toFixed(2),
+        cost,
         costMicros,
-        ctrPercent: rawCtr !== null ? +(rawCtr * 100).toFixed(2) : 0,
+        ctrPercent: rawCtr !== null ? +(rawCtr * 100).toFixed(2) : (impressions > 0 ? +((clicks / impressions) * 100).toFixed(2) : 0),
         averageCpc: +(avgCpcMicros / 1000000).toFixed(2),
         conversions,
-        conversionsValue: m.conversionsValue ? +Number(m.conversionsValue).toFixed(2) : 0,
+        conversionsValue: +convValue.toFixed(2),
+        roas,
       };
     });
 
     const totalCost = +(totalSpendMicros / 1000000).toFixed(2);
     const overallCtr = totalImpressions > 0 ? +((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
     const overallAvgCpc = totalClicks > 0 ? +(totalCost / totalClicks).toFixed(2) : 0;
+    const overallRoas = totalCost > 0 && totalConversionsValue > 0 ? +(totalConversionsValue / totalCost).toFixed(2) : null;
 
     return {
       selectedAccount: {
@@ -685,7 +1045,9 @@ export class GoogleAdsService {
         isTestAccount: account.isTestAccount,
         isManagerAccount: account.isManagerAccount,
       },
-      dateRange: targetRange,
+      dateRange: dateInfo.label,
+      startDate: dateInfo.startDate,
+      endDate: dateInfo.endDate,
       metricsSummary: {
         totalCost,
         totalImpressions,
@@ -693,8 +1055,11 @@ export class GoogleAdsService {
         overallCtr,
         overallAvgCpc,
         totalConversions,
+        totalConversionsValue: +totalConversionsValue.toFixed(2),
+        overallRoas,
         campaignCount: campaigns.length,
       },
+      dateWisePerformance,
       campaigns,
     };
   }
@@ -714,17 +1079,25 @@ export class GoogleAdsService {
         hasDeveloperToken: Boolean(env.GOOGLE_ADS_DEVELOPER_TOKEN),
         connectedEmail: null,
         selectedAccount: null,
+        selectedCustomerId: null,
+        selectedCustomerIds: [],
         accessibleCustomers: [],
         lastSyncAt: null,
       };
     }
 
+    const selectedIds = Array.isArray(account.selectedCustomerIds) && account.selectedCustomerIds.length > 0
+      ? account.selectedCustomerIds
+      : (account.selectedCustomerId ? [account.selectedCustomerId] : []);
+
     return {
       isConnected: account.status === "CONNECTED",
       status: account.status,
       hasDeveloperToken: Boolean(env.GOOGLE_ADS_DEVELOPER_TOKEN),
+      apiAccessMode: "TEST_ACCESS",
       connectedEmail: account.connectedEmail,
       selectedCustomerId: account.selectedCustomerId || null,
+      selectedCustomerIds: selectedIds,
       selectedCustomerName: account.selectedCustomerName || null,
       selectedAccount: account.selectedCustomerId
         ? {
@@ -735,6 +1108,7 @@ export class GoogleAdsService {
             timeZone: account.selectedCustomerTimeZone,
             isManager: account.isManagerAccount,
             isTestAccount: account.isTestAccount,
+            isProductionRestricted: Boolean(account.isProductionRestricted),
           }
         : null,
       accessibleCustomers: (account.accessibleCustomers || []).map((c) => ({
@@ -743,8 +1117,12 @@ export class GoogleAdsService {
         descriptiveName: c.descriptiveName,
         currencyCode: c.currencyCode,
         timeZone: c.timeZone,
-        manager: c.manager,
-        testAccount: c.testAccount,
+        manager: Boolean(c.manager),
+        testAccount: Boolean(c.testAccount),
+        managerId: c.managerId || null,
+        isProductionRestricted: Boolean(c.isProductionRestricted),
+        restrictionReason: c.restrictionReason || (c.isProductionRestricted ? "Production Account (Restricted under Test Access)" : null),
+        selected: selectedIds.includes(c.id) || c.id === account.selectedCustomerId,
       })),
       lastSyncAt: account.lastSyncAt,
       errorMessage: account.errorMessage,

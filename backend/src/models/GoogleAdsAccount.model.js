@@ -26,6 +26,19 @@ const accessibleCustomerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    managerId: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    isProductionRestricted: {
+      type: Boolean,
+      default: false,
+    },
+    restrictionReason: {
+      type: String,
+      default: null,
+    },
   },
   { _id: false }
 );
@@ -66,6 +79,10 @@ const googleAdsAccountSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    selectedCustomerIds: {
+      type: [String],
+      default: [],
+    },
     selectedCustomerName: {
       type: String,
       default: null,
@@ -84,6 +101,10 @@ const googleAdsAccountSchema = new mongoose.Schema(
       default: false,
     },
     isTestAccount: {
+      type: Boolean,
+      default: false,
+    },
+    isProductionRestricted: {
       type: Boolean,
       default: false,
     },

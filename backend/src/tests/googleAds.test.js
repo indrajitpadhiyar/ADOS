@@ -222,4 +222,33 @@ describe("Google Ads OAuth Integration Test Suite", () => {
       );
     });
   });
+
+  describe("7. GAQL Date Clause Generator (Standard, 90 Days, Custom Range)", () => {
+    test("builds DURING clause for standard keywords", () => {
+      const res7 = GoogleAdsService.buildDateClause("LAST_7_DAYS");
+      assert.equal(res7.clause, "segments.date DURING LAST_7_DAYS");
+      assert.equal(res7.label, "LAST_7_DAYS");
+
+      const res30 = GoogleAdsService.buildDateClause("LAST_30_DAYS");
+      assert.equal(res30.clause, "segments.date DURING LAST_30_DAYS");
+      assert.equal(res30.label, "LAST_30_DAYS");
+    });
+
+    test("builds BETWEEN clause for LAST_90_DAYS to overcome GAQL enum limitation", () => {
+      const res90 = GoogleAdsService.buildDateClause("LAST_90_DAYS");
+      assert.ok(res90.clause.startsWith("segments.date BETWEEN '"));
+      assert.ok(res90.clause.includes("' AND '"));
+      assert.equal(res90.label, "LAST_90_DAYS");
+      assert.ok(res90.startDate);
+      assert.ok(res90.endDate);
+    });
+
+    test("builds BETWEEN clause for custom date ranges", () => {
+      const resCustom = GoogleAdsService.buildDateClause("CUSTOM", "2026-10-01", "2026-11-15");
+      assert.equal(resCustom.clause, "segments.date BETWEEN '2026-10-01' AND '2026-11-15'");
+      assert.equal(resCustom.label, "2026-10-01 to 2026-11-15");
+      assert.equal(resCustom.startDate, "2026-10-01");
+      assert.equal(resCustom.endDate, "2026-11-15");
+    });
+  });
 });

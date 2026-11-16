@@ -28,6 +28,7 @@ router.get("/auth-url", googleAdsOAuthLimiter, GoogleAdsController.getAuthUrl);
 router.get("/status", GoogleAdsController.getStatus);
 router.get("/accounts", googleAdsApiLimiter, GoogleAdsController.getAccounts);
 router.post("/select-account", googleAdsApiLimiter, GoogleAdsController.selectAccount);
+router.post("/link-test-account", googleAdsApiLimiter, GoogleAdsController.linkTestAccount);
 
 // Read-only reporting
 router.get("/campaigns", googleAdsApiLimiter, GoogleAdsController.getCampaigns);

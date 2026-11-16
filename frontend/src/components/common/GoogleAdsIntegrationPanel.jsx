@@ -23,9 +23,12 @@ import {
   Sparkles,
   Zap,
   Copy,
+  DollarSign,
+  BarChart3,
+  Search,
 } from "lucide-react";
 
-export default function GoogleAdsIntegrationPanel({ onToast }) {
+export default function GoogleAdsIntegrationPanel({ onToast, onOpenLinkTest }) {
   const [statusData, setStatusData] = useState(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -37,6 +40,10 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   // Campaigns & Date Filter state
   const [campaignData, setCampaignData] = useState(null);
   const [dateRange, setDateRange] = useState("LAST_30_DAYS");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [isCustomDateOpen, setIsCustomDateOpen] = useState(false);
+  const [campaignSearch, setCampaignSearch] = useState("");
   const [campaignError, setCampaignError] = useState(null);
   const [accountError, setAccountError] = useState(null);
 
@@ -81,7 +88,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
 
       // If already connected with an active customer account, fetch campaigns
       if (res?.isConnected && res?.selectedAccount?.id) {
-        loadCampaigns(dateRange);
+        loadCampaigns("LAST_30_DAYS");
       }
     } catch (err) {
       console.warn("Notice: Failed to load Google Ads status:", err.message);
@@ -98,7 +105,6 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
       const returnUrl = typeof window !== "undefined" ? `${window.location.origin}/ad-accounts` : undefined;
       const res = await api.getGoogleAdsAuthUrl({ returnUrl });
       if (res?.authUrl) {
-        // Redirect browser to Google's consent screen
         window.location.href = res.authUrl;
       } else {
         throw new Error("Unable to generate Google Ads authorization link.");
@@ -137,7 +143,6 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
       const updated = await api.selectGoogleAdsAccount(account.id, account.manager ? account.id : null);
       setStatusData(updated);
       onToast?.(`Active account set to: ${account.descriptiveName}`);
-      // Refresh campaigns for newly selected account
       loadCampaigns(dateRange);
     } catch (err) {
       setAccountError(err.message);
@@ -148,11 +153,16 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   };
 
   // Fetch real-time campaign performance using GAQL
-  const loadCampaigns = async (selectedRange = dateRange) => {
+  const loadCampaigns = async (selectedRange = dateRange, start = customStart, end = customEnd) => {
     try {
       setIsLoadingCampaigns(true);
       setCampaignError(null);
-      const res = await api.getGoogleAdsCampaigns({ dateRange: selectedRange });
+      const params = { dateRange: selectedRange };
+      if (selectedRange === "CUSTOM" && start && end) {
+        params.startDate = start;
+        params.endDate = end;
+      }
+      const res = await api.getGoogleAdsCampaigns(params);
       setCampaignData(res);
     } catch (err) {
       console.warn("Notice: Failed to load campaigns:", err.message);
@@ -166,7 +176,20 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   // Change date filter
   const handleDateRangeChange = (newRange) => {
     setDateRange(newRange);
-    loadCampaigns(newRange);
+    if (newRange === "CUSTOM") {
+      setIsCustomDateOpen(true);
+    } else {
+      setIsCustomDateOpen(false);
+      loadCampaigns(newRange);
+    }
+  };
+
+  const handleApplyCustomDates = () => {
+    if (!customStart || !customEnd) {
+      onToast?.("Please choose both a start date and an end date.");
+      return;
+    }
+    loadCampaigns("CUSTOM", customStart, customEnd);
   };
 
   // Disconnect Google Ads
@@ -201,7 +224,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   if (isLoadingStatus) {
     return (
       <div className="bg-white rounded-3xl p-10 border border-slate-200/80 shadow-2xs flex flex-col items-center justify-center text-center space-y-4">
-        <RefreshCw className="w-8 h-8 text-[#ff4a22] animate-spin" />
+        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
         <p className="text-xs font-bold text-slate-500">Checking Google Ads integration telemetry...</p>
       </div>
     );
@@ -211,29 +234,36 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
   const selectedAccount = statusData?.selectedAccount;
   const accessibleCustomers = statusData?.accessibleCustomers || [];
 
+  // Filter campaigns by search
+  const filteredCampaigns = (campaignData?.campaigns || []).filter((c) => {
+    if (!campaignSearch) return true;
+    const q = campaignSearch.toLowerCase();
+    return (c.name || "").toLowerCase().includes(q) || (c.id || "").includes(q);
+  });
+
   return (
-    <div className="space-y-6 animate-fadeIn font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="space-y-6 font-['Plus_Jakarta_Sans',sans-serif] animate-fadeIn">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#111113] via-[#1a1a20] to-[#25252e] text-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3 max-w-xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Google Ads API v18</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[11px] font-bold">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Developer Testing Mode</span>
+              <span>Read-Only Analytics</span>
             </span>
           </div>
 
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-3">
             <PlatformLogo platform="google" size="md" />
-            <span>Google Ads Integration & Live Reporting</span>
+            <span>Google Ads Performance Analytics</span>
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Authorize your Google Ads MCC or client accounts to pull live GAQL campaign performance, telemetry metrics, and multi-network attribution directly into ADOS.
+            Real-time cross-campaign reporting, ROAS tracking, and conversion value attribution queried directly through Google Ads Query Language (GAQL).
           </p>
         </div>
 
@@ -244,7 +274,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
               type="button"
               onClick={handleConnectGoogleAds}
               disabled={isConnecting}
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold shadow-lg hover:shadow-emerald-900/30 transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
+              className="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow-lg hover:shadow-blue-900/30 transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
             >
               {isConnecting ? (
                 <>
@@ -286,17 +316,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
         </div>
       </div>
 
-      {/* Developer Testing Mode Advisory Note */}
-      <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-4 flex items-start gap-3">
-        <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-900 leading-relaxed">
-          <span className="font-bold">Developer Testing Mode Notice:</span> Your Google Ads API access is currently in{" "}
-          <strong className="underline">Test</strong> access level while Standard/Explorer access is under review.
-          Google Ads API allows calls only against <strong>Google Ads Test Accounts</strong> (or a test MCC). Once your Google approval completes, production accounts will unlock automatically with the same credentials.
-        </div>
-      </div>
-
-      {/* Google Cloud Authorized Redirect URI Helper */}
+      {/* Google Cloud Authorized Redirect URI Helper (Only shown when disconnected) */}
       {!isConnected && (
         <div className="bg-blue-50/70 border border-blue-200/90 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -323,7 +343,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
       {!isConnected ? (
         /* Not Connected State */
         <div className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-2xs text-center space-y-6">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-50 border border-emerald-100 mx-auto flex items-center justify-center">
+          <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 mx-auto flex items-center justify-center">
             <PlatformLogo platform="google" size="lg" />
           </div>
 
@@ -337,23 +357,23 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto text-left text-xs">
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
               <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <Check className="w-3.5 h-3.5 text-blue-600" />
                 <span>Read-Only Scope</span>
               </div>
-              <p className="text-[11px] text-slate-500">Only views campaigns & performance metrics. Never modifies ads or spends money.</p>
+              <p className="text-[11px] text-slate-500">Only views campaigns & performance metrics. Never modifies ads or creates billing charges.</p>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
               <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Tokens Encrypted</span>
+                <Check className="w-3.5 h-3.5 text-blue-600" />
+                <span>AES-256-GCM Vault</span>
               </div>
-              <p className="text-[11px] text-slate-500">AES-256-GCM encryption at rest on backend. Never leaked to client or logs.</p>
+              <p className="text-[11px] text-slate-500">Refresh tokens encrypted at rest on backend. Never leaked to client or logs.</p>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
               <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <Check className="w-3.5 h-3.5 text-blue-600" />
                 <span>Offline Access</span>
               </div>
               <p className="text-[11px] text-slate-500">Automatic token refresh for continuous background telemetry reporting.</p>
@@ -364,7 +384,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
             type="button"
             onClick={handleConnectGoogleAds}
             disabled={isConnecting}
-            className="px-6 py-3 rounded-full bg-[#111113] hover:bg-black text-white text-xs font-extrabold shadow-md transition-all inline-flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
+            className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold shadow-md transition-all inline-flex items-center gap-2 cursor-pointer"
           >
             <PlatformLogo platform="google" size="xs" />
             <span>Connect Google Ads Now</span>
@@ -377,7 +397,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3.5">
-                <div className="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-100">
+                <div className="p-2.5 rounded-2xl bg-blue-50 border border-blue-100">
                   <PlatformLogo platform="google" size="md" />
                 </div>
                 <div>
@@ -389,9 +409,17 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       <span>Connected</span>
                     </span>
-                    {selectedAccount?.isTestAccount && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">
+                    {selectedAccount?.isTestAccount ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
                         Test Account
+                      </span>
+                    ) : selectedAccount?.isProductionRestricted ? (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">
+                        Production (Restricted under Test Access)
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold">
+                        Production Account
                       </span>
                     )}
                     {selectedAccount?.isManager && (
@@ -414,7 +442,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer w-full sm:w-auto justify-between"
                 >
-                  <Building2 className="w-3.5 h-3.5 text-[#ff4a22]" />
+                  <Building2 className="w-3.5 h-3.5 text-blue-600" />
                   <span>{selectedAccount ? "Switch Customer Account" : "Select Customer Account"}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                 </button>
@@ -426,7 +454,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                       <button
                         type="button"
                         onClick={handleSyncAccounts}
-                        className="text-[#ff4a22] hover:underline cursor-pointer flex items-center gap-1"
+                        className="text-blue-600 hover:underline cursor-pointer flex items-center gap-1"
                       >
                         <RefreshCw className="w-3 h-3" />
                         <span>Refresh</span>
@@ -443,14 +471,29 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                           key={cust.id}
                           onClick={() => handleSelectAccount(cust)}
                           className={`px-3.5 py-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors ${
-                            selectedAccount?.id === cust.id ? "bg-orange-50/50" : ""
+                            selectedAccount?.id === cust.id ? "bg-blue-50/50" : ""
                           }`}
                         >
                           <div>
-                            <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                            <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                               <span>{cust.descriptiveName}</span>
-                              {cust.testAccount && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">Test</span>
+                              {cust.testAccount ? (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                  Test
+                                </span>
+                              ) : cust.isProductionRestricted ? (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                  Production (Restricted)
+                                </span>
+                              ) : (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                  Production
+                                </span>
+                              )}
+                              {cust.manager && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                  MCC
+                                </span>
                               )}
                             </div>
                             <span className="text-[10px] text-slate-400 font-mono">
@@ -458,7 +501,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                             </span>
                           </div>
                           {selectedAccount?.id === cust.id && (
-                            <Check className="w-4 h-4 text-[#ff4a22] stroke-[3]" />
+                            <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
                           )}
                         </div>
                       ))
@@ -483,11 +526,36 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
           {/* Campaign Performance & Analytics Dashboard */}
           {selectedAccount ? (
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-6">
+              {/* Production Account Restriction Alert under Test Access */}
+              {selectedAccount?.isProductionRestricted && (
+                <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-3">
+                  <div className="flex items-center gap-2 font-bold text-amber-800 text-sm">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span>Google Ads Test Access Notice: Production Account Restricted</span>
+                  </div>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    This account is a <strong>Production Account</strong>. Your Google Ads API token is active under <strong>Test Access Mode</strong>. Google Ads API restricts direct live queries against Production accounts until Basic or Standard Access is approved (returning <code className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900">DEVELOPER_TOKEN_NOT_APPROVED</code>).
+                  </p>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    Under Test Access, you can execute all GAQL queries, live KPI summaries, and performance charts against any <strong>Google Ads Test Account</strong> or <strong>Test MCC</strong>.
+                  </p>
+                  {onOpenLinkTest && (
+                    <button
+                      type="button"
+                      onClick={onOpenLinkTest}
+                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+                    >
+                      <span>+ Link Test Account ID</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Date Filter & Metrics Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-base font-extrabold text-[#111113] flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-[#ff4a22]" />
+                    <Layers className="w-4 h-4 text-blue-600" />
                     <span>Live GAQL Campaign Performance</span>
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
@@ -501,8 +569,10 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                     { id: "LAST_7_DAYS", label: "7D" },
                     { id: "LAST_14_DAYS", label: "14D" },
                     { id: "LAST_30_DAYS", label: "30D" },
+                    { id: "LAST_90_DAYS", label: "90D" },
                     { id: "THIS_MONTH", label: "This Month" },
                     { id: "ALL_TIME", label: "All Time" },
+                    { id: "CUSTOM", label: "Custom" },
                   ].map((filter) => (
                     <button
                       key={filter.id}
@@ -530,6 +600,38 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                 </div>
               </div>
 
+              {/* Custom Date Range Picker */}
+              {isCustomDateOpen && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-3 text-xs">
+                  <span className="font-bold text-slate-700">Custom Date Range:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">From</span>
+                    <input
+                      type="date"
+                      value={customStart}
+                      onChange={(e) => setCustomStart(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">To</span>
+                    <input
+                      type="date"
+                      value={customEnd}
+                      onChange={(e) => setCustomEnd(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-800"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleApplyCustomDates}
+                    className="px-4 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 cursor-pointer shadow-xs"
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              )}
+
               {/* Campaign Error Banner */}
               {campaignError && (
                 <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
@@ -546,11 +648,11 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
 
               {/* Aggregate KPI Stat Cards */}
               {campaignData?.metricsSummary && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Spend</span>
                     <span className="text-base font-extrabold text-[#111113] mt-1 block">
-                      {selectedAccount.currency === "INR" ? "₹" : "$"}{campaignData.metricsSummary.totalCost}
+                      {selectedAccount.currency === "INR" ? "₹" : "$"}{Number(campaignData.metricsSummary.totalCost).toLocaleString("en-IN")}
                     </span>
                   </div>
 
@@ -584,25 +686,91 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
 
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Conversions</span>
-                    <span className="text-base font-extrabold text-purple-600 mt-1 block">
+                    <span className="text-base font-extrabold text-blue-600 mt-1 block">
                       {campaignData.metricsSummary.totalConversions}
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ROAS</span>
+                    <span className="text-base font-extrabold text-purple-600 mt-1 block">
+                      {campaignData.metricsSummary.overallRoas ? `${campaignData.metricsSummary.overallRoas}x` : "—"}
                     </span>
                   </div>
                 </div>
               )}
 
+              {/* Date-wise Performance Trend Chart (if returned by GAQL) */}
+              {campaignData?.dateWisePerformance?.length > 1 && (
+                <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-900">Daily Performance Trajectory</span>
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      {campaignData.dateWisePerformance.length} Daily Points
+                    </span>
+                  </div>
+
+                  <div className="h-28 w-full pt-1">
+                    <svg viewBox="0 0 500 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                      <defs>
+                        <linearGradient id="gadsDailyGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#2563eb" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      {/* Trend path */}
+                      {(() => {
+                        const pts = campaignData.dateWisePerformance;
+                        const maxSpend = Math.max(...pts.map((p) => p.spend), 1);
+                        const coords = pts.map((p, i) => {
+                          const x = (i / (pts.length - 1)) * 500;
+                          const y = 90 - (p.spend / maxSpend) * 75;
+                          return `${x},${y}`;
+                        });
+                        const pathD = `M ${coords.join(" L ")}`;
+                        const areaD = `M 0,100 L ${coords.join(" L ")} L 500,100 Z`;
+                        return (
+                          <>
+                            <path d={areaD} fill="url(#gadsDailyGradient)" />
+                            <path d={pathD} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" />
+                          </>
+                        );
+                      })()}
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {/* Search & Filter Header for Table */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={campaignSearch}
+                    onChange={(e) => setCampaignSearch(e.target.value)}
+                    placeholder="Search campaigns by name or ID..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="text-xs text-slate-400 font-medium">
+                  Showing {filteredCampaigns.length} of {campaignData?.campaigns?.length || 0} campaign(s)
+                </div>
+              </div>
+
               {/* Campaigns Data Table */}
               {isLoadingCampaigns ? (
                 <div className="py-12 text-center space-y-3">
-                  <RefreshCw className="w-6 h-6 text-[#ff4a22] animate-spin mx-auto" />
+                  <RefreshCw className="w-6 h-6 text-blue-600 animate-spin mx-auto" />
                   <p className="text-xs font-bold text-slate-500">Querying campaigns via Google Ads API...</p>
                 </div>
-              ) : campaignData?.campaigns?.length === 0 ? (
+              ) : filteredCampaigns.length === 0 ? (
                 <div className="py-12 text-center space-y-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
                   <Layers className="w-8 h-8 text-slate-300 mx-auto" />
-                  <h4 className="text-xs font-bold text-slate-700">No campaigns found for the selected date range ({dateRange})</h4>
+                  <h4 className="text-xs font-bold text-slate-700">No campaigns found for this view</h4>
                   <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-                    This Google Ads account currently has zero active or past campaigns recorded in this timeframe.
+                    This Google Ads account currently has zero campaigns matching the selected timeframe and search filter.
                   </p>
                 </div>
               ) : (
@@ -619,10 +787,11 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                         <th className="pb-3 font-semibold text-right">CTR</th>
                         <th className="pb-3 font-semibold text-right">Avg CPC</th>
                         <th className="pb-3 font-semibold text-right">Conv.</th>
+                        <th className="pb-3 font-semibold text-right">ROAS</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {(campaignData?.campaigns || []).map((camp) => (
+                      {filteredCampaigns.map((camp) => (
                         <tr key={camp.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3 pr-4">
                             <div className="font-bold text-slate-900">{camp.name}</div>
@@ -636,7 +805,7 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                           <td className="py-3 pr-4">
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                camp.status === "ENABLED"
+                                camp.status === "ENABLED" || camp.status === "ACTIVE"
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : camp.status === "PAUSED"
                                   ? "bg-amber-50 text-amber-700 border border-amber-200"
@@ -661,8 +830,11 @@ export default function GoogleAdsIntegrationPanel({ onToast }) {
                           <td className="py-3 text-right font-semibold text-slate-700">
                             {selectedAccount.currency === "INR" ? "₹" : "$"}{camp.averageCpc}
                           </td>
-                          <td className="py-3 text-right font-bold text-purple-600">
+                          <td className="py-3 text-right font-bold text-blue-600">
                             {camp.conversions}
+                          </td>
+                          <td className="py-3 text-right font-bold text-purple-600">
+                            {camp.roas ? `${camp.roas}x` : "—"}
                           </td>
                         </tr>
                       ))}
